@@ -1,14 +1,14 @@
-﻿// Plugin.h
+﻿// IOPlugin.h
 
 #pragma once
 
 //---------------------------------------------------------------------------//
 
-class Plugin : public IPlugin
+class IOPlugin : public IPlugin, public IIOPlugin
 {
 public:
-    explicit Plugin(IUnknown* pUnkOuter);
-    ~Plugin();
+    explicit IOPlugin(IUnknown* pUnkOuter);
+    ~IOPlugin();
 
     HRESULT __stdcall QueryInterface(REFIID riid, void** ppvObject) override;
     ULONG   __stdcall AddRef() override;
@@ -25,6 +25,13 @@ public:
     HRESULT __stdcall Start(LPCVOID args = nullptr) override;
     HRESULT __stdcall Stop() override;
 
+    HRESULT __stdcall Close(IPlugin* listener) override;
+    HRESULT __stdcall Open(LPCWSTR path, LPCWSTR format_as, IPlugin* listener) override;
+    HRESULT __stdcall QuerySupport(LPCWSTR path, LPCWSTR format_as) override;
+    HRESULT __stdcall Read(LPVOID buffer, size_t buf_size, size_t* cb_read) override;
+    HRESULT __stdcall Seek(INT64 offset, DWORD origin, UINT64* new_pos) override;
+    HRESULT __stdcall Write(LPCVOID buffer, size_t buf_size, size_t* cb_written) override;
+
 protected:
     ULONG    m_cRef;
     IPlugin* m_owner;
@@ -35,12 +42,12 @@ private:
     Impl* pimpl;
 
 private:
-    Plugin(const Plugin&);
-    Plugin(Plugin&&);
-    Plugin& operator =(const Plugin&);
-    Plugin& operator =(Plugin&&);
+    IOPlugin(const IOPlugin&);
+    IOPlugin(IOPlugin&&);
+    IOPlugin& operator =(const IOPlugin&);
+    IOPlugin& operator =(IOPlugin&&);
 };
 
 //---------------------------------------------------------------------------//
 
-// Plugin.h
+// IOPlugin.h

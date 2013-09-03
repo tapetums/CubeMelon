@@ -1,17 +1,17 @@
-﻿// SimplePlayer.Plugin.cpp
+﻿// Input.Wave.IOPlugin.cpp
 
 #include <windows.h>
 
 #include "..\include\DebugPrint.h"
 #include "..\include\LockModule.h"
 #include "..\include\Interfaces.h"
-#include "..\include\Plugin.h"
+#include "..\include\IOPlugin.h"
 
-#include "mainwindow.h"
+#include "configurewindow.h"
 
 //---------------------------------------------------------------------------//
 
-#define NAME TEXT("SimplePlayer")
+#define NAME TEXT("Input.Wave")
 
 //---------------------------------------------------------------------------//
 
@@ -19,24 +19,24 @@ extern const CLSID CLSID_Plugin;
 
 //---------------------------------------------------------------------------//
 
-struct Plugin::Impl
+struct IOPlugin::Impl
 {
     Impl();
     ~Impl();
 
-    MainWindow* mwnd;
+    ConfigureWindow* mwnd;
 };
 
 //---------------------------------------------------------------------------//
 
-Plugin::Impl::Impl()
+IOPlugin::Impl::Impl()
 {
     mwnd = nullptr;
 }
 
 //---------------------------------------------------------------------------//
 
-Plugin::Impl::~Impl()
+IOPlugin::Impl::~Impl()
 {
     if ( mwnd )
     {
@@ -47,7 +47,7 @@ Plugin::Impl::~Impl()
 
 //---------------------------------------------------------------------------//
 
-Plugin::Plugin(IUnknown* pUnkOuter)
+IOPlugin::IOPlugin(IUnknown* pUnkOuter)
 {
     DebugPrintLn(NAME TEXT("::Constructor() begin"));
 
@@ -75,7 +75,7 @@ Plugin::Plugin(IUnknown* pUnkOuter)
 
 //---------------------------------------------------------------------------//
 
-Plugin::~Plugin()
+IOPlugin::~IOPlugin()
 {
     DebugPrintLn(NAME TEXT("::Destructor() begin"));
 
@@ -101,7 +101,7 @@ Plugin::~Plugin()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::QueryInterface(REFIID riid, void** ppvObject)
+HRESULT __stdcall IOPlugin::QueryInterface(REFIID riid, void** ppvObject)
 {
     DebugPrintLn(NAME TEXT("::QueryInterface() begin"));
 
@@ -130,7 +130,7 @@ HRESULT __stdcall Plugin::QueryInterface(REFIID riid, void** ppvObject)
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall Plugin::AddRef()
+ULONG __stdcall IOPlugin::AddRef()
 {
     DebugPrintLn(NAME TEXT("::AddRef() begin %d"), m_cRef);
 
@@ -145,7 +145,7 @@ ULONG __stdcall Plugin::AddRef()
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall Plugin::Release()
+ULONG __stdcall IOPlugin::Release()
 {
     DebugPrintLn(NAME TEXT("::Release() begin %d"), m_cRef);
 
@@ -166,49 +166,42 @@ ULONG __stdcall Plugin::Release()
 
 //---------------------------------------------------------------------------//
 
-::PluginManager* __stdcall Plugin::PluginManager() const
-{
-    return m_owner ? m_owner->PluginManager() : nullptr;
-}
-
-//---------------------------------------------------------------------------//
-
-REFCLSID __stdcall Plugin::ClassID() const
+REFCLSID __stdcall IOPlugin::ClassID() const
 {
     return CLSID_Plugin;
 }
 
 //---------------------------------------------------------------------------//
 
-IPlugin* __stdcall Plugin::Owner() const
+IPlugin* __stdcall IOPlugin::Owner() const
 {
     return m_owner;
 }
 
 //---------------------------------------------------------------------------//
 
-STATE __stdcall Plugin::Status() const
+STATE __stdcall IOPlugin::Status() const
 {
     return m_state;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::Attach(LPCWSTR msg, IPlugin* listener)
+HRESULT __stdcall IOPlugin::Attach(LPCWSTR msg, IPlugin* listener)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::Detach(LPCWSTR msg, IPlugin* listener)
+HRESULT __stdcall IOPlugin::Detach(LPCWSTR msg, IPlugin* listener)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::Notify
+HRESULT __stdcall IOPlugin::Notify
 (
     IPlugin* sender, LPCWSTR msg, LPVOID data, size_t cb_data
 )
@@ -218,7 +211,7 @@ HRESULT __stdcall Plugin::Notify
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::GetPluginInstance(REFCLSID rclsid, REFIID riid, void** ppvObject)
+HRESULT __stdcall IOPlugin::GetPluginInstance(REFCLSID rclsid, REFIID riid, void** ppvObject)
 {
     if ( m_owner )
     {
@@ -232,7 +225,7 @@ HRESULT __stdcall Plugin::GetPluginInstance(REFCLSID rclsid, REFIID riid, void**
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::Start(LPCVOID args)
+HRESULT __stdcall IOPlugin::Start(LPCVOID args)
 {
     DebugPrintLn(NAME TEXT("::Start() begin"));
 
@@ -246,9 +239,6 @@ HRESULT __stdcall Plugin::Start(LPCVOID args)
     }
 
     /// ここに処理を書く
-    pimpl->mwnd = new MainWindow;
-    pimpl->mwnd->setOwner(this);
-    pimpl->mwnd->show();
 
     m_state = STATE_RUNNING;
 
@@ -259,7 +249,7 @@ HRESULT __stdcall Plugin::Start(LPCVOID args)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::Stop()
+HRESULT __stdcall IOPlugin::Stop()
 {
     DebugPrintLn(NAME TEXT("::Stop() begin"));
 
@@ -290,4 +280,48 @@ HRESULT __stdcall Plugin::Stop()
     return S_OK;
 }
 
-// SimplePlayer.Plugin.cpp
+//---------------------------------------------------------------------------//
+
+HRESULT __stdcall IOPlugin::Close(IPlugin* listener)
+{
+    return E_NOTIMPL;
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT __stdcall IOPlugin::Open(LPCWSTR path, LPCWSTR format_as, IPlugin* listener)
+{
+    return E_NOTIMPL;
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT __stdcall IOPlugin::QuerySupport(LPCWSTR path, LPCWSTR format_as)
+{
+    return E_NOTIMPL;
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT __stdcall IOPlugin::Read(LPVOID buffer, size_t buf_size, size_t* cb_read)
+{
+    return E_NOTIMPL;
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT __stdcall IOPlugin::Seek(INT64 offset, DWORD origin, UINT64* new_pos)
+{
+    return E_NOTIMPL;
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT __stdcall IOPlugin::Write(LPCVOID buffer, size_t buf_size, size_t* cb_written)
+{
+    return E_NOTIMPL;
+}
+
+//---------------------------------------------------------------------------//
+
+// Input.Wave.IOPlugin.cpp

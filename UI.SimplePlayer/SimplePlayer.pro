@@ -6,29 +6,27 @@
 
 QT       += widgets
 
-TARGET = SimplePlayer
+TARGET = UI.SimplePlayer
 TEMPLATE = lib
 
-DEFINES += SIMPLEPLAYER_LIBRARY
-
 SOURCES += \
+    ../include/DWM.cpp \
+    ../include/DebugPrint.cpp \
+    ../include/LockModule.cpp \
+    mainwindow.cpp \
     ClassFactory.cpp \
     PluginProperty.cpp \
     DllMain.cpp \
-    Plugin.cpp \
-    ../include/LockModule.cpp \
-    mainwindow.cpp \
-    ../include/DWM.cpp \
-    ../include/DebugPrint.cpp
+    Plugin.cpp
 
 HEADERS += \
+    ../include/DWM.h \
+    ../include/DebugPrint.h \
     ../include/Interfaces.h \
     ../include/LockModule.h \
     ../include/PluginProperty.h \
     ../include/ClassFactory.h \
-    ../include/DebugPrint.h \
-    mainwindow.h \
-    ../include/DWM.h
+    mainwindow.h
 
 unix:!symbian {
     maemo5 {
@@ -39,6 +37,9 @@ unix:!symbian {
     INSTALLS += target
 }
 
+FORMS += \
+    mainwindow.ui
+
 DEF_FILE += ../CubeMelon.def
 
 RES_FILE += Plugin.res
@@ -48,6 +49,3 @@ CONFIG += dll
 OTHER_FILES += \
     Plugin.res \
     ../CubeMelon.def
-
-FORMS += \
-    mainwindow.ui

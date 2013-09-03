@@ -1,18 +1,17 @@
-﻿// CubeMelon.Plugin.cpp
+﻿// CubeMelon.Host.cpp
 
 #include <memory>
 #include <map>
 
 #include <windows.h>
-#include <propsys.h>
 #include <shlwapi.h>
 #pragma comment(lib, "shlwapi.lib")
 
 #include "..\include\DebugPrint.h"
 #include "..\include\LockModule.h"
 #include "..\include\Interfaces.h"
-#include "..\include\PluginManager.h"
-#include "..\include\Plugin.h"
+#include "PluginManager.h"
+#include "Host.h"
 
 //---------------------------------------------------------------------------//
 
@@ -23,40 +22,52 @@ extern HINSTANCE g_hInst;
 
 //---------------------------------------------------------------------------//
 
-struct Plugin::Impl
+struct Host::Impl
 {
     Impl();
     ~Impl();
 
-    ::PluginManager manager;
-    Plugin* plugin;
+    ::PluginManager* manager;
+    IPlugin*         child;
 };
 
 //---------------------------------------------------------------------------//
 
-Plugin::Impl::Impl()
+Host::Impl::Impl()
 {
-    plugin = nullptr;
+    manager = nullptr;
+    child  = nullptr;
 }
 
 //---------------------------------------------------------------------------//
 
-Plugin::Impl::~Impl()
+Host::Impl::~Impl()
 {
-    if ( plugin )
+    if ( child )
     {
-        plugin->Release();
-        plugin = nullptr;
+        child->Release();
+        child = nullptr;
+    }
+    if ( manager )
+    {
+        manager->Release();
+        manager = nullptr;
     }
 }
 
 //---------------------------------------------------------------------------//
 
-Plugin::Plugin(IUnknown* pUnkOuter)
+Host::Host(IUnknown* pUnkOuter)
 {
     DebugPrintLn(NAME TEXT("::Constructor() begin"));
 
     pimpl = new Impl;
+
+    WCHAR dir_path[MAX_PATH];
+    ::GetModuleFileName(nullptr, dir_path, MAX_PATH);
+    ::PathRemoveFileSpec(dir_path);
+    ::PathAppend(dir_path, TEXT("\\plugins"));
+    pimpl->manager = new ::PluginManager(dir_path);
 
     m_cRef  = 0;
     m_owner = nullptr;
@@ -69,7 +80,7 @@ Plugin::Plugin(IUnknown* pUnkOuter)
 
 //---------------------------------------------------------------------------//
 
-Plugin::~Plugin()
+Host::~Host()
 {
     DebugPrintLn(NAME TEXT("::Destructor() begin"));
 
@@ -79,6 +90,12 @@ Plugin::~Plugin()
     m_owner = nullptr;
     m_cRef  = 0;
 
+    if ( pimpl->manager )
+    {
+        pimpl->manager->Release();
+        pimpl->manager = nullptr;
+    }
+
     delete pimpl;
     pimpl = nullptr;
 
@@ -87,7 +104,7 @@ Plugin::~Plugin()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::QueryInterface(REFIID riid, void** ppvObject)
+HRESULT __stdcall Host::QueryInterface(REFIID riid, void** ppvObject)
 {
     DebugPrintLn(NAME TEXT("::QueryInterface() begin"));
 
@@ -101,6 +118,10 @@ HRESULT __stdcall Plugin::QueryInterface(REFIID riid, void** ppvObject)
     if ( IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IPlugin) )
     {
         *ppvObject = static_cast<IPlugin*>(this);
+    }
+    else if ( IsEqualIID(riid, IID_IPluginHost) )
+    {
+        *ppvObject = static_cast<IPluginHost*>(this);
     }
     else
     {
@@ -116,7 +137,7 @@ HRESULT __stdcall Plugin::QueryInterface(REFIID riid, void** ppvObject)
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall Plugin::AddRef()
+ULONG __stdcall Host::AddRef()
 {
     DebugPrintLn(NAME TEXT("::AddRef() begin %d"), m_cRef);
 
@@ -131,16 +152,16 @@ ULONG __stdcall Plugin::AddRef()
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall Plugin::Release()
+ULONG __stdcall Host::Release()
 {
     DebugPrintLn(NAME TEXT("::Release() begin %d"), m_cRef);
 
     LONG cRef = ::InterlockedDecrement(&m_cRef);
     if ( cRef == 0 )
     {
-        DebugPrintLn(TEXT("\tDeleting..."));
+        DebugPrintLn(TEXT("Deleting..."));
         delete this;
-        DebugPrintLn(TEXT("\tDeleted"));
+        DebugPrintLn(TEXT("Deleted"));
     }
 
     UnlockModule();
@@ -152,74 +173,55 @@ ULONG __stdcall Plugin::Release()
 
 //---------------------------------------------------------------------------//
 
-::PluginManager* __stdcall Plugin::PluginManager() const
-{
-    return &(pimpl->manager);
-}
-
-//---------------------------------------------------------------------------//
-
-REFCLSID __stdcall Plugin::ClassID() const
+REFCLSID __stdcall Host::ClassID() const
 {
     return CLSID_Plugin;
 }
 
 //---------------------------------------------------------------------------//
 
-IPlugin* __stdcall Plugin::Owner() const
+IPlugin* __stdcall Host::Owner() const
 {
     return m_owner;
 }
 
 //---------------------------------------------------------------------------//
 
-STATE __stdcall Plugin::Status() const
+STATE __stdcall Host::Status() const
 {
-    DebugPrintLn(NAME TEXT("::Status() %d"), m_state);
     return m_state;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::Attach(LPCWSTR msg, IPlugin* listener)
+HRESULT __stdcall Host::Attach(LPCWSTR msg, IPlugin* listener)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::Detach(LPCWSTR msg, IPlugin* listener)
+HRESULT __stdcall Host::Detach(LPCWSTR msg, IPlugin* listener)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::Notify
+HRESULT __stdcall Host::Notify
 (
     IPlugin* sender, LPCWSTR msg, LPVOID data, size_t cb_data
 )
 {
-    if ( 0 == lstrcmp(msg, TEXT("GetPluginManager")) )
-    {
-        if ( nullptr == data )
-        {
-            return E_INVALIDARG;
-        }
-        auto pm = (::PluginManager**)data;
-        *pm = &(pimpl->manager);
-
-        return S_OK;
-    }
-    else
-    {
-        return S_FALSE;
-    }
+    return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::GetPluginInstance(REFCLSID rclsid, REFIID riid, void** ppvObject)
+HRESULT __stdcall Host::GetPluginInstance
+(
+    REFCLSID rclsid, REFIID riid, void** ppvObject
+)
 {
     DebugPrintLn(NAME TEXT("::GetPluginInstance() begin"));
 
@@ -237,25 +239,24 @@ HRESULT __stdcall Plugin::GetPluginInstance(REFCLSID rclsid, REFIID riid, void**
         return this->QueryInterface(riid, ppvObject);
     }
 
-    size_t i = 0;
-    auto count = pimpl->manager.PluginCount();
-    auto plugins = pimpl->manager.AllPlugins();
-    PluginInstance* pi = nullptr;
-    for ( ; i < count; ++i )
+    size_t index = 0;
+    auto count = pimpl->manager->PluginCount();
+    IPluginContainer* pc = nullptr;
+    for ( ; index < count; ++index )
     {
-        pi = plugins[i];
-        if ( pi && IsEqualCLSID(rclsid, pi->ClassID()) )
+        pc = pimpl->manager->PluginContainer(index);
+        if ( pc && IsEqualCLSID(rclsid, pc->ClassID()) )
         {
             break;
         }
     }
-    if ( nullptr == pi || i == count )
+    if ( index == count )
     {
         return CS_E_CLASS_NOTFOUND;
     }
 
     IClassFactory* factory = nullptr;
-    hr = pi->GetClassObject
+    hr = pc->GetClassObject
     (
         IID_IClassFactory, (void**)&factory
     );
@@ -264,7 +265,7 @@ HRESULT __stdcall Plugin::GetPluginInstance(REFCLSID rclsid, REFIID riid, void**
         return hr;
     }
 
-    hr = factory->CreateInstance(this, riid, ppvObject);
+    hr = factory->CreateInstance(static_cast<IUnknown*>((void*)this), riid, ppvObject);
     factory->Release();
     factory = nullptr;
 
@@ -282,7 +283,7 @@ HRESULT __stdcall Plugin::GetPluginInstance(REFCLSID rclsid, REFIID riid, void**
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::Start(LPCVOID args)
+HRESULT __stdcall Host::Start(LPCVOID args)
 {
     DebugPrintLn(NAME TEXT("::Start() begin"));
 
@@ -290,7 +291,7 @@ HRESULT __stdcall Plugin::Start(LPCVOID args)
 
     if ( m_state == STATE_RUNNING )
     {
-        DebugPrintLn(TEXT("\tAlready started"));
+        DebugPrintLn(TEXT("Already started"));
 
         return hr;
     }
@@ -298,38 +299,38 @@ HRESULT __stdcall Plugin::Start(LPCVOID args)
     m_state = STATE_RUNNING;
 
     // プラグインの読み込み
-    DebugPrintLn(TEXT("\tLoading plugins..."));
+    DebugPrintLn(TEXT("Loading plugins..."));
     {
-        hr = pimpl->manager.LoadAll();
+        hr = pimpl->manager->LoadAll();
         if ( FAILED(hr) )
         {
             return hr;
         }
     }
-    DebugPrintLn(TEXT("\tLoaded plugins"));
+    DebugPrintLn(TEXT("Loaded plugins"));
 
     // プラグインの起動
-    DebugPrintLn(TEXT("\tExecuting plugin..."));
+    DebugPrintLn(TEXT("Executing plugin..."));
     {
         CLSID clsid =
         { 0x520e13ad, 0x3345, 0x4377, { 0xb2, 0xef, 0x68, 0x42, 0xea, 0x79, 0xb2, 0x5b } };
 
         hr = this->GetPluginInstance
         (
-            clsid, IID_IPlugin, (void**)&pimpl->plugin
+            clsid, IID_IPlugin, (void**)&pimpl->child
         );
-        if ( FAILED(hr) || nullptr == pimpl->plugin )
+        if ( FAILED(hr) || nullptr == pimpl->child )
         {
-            DebugPrintLn(TEXT("\tPlugin was not found"));
+            DebugPrintLn(TEXT("Plugin was not found"));
             return hr;
         }
 
-        hr = pimpl->plugin->Start(nullptr);
+        hr = pimpl->child->Start(nullptr);
     }
-    DebugPrintLn(TEXT("\tExecuted plugin"));
+    DebugPrintLn(TEXT("Executed plugin"));
 
     // 起動させなかったプラグインは一旦アンロード
-    pimpl->manager.FreeAll();
+    pimpl->manager->FreeAll();
 
     DebugPrintLn(NAME TEXT("::Start() end"));
 
@@ -338,22 +339,22 @@ HRESULT __stdcall Plugin::Start(LPCVOID args)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::Stop()
+HRESULT __stdcall Host::Stop()
 {
     DebugPrintLn(NAME TEXT("::Stop() begin"));
 
     if ( m_state == STATE_IDLE )
     {
-        DebugPrintLn(TEXT("\tAlready stopped"));
+        DebugPrintLn(TEXT("Already stopped"));
         return S_FALSE;
     }
 
     m_state = STATE_IDLE;
 
-    if ( pimpl->plugin )
+    if ( pimpl->child )
     {
-        pimpl->plugin->Release();
-        pimpl->plugin = nullptr;
+        pimpl->child->Release();
+        pimpl->child = nullptr;
     }
 
     DebugPrintLn(NAME TEXT("::Stop() end"));
@@ -361,4 +362,13 @@ HRESULT __stdcall Plugin::Stop()
     return S_OK;
 }
 
-// CubeMelon.Plugin.cpp
+//---------------------------------------------------------------------------//
+
+IPluginManager* __stdcall Host::PluginManager() const
+{
+    return pimpl->manager;
+}
+
+//---------------------------------------------------------------------------//
+
+// CubeMelon.Host.cpp

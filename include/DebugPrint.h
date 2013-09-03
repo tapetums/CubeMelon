@@ -18,4 +18,6 @@ void DebugPrintLn(const wchar_t* format, ...);
 
 #endif
 
+//---------------------------------------------------------------------------//
+
 // DebugPrint.h

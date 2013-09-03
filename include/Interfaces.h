@@ -50,7 +50,163 @@ struct VersionInfo
 
 //---------------------------------------------------------------------------//
 
-class PluginManager;
+struct IPropertyStore;
+
+static const IID IID_IPluginContainer =
+{ 0x6036103d, 0xe3bd, 0x46ba, { 0xb9, 0xa8, 0x3f, 0xfd, 0xfd, 0x68, 0xd7, 0x23 } };
+
+//!
+//! @interface IPluginContainer Interfaces.h
+//! @brief プラグインの各種情報を格納するオブジェクトのインターフェイスです。
+//!
+class IPluginContainer : public IUnknown
+{
+public:
+    //!
+    //! @brief プラグインのクラスIDを返します。
+    //! @param なし
+    //! @return プラグインのクラスID
+    //!
+    virtual REFCLSID     __stdcall ClassID()     const = 0;
+    //!
+    //! @brief プラグインの著作権情報を返します。
+    //! @param なし
+    //! @return プラグインの著作権情報
+    //!
+    virtual LPCWSTR      __stdcall Copyright()   const = 0;
+    //!
+    //! @brief プラグインの詳細説明を返します。
+    //! @param なし
+    //! @return プラグインの詳細説明
+    //!
+    virtual LPCWSTR      __stdcall Description() const = 0;
+    //!
+    //! @brief プラグインが格納されているDLLファイルのフルパスを返します。
+    //! @param なし
+    //! @return DLLファイルのフルパス
+    //!
+    virtual LPCWSTR      __stdcall FilePath()    const = 0;
+    //!
+    //! @brief プラグインのDLLファイル中におけるインデックスを返します。
+    //! @param なし
+    //! @return プラグインのインデックス
+    //!
+    virtual size_t       __stdcall Index()       const = 0;
+    //!
+    //! @brief プラグイン名を返します。
+    //! @param なし
+    //! @return プラグイン名
+    //!
+    virtual LPCWSTR      __stdcall Name()        const = 0;
+    //!
+    //! @brief プラグインのバージョン情報を返します。
+    //! @param なし
+    //! @return プラグインのバージョン情報
+    //!
+    virtual VersionInfo* __stdcall Version()     const = 0;
+
+    //!
+    //! @brief DLLファイルからプラグインを読み込みます。
+    //! @param なし
+    //! @return 無事読み込めたか
+    //! @retval S_OK
+    //! @retval E_FAIL
+    //!
+    virtual HRESULT __stdcall Load() = 0;
+    //!
+    //! @brief DLLファイルを解放します。
+    //! @param なし
+    //! @return 無事解放できたか
+    //! @retval S_OK
+    //! @retval E_FAIL
+    //!
+    virtual HRESULT __stdcall Free() = 0;
+    //!
+    //! @brief プラグインのプロパティを取得します。
+    //! @param [out] ps プロパティオブジェクトの格納先アドレス
+    //! @return 無事取得できたか
+    //! @retval S_OK
+    //! @retval E_FAIL
+    //!
+    virtual HRESULT __stdcall GetProperty(IPropertyStore** ps) = 0;
+    //!
+    //! @brief ファクトリオブジェクトを取得します。
+    //! @param [in] riid IID_IClassFactory を指定します。
+    //! @param [out] ppvObject ファクトリオブジェクトの格納先アドレス
+    //! @return 無事取得できたか
+    //! @retval S_OK
+    //! @retval E_FAIL
+    //!
+    virtual HRESULT __stdcall GetClassObject(REFIID riid, void** ppvObject) = 0;
+};
+
+//---------------------------------------------------------------------------//
+
+static const IID IID_IPluginManager =
+{ 0x45e0aaf1, 0x3e4e, 0x4e6e, { 0x92, 0x5b, 0x92, 0x9e, 0xc1, 0xa5, 0x63, 0xf7 } };
+
+//!
+//! @interface IPluginManager Interfaces.h
+//! @brief プラグイン管理オブジェクトのインターフェイスです。
+//!
+class IPluginManager : public IUnknown
+{
+public:
+    //!
+    //! @brief 管理しているプラグインフォルダの名前を返します。。
+    //! @param なし
+    //! @return プラグインフォルダの名前
+    //!
+    virtual LPCWSTR           __stdcall DirectoryPath()               const = 0;
+    //!
+    //! @brief 管理しているプラグインの数を取得します。
+    //! @param なし
+    //! @return プラグインの数
+    //!
+    virtual size_t            __stdcall PluginCount()                 const = 0;
+    //!
+    //! @brief プラグイン格納オブジェクトを取得します。
+    //! @param [in] index インデックス
+    //! @return プラグイン格納オブジェクト
+    //! @retval nullptr 無効なインデックス値
+    //!
+    virtual IPluginContainer* __stdcall PluginContainer(size_t index) const = 0;
+
+    //!
+    //! @brief 全てのプラグインを読み込みます。
+    //! @param なし
+    //! @return 無事読み込めたか
+    //! @retval S_OK
+    //! @retval E_FAIL
+    //!
+    virtual HRESULT __stdcall LoadAll() = 0;
+    //!
+    //! @brief 全てのプラグインを解放します。
+    //! @param なし
+    //! @return 無事解放できたか
+    //! @retval S_OK 全て解放できた
+    //! @retval S_FALSE 一部は解放できなかった
+    //! @retval E_FAIL 一つも解放できなかった
+    //!
+    virtual HRESULT __stdcall FreeAll() = 0;
+};
+
+//---------------------------------------------------------------------------//
+
+static const IID IID_IPluginHost =
+{ 0x52e418bc, 0x7f56, 0x45b3, { 0x93, 0x02, 0x46, 0x31, 0x0d, 0xfb, 0x61, 0x4b } };
+
+//!
+//! @interface IPluginHost Interfaces.h
+//! @brief プラグインのルートオブジェクトのインターフェイスです。
+//!
+class IPluginHost : public IUnknown
+{
+public:
+    virtual IPluginManager* __stdcall PluginManager() const = 0;
+};
+
+//---------------------------------------------------------------------------//
 
 static const IID IID_IPlugin =
 { 0xa35dc0c3, 0xac5f, 0x447a, { 0xa4, 0x60, 0x9c, 0x52, 0x17, 0x72, 0x05, 0x7c } };
@@ -62,16 +218,6 @@ static const IID IID_IPlugin =
 class IPlugin : public IUnknown
 {
 public:
-    //!
-    //! @brief プラグイン管理オブジェクトを返します。
-    //! @param なし
-    //! @return プラグイン管理オブジェクトのインスタンス
-    //! @retval nullptr 不明なエラー
-    //! @note プラグイン自身がインスタンスを保有していない場合、<BR />
-    //!     メッセージは親プラグインに転送されます。
-    //!
-    virtual PluginManager* __stdcall PluginManager() const = 0;
-
     //!
     //! @brief プラグインのクラスIDを返します。
     //! @param なし
@@ -135,7 +281,7 @@ public:
     //!
     virtual HRESULT __stdcall Notify(IPlugin* sender, LPCWSTR msg, LPVOID data, size_t cb_data) = 0;
     //!
-    //! @brief プラグインが管理している子プラグインを取得します。
+    //! @brief プラグインの実体を取得します。
     //! @details 指定されたクラスIDのプラグインを所有していない場合、<BR />
     //!     メッセージは親プラグインに転送されます。
     //! @param [in] rclsid 取得したいプラグインのクラスID

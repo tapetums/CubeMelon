@@ -1,14 +1,16 @@
-﻿// Plugin.h
+﻿// CubeMelon.Host.h
 
 #pragma once
 
 //---------------------------------------------------------------------------//
 
-class Plugin : public IPlugin
+class IPluginManager;
+
+class Host : public IPlugin, public IPluginHost
 {
 public:
-    explicit Plugin(IUnknown* pUnkOuter);
-    ~Plugin();
+    explicit Host(IUnknown* pUnkOuter);
+    ~Host();
 
     HRESULT __stdcall QueryInterface(REFIID riid, void** ppvObject) override;
     ULONG   __stdcall AddRef() override;
@@ -25,6 +27,8 @@ public:
     HRESULT __stdcall Start(LPCVOID args = nullptr) override;
     HRESULT __stdcall Stop() override;
 
+    IPluginManager* __stdcall PluginManager() const override;
+
 protected:
     ULONG    m_cRef;
     IPlugin* m_owner;
@@ -35,12 +39,12 @@ private:
     Impl* pimpl;
 
 private:
-    Plugin(const Plugin&);
-    Plugin(Plugin&&);
-    Plugin& operator =(const Plugin&);
-    Plugin& operator =(Plugin&&);
+    Host(const Host&);
+    Host(Host&&);
+    Host& operator =(const Host&);
+    Host& operator =(Host&&);
 };
 
 //---------------------------------------------------------------------------//
 
-// Plugin.h
+// CubeMelon.Host.h

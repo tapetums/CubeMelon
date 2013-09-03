@@ -1,16 +1,14 @@
-﻿#include <windows.h>
+﻿// main.cpp
+
+#include <windows.h>
 
 #include <QApplication>
 #include "mainwindow.h"
 
 #include "..\include\DebugPrint.h"
 #include "..\include\Interfaces.h"
-#include "..\include\Plugin.h"
-#include "..\include\PluginManager.h"
-
-//---------------------------------------------------------------------------//
-
-extern MainWindow* mwnd = nullptr;
+#include "PluginManager.h"
+#include "Host.h"
 
 //---------------------------------------------------------------------------//
 
@@ -23,56 +21,62 @@ int main(int argc, wchar_t* argv[])
     int c = 0;
     QApplication a(c, nullptr);
 
-    // メインウィンドウの起動
-#if defined(_DEBUG) || defined(DEBUG)
-    mwnd = new MainWindow;
-#endif
-    if ( mwnd )
-    {
-       mwnd->showMinimized ();
-    }
-
     // プラグインホストの起動
-    auto host = new Plugin(nullptr);
+    auto host = new Host(nullptr);
     host->Start();
 
+#if defined(_DEBUG) || defined(DEBUG)
+    // メインウィンドウの起動
+    auto mwnd = new MainWindow;
     if ( mwnd )
     {
-        ::PluginManager* pm = nullptr;
-        auto hr = host->Notify(nullptr, TEXT("GetPluginManager"), &pm, 0);
-        if ( SUCCEEDED(hr) && nullptr != pm )
+        auto pm = host->PluginManager();
+        if ( pm )
         {
-            auto pi = pm->AllPlugins();
+            IPluginContainer* pc = nullptr;
             auto count = pm->PluginCount();
             for ( size_t index = 0; index < count; ++index )
             {
-                mwnd->addListItem(pi[index]->Name(), pi[index]->ClassID());
-                mwnd->addConsoleText(pi[index]->Name());
+                pc = pm->PluginContainer(index);
+                if ( pc )
+                {
+                    mwnd->addListItem(pc->Name(), pc->ClassID());
+                    mwnd->addConsoleText(pc->Name());
+                }
             }
         }
-
         mwnd->addConsoleText(TEXT("Ready"));
+        mwnd->showMinimized ();
     }
+#endif
 
     // メッセージループ
     DebugPrintLn(TEXT("---------------- Message Loop Begin ----------------"));
+
     int ret = a.exec();
+
     DebugPrintLn(TEXT("----------------  Message Loop End  ----------------"));
 
-    // プラグインホストの終了
-    host->Stop();
-    host->Release();
-    host = nullptr;
-
+#if defined(_DEBUG) || defined(DEBUG)
     // メインウィンドウの破棄
     if ( mwnd )
     {
         delete mwnd;
         mwnd = nullptr;
     }
+#endif
+
+    // プラグインホストの終了
+    host->Stop();
+    host->Release();
+    host = nullptr;
 
     // COMの後始末
     ::CoUninitialize();
 
     return ret;
 }
+
+//---------------------------------------------------------------------------//
+
+// main.cpp

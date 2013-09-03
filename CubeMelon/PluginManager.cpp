@@ -17,7 +17,7 @@
 #include "..\include\LockModule.h"
 #include "..\include\Interfaces.h"
 #include "..\include\Functions.h"
-#include "..\include\PluginManager.h"
+#include "PluginManager.h"
 
 //---------------------------------------------------------------------------//
 
@@ -26,9 +26,9 @@
 #define MSG_01 MSG_01_J
 
 #define NAME1 TEXT("PluginManager")
-#define NAME2 TEXT("PluginInstance")
+#define NAME2 TEXT("PluginContainer")
 
-#define MAX_PLUGIN_INSTANCE 255
+#define MAX_PLUGIN_COUNT 256
 
 //---------------------------------------------------------------------------//
 
@@ -39,62 +39,103 @@ inline bool operator<(const GUID& lhs, const GUID& rhs)
 
 //---------------------------------------------------------------------------//
 
-struct PluginInstance::Impl
+struct PluginContainer::Impl
 {
-    Impl();
+    Impl(LPCWSTR file_path, size_t index);
     ~Impl();
     void __stdcall Reset();
     void __stdcall GetProperty();
 
-    size_t index;
-    HMODULE hModule;
+    size_t            index;
+    LPWSTR            copyright;
+    LPWSTR            description;
+    LPWSTR            name;
+    HMODULE           hModule;
     DLLCANUNLOADNOW   DllCanUnloadNow;
     DLLGETPROPERTY    DllGetProperty;
     DLLGETCLASSOBJECT DllGetClassObject;
-    CLSID clsid;
-    WCHAR name[MAX_PATH];
-    WCHAR file_path[MAX_PATH];
+    CLSID             clsid;
+    WCHAR             file_path[MAX_PATH];
 };
 
 //---------------------------------------------------------------------------//
 
-PluginInstance::Impl::Impl()
+PluginContainer::Impl::Impl(LPCWSTR file_path, size_t index)
 {
-    index             = 0;
+    DebugPrintLn(NAME2 TEXT("::Impl::Constructor() begin"));
+
+    this->index       = index;
+    ::StringCchPrintf(this->file_path, MAX_PATH, file_path);
+
+    copyright         = nullptr;
+    description       = nullptr;
+    name              = nullptr;
     hModule           = nullptr;
     DllCanUnloadNow   = nullptr;
     DllGetProperty    = nullptr;
     DllGetClassObject = nullptr;
     clsid             = CLSID_NULL;
-    name[0]           = '\0';
-    file_path[0]      = '\0';
+
+    DebugPrintLn(NAME2 TEXT("::Impl::Constructor() end"));
 }
 
 //---------------------------------------------------------------------------//
 
-PluginInstance::Impl::~Impl()
+PluginContainer::Impl::~Impl()
 {
+    DebugPrintLn(NAME2 TEXT("::Impl::Destructor() begin"));
+
     this->Reset();
+
+    if ( copyright )
+    {
+        ::CoTaskMemFree(copyright);
+        copyright = nullptr;
+    }
+    if ( description )
+    {
+        ::CoTaskMemFree(description);
+        description = nullptr;
+    }
+    if ( name )
+    {
+        ::CoTaskMemFree(name);
+        name = nullptr;
+    }
+
+    DebugPrintLn(NAME2 TEXT("::Impl::Destructor() end"));
 }
 
 //---------------------------------------------------------------------------//
 
-void __stdcall PluginInstance::Impl::Reset()
+void __stdcall PluginContainer::Impl::Reset()
 {
-    if ( hModule )
+    DebugPrintLn(NAME2 TEXT("::Impl::Reset() begin"));
+
+    if ( nullptr == hModule )
     {
-        ::FreeLibrary(hModule);
+        DebugPrintLn(TEXT("Nothing to do"));
+        return;
     }
+
+    DebugPrintLn(TEXT("Freeing DLL..."));
+    DebugPrintLn(file_path);
+
+    ::FreeLibrary(hModule);
+
+    DebugPrintLn(TEXT("Freed DLL"));
 
     hModule           = nullptr;
     DllCanUnloadNow   = nullptr;
     DllGetProperty    = nullptr;
     DllGetClassObject = nullptr;
+
+    DebugPrintLn(NAME2 TEXT("::Impl::Reset() end"));
 }
 
 //---------------------------------------------------------------------------//
 
-void __stdcall PluginInstance::Impl::GetProperty()
+void __stdcall PluginContainer::Impl::GetProperty()
 {
     HRESULT hr;
     IPropertyStore* ps = nullptr;
@@ -103,29 +144,23 @@ void __stdcall PluginInstance::Impl::GetProperty()
 
     DebugPrintLn(NAME2 TEXT("::Impl::GetProperty() begin"));
 
-    if ( name[0] != '\0' )
-    {
-        DebugPrintLn(TEXT("\tAlready got"));
-        return;
-    }
-
     // IPropertyStore オブジェクトを取得
     hr = DllGetProperty(index, &ps);
     if ( FAILED(hr) || nullptr == ps )
     {
-        DebugPrintLn(TEXT("\tNo object at index == %d"), index);
+        DebugPrintLn(TEXT("No object at index == %d"), index);
         return;
     }
 
     // クラスIDを取得
-    DebugPrintLn(TEXT("\tGetting ClassID..."));
+    DebugPrintLn(TEXT("Getting ClassID..."));
     key.fmtid = PKEY_CubeMelon_GetProperty;
     key.pid   = CUBEMELON_PID_CLSID;
     ::PropVariantInit(&pv);
     hr = ps->GetValue(key, &pv);
     if ( FAILED(hr) || pv.vt != VT_CLSID )
     {
-        DebugPrintLn(TEXT("\tIPropertyStore::GetValue() failed"));
+        DebugPrintLn(TEXT("IPropertyStore::GetValue() failed"));
         return;
     }
     clsid = *pv.puuid;
@@ -141,21 +176,23 @@ void __stdcall PluginInstance::Impl::GetProperty()
     );
 
     // プラグイン名を取得
-    DebugPrintLn(TEXT("\tGetting plugin name..."));
+    DebugPrintLn(TEXT("Getting plugin name..."));
     key.fmtid = PKEY_CubeMelon_GetProperty;
     key.pid   = CUBEMELON_PID_NAME;
     ::PropVariantInit(&pv);
     hr = ps->GetValue(key, &pv);
     if ( FAILED(hr) || pv.vt != VT_LPWSTR )
     {
-        DebugPrintLn(TEXT("\tIPropertyStore::GetValue() failed"));
+        DebugPrintLn(TEXT("IPropertyStore::GetValue() failed"));
         return;
     }
 
-    ::StringCchPrintf(name, MAX_PATH, pv.pwszVal);
+    auto str_count = sizeof(nullptr) + wcslen(pv.pwszVal);
+    name = (LPWSTR)::CoTaskMemAlloc(sizeof(WCHAR) * (str_count));
+    ::StringCchPrintf(name, str_count, pv.pwszVal);
     ::PropVariantClear(&pv); // なるべくすぐに pv を解放
     DebugPrintLn(name);
-    DebugPrintLn(TEXT("\tGot plugin properties"));
+    DebugPrintLn(TEXT("Got plugin properties"));
 
     ps->Release();
     ps = nullptr;
@@ -165,20 +202,20 @@ void __stdcall PluginInstance::Impl::GetProperty()
 
 //---------------------------------------------------------------------------//
 
-PluginInstance::PluginInstance(LPCWSTR file_path, size_t index)
+PluginContainer::PluginContainer(LPCWSTR file_path, size_t index)
 {
     DebugPrintLn(NAME2 TEXT("::Constructor() begin"));
 
-    pimpl = new Impl;
-    ::StringCchPrintf(pimpl->file_path, MAX_PATH, file_path);
-    pimpl->index = index;
+    pimpl = new Impl(file_path, index);
+
+    m_cRef = 0;
 
     DebugPrintLn(NAME2 TEXT("::Constructor() end"));
 }
 
 //---------------------------------------------------------------------------//
 
-PluginInstance::~PluginInstance()
+PluginContainer::~PluginContainer()
 {
     DebugPrintLn(NAME2 TEXT("::Destructor() begin"));
 
@@ -192,35 +229,128 @@ PluginInstance::~PluginInstance()
 
 //---------------------------------------------------------------------------//
 
-LPCWSTR __stdcall PluginInstance::Name() const
+HRESULT __stdcall PluginContainer::QueryInterface(REFIID riid, void** ppvObject)
 {
-    return pimpl->name;
+    DebugPrintLn(NAME2 TEXT("::QueryInterface() begin"));
+
+    if ( nullptr == ppvObject )
+    {
+        return E_POINTER;
+    }
+
+    *ppvObject = nullptr;
+
+    if ( IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IPluginContainer) )
+    {
+        *ppvObject = static_cast<IPluginContainer*>(this);
+    }
+    else
+    {
+        return E_NOINTERFACE;
+    }
+
+    this->AddRef();
+
+    DebugPrintLn(NAME2 TEXT("::QueryInterface() end"));
+
+    return S_OK;
 }
 
 //---------------------------------------------------------------------------//
 
-LPCWSTR __stdcall PluginInstance::FilePath() const
+ULONG __stdcall PluginContainer::AddRef()
 {
-    return pimpl->file_path;
+    DebugPrintLn(NAME2 TEXT("::AddRef() begin %d"), m_cRef);
+
+    LockModule();
+
+    LONG cRef = ::InterlockedIncrement(&m_cRef);
+
+    DebugPrintLn(NAME2 TEXT("::AddRef() end %d"), cRef);
+
+    return static_cast<ULONG>(cRef);
 }
 
 //---------------------------------------------------------------------------//
 
-REFCLSID __stdcall PluginInstance::ClassID() const
+ULONG __stdcall PluginContainer::Release()
+{
+    DebugPrintLn(NAME2 TEXT("::Release() begin %d"), m_cRef);
+
+    LONG cRef = ::InterlockedDecrement(&m_cRef);
+    if ( cRef == 0 )
+    {
+        DebugPrintLn(TEXT("Deleting..."));
+        delete this;
+        DebugPrintLn(TEXT("Deleted"));
+    }
+
+    UnlockModule();
+
+    DebugPrintLn(NAME2 TEXT("::Release() end %d"), cRef);
+
+    return static_cast<ULONG>(cRef);
+}
+
+//---------------------------------------------------------------------------//
+
+REFCLSID __stdcall PluginContainer::ClassID() const
 {
     return pimpl->clsid;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginInstance::Load()
+LPCWSTR __stdcall PluginContainer::Copyright() const
+{
+    return pimpl->copyright;
+}
+
+//---------------------------------------------------------------------------//
+
+LPCWSTR __stdcall PluginContainer::Description() const
+{
+    return pimpl->description;
+}
+
+//---------------------------------------------------------------------------//
+
+LPCWSTR __stdcall PluginContainer::FilePath() const
+{
+    return pimpl->file_path;
+}
+
+//---------------------------------------------------------------------------//
+
+size_t __stdcall PluginContainer::Index() const
+{
+    return pimpl->index;
+}
+
+//---------------------------------------------------------------------------//
+
+LPCWSTR __stdcall PluginContainer::Name() const
+{
+    return pimpl->name;
+}
+
+//---------------------------------------------------------------------------//
+
+VersionInfo* __stdcall PluginContainer::Version() const
+{
+    return nullptr;
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT __stdcall PluginContainer::Load()
 {
     DebugPrintLn(NAME2 TEXT("::Load() begin"));
     DebugPrintLn(pimpl->file_path);
 
     if ( pimpl->hModule )
     {
-        DebugPrintLn(TEXT("\tAlready loaded"));
+        DebugPrintLn(TEXT("Already loaded"));
         return S_FALSE;
     }
 
@@ -233,7 +363,7 @@ HRESULT __stdcall PluginInstance::Load()
         );
         if ( nullptr == pimpl->hModule )
         {
-            throw TEXT("\tFailed to load plugin");
+            throw TEXT("Failed to load plugin");
         }
 
         // 公開関数のアドレスを取得
@@ -243,7 +373,7 @@ HRESULT __stdcall PluginInstance::Load()
         );
         if ( nullptr == pimpl->DllCanUnloadNow )
         {
-            throw TEXT("\tDllCanUnloadNow() is not found");
+            throw TEXT("DllCanUnloadNow() is not found");
         }
 
         pimpl->DllGetProperty = (DLLGETPROPERTY)::GetProcAddress
@@ -252,7 +382,7 @@ HRESULT __stdcall PluginInstance::Load()
         );
         if ( nullptr == pimpl->DllGetProperty )
         {
-            throw TEXT("\tDllGetProperty() is not found");
+            throw TEXT("DllGetProperty() is not found");
         }
 
         pimpl->DllGetClassObject = (DLLGETCLASSOBJECT)::GetProcAddress
@@ -261,14 +391,14 @@ HRESULT __stdcall PluginInstance::Load()
         );
         if ( nullptr == pimpl->DllGetClassObject )
         {
-            throw TEXT("\tDllGetClassObject() is not found");
+            throw TEXT("DllGetClassObject() is not found");
         }
 
         // プラグイン情報を取得
         pimpl->GetProperty();
-        if ( pimpl->name[0] == '\0' )
+        if ( IsEqualCLSID(pimpl->clsid, CLSID_NULL) )
         {
-            throw TEXT("\tDllGetProperty() failed");
+            throw TEXT("DllGetProperty() failed");
         }
     }
     catch (LPCWSTR msg)
@@ -276,7 +406,7 @@ HRESULT __stdcall PluginInstance::Load()
         DebugPrintLn(msg);
         msg = nullptr;
 
-        pimpl->Reset();
+        ///pimpl->Reset();
 
         return E_FAIL;
     }
@@ -288,21 +418,21 @@ HRESULT __stdcall PluginInstance::Load()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginInstance::Free()
+HRESULT __stdcall PluginContainer::Free()
 {
     DebugPrintLn(NAME2 TEXT("::Free() begin"));
     DebugPrintLn(pimpl->file_path);
 
     if ( nullptr == pimpl->hModule )
     {
-        DebugPrintLn(TEXT("\tAlready Freed"));
+        DebugPrintLn(TEXT("Already Freed"));
         return S_FALSE;
     }
 
     auto hr = pimpl->DllCanUnloadNow();
     if ( S_OK != hr )
     {
-        DebugPrintLn(TEXT("\tPlugin is locked"));
+        DebugPrintLn(TEXT("Plugin is locked"));
         return E_FAIL;
     }
 
@@ -315,7 +445,14 @@ HRESULT __stdcall PluginInstance::Free()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginInstance::GetClassObject(REFIID riid, void** ppvObject)
+HRESULT __stdcall PluginContainer::GetProperty(IPropertyStore** ps)
+{
+    return pimpl->DllGetProperty(pimpl->index, ps);
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT __stdcall PluginContainer::GetClassObject(REFIID riid, void** ppvObject)
 {
     DebugPrintLn(NAME2 TEXT("::GetClassObject() begin"));
 
@@ -335,7 +472,7 @@ HRESULT __stdcall PluginInstance::GetClassObject(REFIID riid, void** ppvObject)
 
 //---------------------------------------------------------------------------//
 
-typedef std::map<CLSID, std::unique_ptr<PluginInstance>> PluginMap;
+typedef std::map<CLSID, std::unique_ptr<PluginContainer>> PluginMap;
 
 struct PluginManager::Impl
 {
@@ -346,30 +483,55 @@ struct PluginManager::Impl
     void __stdcall ScanDirectory(LPCWSTR dir_path);
     void __stdcall RegisterPlugin(LPCWSTR plugin_path);
 
-    PluginMap pmap;
-    PluginInstance** plugins;
+    size_t              count;
+    ::PluginContainer** plugins;
+    PluginMap           pmap;
+    WCHAR               dir_path[MAX_PATH];
 };
 
 //---------------------------------------------------------------------------//
 
 PluginManager::Impl::Impl()
 {
+    DebugPrintLn(NAME1 TEXT("::Impl::Constructor() begin"));
+
+    count = 0;
     plugins = nullptr;
+    dir_path[0] = '\0';
+
+    DebugPrintLn(NAME1 TEXT("::Impl::Constructor() end"));
 }
 
 //---------------------------------------------------------------------------//
 
 PluginManager::Impl::~Impl()
 {
+    DebugPrintLn(NAME1 TEXT("::Impl::Destructor() begin"));
+
     this->Reset();
+
+    DebugPrintLn(NAME1 TEXT("::Impl::Destructor() end"));
 }
 
 //---------------------------------------------------------------------------//
 
 void __stdcall PluginManager::Impl::Reset()
 {
-    delete[] plugins;
-    plugins = nullptr;
+    DebugPrintLn(NAME1 TEXT("::Impl::Reset() begin"));
+
+    pmap.clear();
+
+    dir_path[0] = '\0';
+
+    if ( plugins )
+    {
+        delete[] plugins;
+        plugins = nullptr;
+    }
+
+    count = 0;
+
+    DebugPrintLn(NAME1 TEXT("::Impl::Reset() end"));
 }
 
 //---------------------------------------------------------------------------//
@@ -380,7 +542,7 @@ void __stdcall PluginManager::Impl::ScanDirectory(LPCWSTR dir_path)
 
     WCHAR path[MAX_PATH];
     ::StringCchPrintf(path, MAX_PATH, TEXT("%s\\*"), dir_path);
-    DebugPrintLn(TEXT("\tScanning..."));
+    DebugPrintLn(TEXT("Scanning..."));
     DebugPrintLn(path);
 
     // フォルダ内にあるものを列挙する
@@ -391,33 +553,33 @@ void __stdcall PluginManager::Impl::ScanDirectory(LPCWSTR dir_path)
         auto ret = ::MessageBox(nullptr, MSG_01, nullptr, MB_YESNO | MB_DEFBUTTON2);
         if ( ret == IDYES )
         {
-            DebugPrintLn(TEXT("\tCreating plugins directory..."));
+            DebugPrintLn(TEXT("Creating plugins directory..."));
             ::CreateDirectory(dir_path, nullptr);
-            DebugPrintLn(TEXT("\tCreated."));
+            DebugPrintLn(TEXT("Created."));
         }
         return;
     }
 
     do
     {
-        DebugPrintLn(TEXT("\tChecking file attribute..."));
+        DebugPrintLn(TEXT("Checking file attribute..."));
         DebugPrintLn(fd.cFileName);
 
         // ファイル名がピリオドで始まっているものは飛ばす
         if ( fd.cFileName && fd.cFileName[0] == '.' )
         {
-            DebugPrintLn(TEXT("\tThis is a dot file"));
+            DebugPrintLn(TEXT("This is a dot file"));
             continue;
         }
 
         // 隠し属性を持つものは飛ばす
         if ( fd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN )
         {
-            DebugPrintLn(TEXT("\tThis is a hidden file"));
+            DebugPrintLn(TEXT("This is a hidden file"));
             continue;
         }
 
-        DebugPrintLn(TEXT("\tChecked file attribute"));
+        DebugPrintLn(TEXT("Checked file attribute"));
 
         // フルパスを合成
         ::StringCchPrintf(path, MAX_PATH, TEXT("%s\\%s"), dir_path, fd.cFileName);
@@ -440,6 +602,8 @@ void __stdcall PluginManager::Impl::ScanDirectory(LPCWSTR dir_path)
                 RegisterPlugin(path);
             }
         }
+
+        DebugPrintLn(TEXT("Next file"));
     }
     while ( ::FindNextFile(hFindFile, &fd) == TRUE );
 
@@ -455,62 +619,71 @@ void __stdcall PluginManager::Impl::RegisterPlugin(LPCWSTR plugin_path)
     DebugPrintLn(NAME1 TEXT("::RegisterPlugin() begin"));
     DebugPrintLn(plugin_path);
 
-    PluginInstance* pi = nullptr;
+    ::PluginContainer* pc = nullptr;
     CLSID clsid = CLSID_NULL;
 
     // DLLファイルに含まれているクラスIDを全て取得
-    for ( size_t index = 0; index < MAX_PLUGIN_INSTANCE ; ++index )
+    for ( size_t index = 0; index < MAX_PLUGIN_COUNT ; ++index )
     {
-        DebugPrintLn(TEXT("\tSearching ClassIDs: index == %d"), index);
+        DebugPrintLn(TEXT("Searching ClassIDs: index == %d"), index);
 
         // プラグイン情報を管理するオブジェクトを生成
-        pi = new PluginInstance(plugin_path, index);
-        auto hr = pi->Load();
+        pc = new ::PluginContainer(plugin_path, index);
+        auto hr = pc->Load();
         if ( FAILED(hr) )
         {
-            delete pi;
-            pi = nullptr;
+            DebugPrintLn(TEXT("Disposing plugin container..."));
+
+            delete pc;
+            pc = nullptr;
+
+            DebugPrintLn(TEXT("Disposed"));
+
             break;
         }
-        ///pi->Free();
 
         // プラグインのクラスIDを取得
-        clsid = pi->ClassID();
+        clsid = pc->ClassID();
 
         // 同じクラスIDがすでに登録されていないか確認
-        DebugPrintLn(TEXT("\tChecking ClassID..."));
+        DebugPrintLn(TEXT("Checking ClassID..."));
         {
             auto it = pmap.find(clsid);
             if ( it != pmap.end() )
             {
-                DebugPrintLn(TEXT("\tDuplicate ClassID"));
+                DebugPrintLn(TEXT("Duplicate ClassID"));
                 continue;
             }
         }
-        DebugPrintLn(TEXT("\tChecked ClassID: no duplicate"));
+        DebugPrintLn(TEXT("Checked ClassID: no duplicate"));
 
         // プラグイン情報を本体のデータベースに記憶
-        DebugPrintLn(TEXT("\tRegistering plugin..."));
+        DebugPrintLn(TEXT("Registering plugin..."));
         {
             pmap.emplace
             (
-                std::make_pair(clsid, std::unique_ptr<PluginInstance>(pi))
+                std::make_pair(clsid, std::unique_ptr<::PluginContainer>(pc))
             );
         }
-        DebugPrintLn(TEXT("\tRegistered plugin"));
+        DebugPrintLn(TEXT("Registered plugin"));
     }
-    DebugPrintLn(TEXT("\tSearched ClassIDs"));
+    DebugPrintLn(TEXT("Searched ClassIDs"));
 
     DebugPrintLn(NAME1 TEXT("::RegisterPlugin() end"));
 }
 
 //---------------------------------------------------------------------------//
 
-PluginManager::PluginManager()
+PluginManager::PluginManager(LPCWSTR dir_path)
 {
     DebugPrintLn(NAME1 TEXT("::Constructor() begin"));
 
     pimpl = new Impl;
+    ::StringCchPrintf(pimpl->dir_path, MAX_PATH, dir_path);
+
+    m_cRef = 0;
+
+    this->AddRef();
 
     DebugPrintLn(NAME1 TEXT("::Constructor() end"));
 }
@@ -529,16 +702,95 @@ PluginManager::~PluginManager()
 
 //---------------------------------------------------------------------------//
 
-size_t __stdcall PluginManager::PluginCount() const
+HRESULT __stdcall PluginManager::QueryInterface(REFIID riid, void** ppvObject)
 {
-    return pimpl->pmap.size();
+    DebugPrintLn(NAME1 TEXT("::QueryInterface() begin"));
+
+    if ( nullptr == ppvObject )
+    {
+        return E_POINTER;
+    }
+
+    *ppvObject = nullptr;
+
+    if ( IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IPluginManager) )
+    {
+        *ppvObject = static_cast<IPluginManager*>(this);
+    }
+    else
+    {
+        return E_NOINTERFACE;
+    }
+
+    this->AddRef();
+
+    DebugPrintLn(NAME1 TEXT("::QueryInterface() end"));
+
+    return S_OK;
 }
 
 //---------------------------------------------------------------------------//
 
-PluginInstance** __stdcall PluginManager::AllPlugins() const
+ULONG __stdcall PluginManager::AddRef()
 {
-    return pimpl->plugins;
+    DebugPrintLn(NAME1 TEXT("::AddRef() begin %d"), m_cRef);
+
+    LockModule();
+
+    LONG cRef = ::InterlockedIncrement(&m_cRef);
+
+    DebugPrintLn(NAME1 TEXT("::AddRef() end %d"), cRef);
+
+    return static_cast<ULONG>(cRef);
+}
+
+//---------------------------------------------------------------------------//
+
+ULONG __stdcall PluginManager::Release()
+{
+    DebugPrintLn(NAME1 TEXT("::Release() begin %d"), m_cRef);
+
+    LONG cRef = ::InterlockedDecrement(&m_cRef);
+    if ( cRef == 0 )
+    {
+        DebugPrintLn(TEXT("Deleting..."));
+        delete this;
+        DebugPrintLn(TEXT("Deleted"));
+    }
+
+    UnlockModule();
+
+    DebugPrintLn(NAME1 TEXT("::Release() end %d"), cRef);
+
+    return static_cast<ULONG>(cRef);
+}
+
+//---------------------------------------------------------------------------//
+
+LPCWSTR __stdcall PluginManager::DirectoryPath() const
+{
+    return pimpl->dir_path;
+}
+
+//---------------------------------------------------------------------------//
+
+size_t __stdcall PluginManager::PluginCount() const
+{
+    return pimpl->count;
+}
+
+//---------------------------------------------------------------------------//
+
+IPluginContainer* __stdcall PluginManager::PluginContainer(size_t index) const
+{
+    if ( index < pimpl->count )
+    {
+        return static_cast<IPluginContainer*>(pimpl->plugins[index]);
+    }
+    else
+    {
+        return nullptr;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -547,20 +799,15 @@ HRESULT __stdcall PluginManager::LoadAll()
 {
     DebugPrintLn(NAME1 TEXT("::LoadAll() begin"));
 
-    WCHAR dir_path[MAX_PATH];
-    ::GetModuleFileName(nullptr, dir_path, MAX_PATH);
-    ::PathRemoveFileSpec(dir_path);
-    ::PathAppend(dir_path, TEXT("\\plugins"));
+    pimpl->ScanDirectory(pimpl->dir_path);
 
-    pimpl->ScanDirectory(dir_path);
-
-    auto count = pimpl->pmap.size();
-    if ( count < 1 )
+    pimpl->count = pimpl->pmap.size();
+    if ( pimpl->count < 1 )
     {
-        DebugPrintLn(TEXT("\tNo plugin found"));
+        DebugPrintLn(TEXT("No plugin found"));
     }
 
-    pimpl->plugins = new PluginInstance*[count + 1]; // 0でも空の配列を作る
+    pimpl->plugins = new ::PluginContainer*[pimpl->count + 1]; // 0でも空の配列を作る
 
     auto it  = pimpl->pmap.begin();
     auto end = pimpl->pmap.end();
@@ -568,11 +815,11 @@ HRESULT __stdcall PluginManager::LoadAll()
     {
         pimpl->plugins[i] = it->second.get();
     }
-    pimpl->plugins[count] = nullptr; // 配列はNULL終端
+    pimpl->plugins[pimpl->count] = nullptr; // 配列はNULL終端
 
     DebugPrintLn(NAME1 TEXT("::LoadAll() end"));
 
-    return count ? S_OK : E_FAIL;
+    return pimpl->count ? S_OK : E_FAIL;
 }
 
 //---------------------------------------------------------------------------//
@@ -584,7 +831,7 @@ HRESULT __stdcall PluginManager::FreeAll()
     HRESULT hr;
     size_t freed = 0;
 
-    auto count = pimpl->pmap.size();
+    auto count = pimpl->count;
     for ( size_t i = 0; i < count; ++i )
     {
         hr = pimpl->plugins[i]->Free();
@@ -595,17 +842,17 @@ HRESULT __stdcall PluginManager::FreeAll()
     }
     if ( freed == 0 )
     {
-        DebugPrintLn(TEXT("\tFreed nothing"));
+        DebugPrintLn(TEXT("Freed nothing"));
         hr = E_FAIL;
     }
     else if ( freed == count )
     {
-        DebugPrintLn(TEXT("\tFreed all"));
+        DebugPrintLn(TEXT("Freed all"));
         hr = S_OK;
     }
     else
     {
-        DebugPrintLn(TEXT("\tNot freed all"));
+        DebugPrintLn(TEXT("Not freed all"));
         hr = S_FALSE;
     }
 

@@ -1,4 +1,4 @@
-﻿// CubeMelon.PluginProperty.cpp
+﻿// InputWave.PluginProperty.cpp
 
 #include <windows.h>
 #include <propsys.h>
@@ -12,7 +12,7 @@
 //---------------------------------------------------------------------------//
 
 extern const CLSID CLSID_Plugin =
-{ 0x1511e8d0, 0x55a8, 0x4cc2, { 0x94, 0x8b, 0x9f, 0xee, 0xe, 0x63, 0x92, 0x5a } };
+{ 0xae2c31a0, 0x7f16, 0x4e0d, { 0xb5, 0x2f, 0x22, 0x8e, 0xa0, 0x85, 0x15, 0x8f } };
 
 //---------------------------------------------------------------------------//
 
@@ -73,14 +73,14 @@ ULONG __stdcall PluginProperty::Release()
 
 HRESULT __stdcall PluginProperty::GetCount(DWORD* cProps)
 {
-    if ( nullptr == cProps )
-   {
-       return E_INVALIDARG;
-   }
+     if ( nullptr == cProps )
+    {
+        return E_INVALIDARG;
+    }
 
-   *cProps = 5;
+    *cProps = 5;
 
-  return S_OK;
+   return S_OK;
 }
 
 //---------------------------------------------------------------------------//
@@ -132,7 +132,7 @@ HRESULT __stdcall PluginProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
         {
             pv->vt = VT_LPWSTR;
             auto str = (LPWSTR)::CoTaskMemAlloc(MAX_PATH * sizeof(WCHAR));
-            ::StringCchPrintf(str, MAX_PATH, TEXT("CubeMelon"));
+            ::StringCchPrintf(str, MAX_PATH, TEXT("Input.Wave"));
             pv->pwszVal = str;
             return S_OK;
         }
@@ -140,7 +140,7 @@ HRESULT __stdcall PluginProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
         {
             pv->vt = VT_LPWSTR;
             auto str = (LPWSTR)::CoTaskMemAlloc(MAX_PATH * sizeof(WCHAR));
-            ::StringCchPrintf(str, MAX_PATH, TEXT("Plugin-based Application System"));
+            ::StringCchPrintf(str, MAX_PATH, TEXT("Input plugin for WAVE, RF64, CAF"));
             pv->pwszVal = str;
             return S_OK;
         }
@@ -148,7 +148,7 @@ HRESULT __stdcall PluginProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
         {
             pv->vt = VT_LPWSTR;
             auto str = (LPWSTR)::CoTaskMemAlloc(MAX_PATH * sizeof(WCHAR));
-            ::StringCchPrintf(str, MAX_PATH, TEXT("(C) 2010-2013 tapetums"));
+            ::StringCchPrintf(str, MAX_PATH, TEXT("(C) 2012-2013 tapetums"));
             pv->pwszVal = str;
             return S_OK;
         }
@@ -186,6 +186,4 @@ HRESULT __stdcall PluginProperty::Commit()
     return E_NOTIMPL;
 }
 
-//---------------------------------------------------------------------------//
-
-// CubeMelon.PluginProperty.cpp
+// InputWave.PluginProperty.cpp

@@ -1,6 +1,6 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2013-06-06T02:35:46
+# Project created by QtCreator 2013-09-03T23:46:19
 #
 #-------------------------------------------------
 
@@ -8,29 +8,28 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = CubeMelon
-TEMPLATE = app
+TARGET = Input.Wave
+TEMPLATE = lib
 
-
-SOURCES +=\
+SOURCES += \
     ../include/DWM.cpp \
     ../include/DebugPrint.cpp \
     ../include/LockModule.cpp \
-    main.cpp\
-    mainwindow.cpp \
-    PluginManager.cpp \
+    configurewindow.cpp \
+    ClassFactory.cpp \
     PluginProperty.cpp \
-    Host.cpp
+    DllMain.cpp \
+    IOPlugin.cpp
 
-HEADERS +=\
+HEADERS += \
     ../include/DWM.h \
     ../include/DebugPrint.h \
     ../include/Interfaces.h \
     ../include/LockModule.h \
     ../include/PluginProperty.h \
-    mainwindow.h \
-    PluginManager.h \
-    Host.h
+    ../include/ClassFactory.h \
+    ../include/IOPlugin.h \
+    configurewindow.h
 
 unix:!symbian {
     maemo5 {
@@ -42,9 +41,14 @@ unix:!symbian {
 }
 
 FORMS += \
-    mainwindow.ui
+    configurewindow.ui
 
-RES_FILE += CubeMelon.res
+DEF_FILE += ../CubeMelon.def
+
+RES_FILE += Plugin.res
+
+CONFIG += dll
 
 OTHER_FILES += \
-    CubeMelon.res
+    Plugin.res \
+    ../CubeMelon.def

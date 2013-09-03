@@ -31,4 +31,6 @@ private:
     PluginProperty& operator =(PluginProperty&&);
 };
 
+//---------------------------------------------------------------------------//
+
 // PluginProperty.h

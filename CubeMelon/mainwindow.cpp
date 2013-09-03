@@ -1,4 +1,6 @@
-﻿#define NOMINMAX /// QTBUG-30839
+﻿// mainwindow.cpp
+
+#define NOMINMAX /// QTBUG-30839
 
 #include <windows.h>
 #include <strsafe.h>
@@ -39,7 +41,6 @@ MainWindow::MainWindow(QWidget* parent) :
     ui->setupUi(this);
     ui->tabWidget->setTabText(0, QString("Plugins"));
     ui->tabWidget->setTabText(1, QString("Console"));
-    //ui->tabWidget->setCurrentIndex(1);
 
     EnableAeroGlass(this);
 }
@@ -56,7 +57,6 @@ MainWindow::~MainWindow()
 void MainWindow::addConsoleText(LPCWSTR text)
 {
     WCHAR buf[1024];
-    //ui->statusBar->showMessage(QString::fromUtf16((const ushort*)text));
 
     auto time = QTime::currentTime();
     ::StringCchPrintf
@@ -133,3 +133,4 @@ void MainWindow::clearList()
 
 //---------------------------------------------------------------------------//
 
+// mainwindow.cpp
