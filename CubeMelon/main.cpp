@@ -7,8 +7,8 @@
 
 #include "..\include\DebugPrint.h"
 #include "..\include\Interfaces.h"
-#include "PluginManager.h"
-#include "Host.h"
+#include "ComponentManager.h"
+#include "Component.h"
 
 //---------------------------------------------------------------------------//
 
@@ -22,26 +22,30 @@ int main(int argc, wchar_t* argv[])
     QApplication a(c, nullptr);
 
     // プラグインホストの起動
-    auto host = new Host(nullptr);
-    host->Start();
+    auto comp = new Component(nullptr);
+    comp->Start();
 
 #if defined(_DEBUG) || defined(DEBUG)
     // メインウィンドウの起動
     auto mwnd = new MainWindow;
     if ( mwnd )
     {
-        auto pm = host->PluginManager();
-        if ( pm )
+        auto cm = comp->ComponentManager();
+        if ( cm )
         {
-            IPluginContainer* pc = nullptr;
-            auto count = pm->PluginCount();
+            IComponentContainer* cc = nullptr;
+            auto count = cm->ComponentCount();
             for ( size_t index = 0; index < count; ++index )
             {
-                pc = pm->PluginContainer(index);
-                if ( pc )
+                cc = cm->ComponentContainer(index);
+                if ( cc )
                 {
-                    mwnd->addListItem(pc->Name(), pc->ClassID());
-                    mwnd->addConsoleText(pc->Name());
+                    mwnd->addListItem
+                    (
+                        cc->ClassID(), cc->Name(),
+                        cc->Description(), cc->Copyright(), cc->Version()
+                    );
+                    mwnd->addConsoleText(cc->Name());
                 }
             }
         }
@@ -67,9 +71,9 @@ int main(int argc, wchar_t* argv[])
 #endif
 
     // プラグインホストの終了
-    host->Stop();
-    host->Release();
-    host = nullptr;
+    comp->Stop();
+    comp->Release();
+    comp = nullptr;
 
     // COMの後始末
     ::CoUninitialize();

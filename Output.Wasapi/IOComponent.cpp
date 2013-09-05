@@ -1,11 +1,11 @@
-﻿// Output.Wasapi.IOPlugin.cpp
+﻿// Output.Wasapi.IOComponent.cpp
 
 #include <windows.h>
 
 #include "..\include\DebugPrint.h"
 #include "..\include\LockModule.h"
 #include "..\include\Interfaces.h"
-#include "..\include\IOPlugin.h"
+#include "..\include\IOComponent.h"
 
 #include "configurewindow.h"
 
@@ -15,11 +15,11 @@
 
 //---------------------------------------------------------------------------//
 
-extern const CLSID CLSID_Plugin;
+extern const CLSID CLSID_Component;
 
 //---------------------------------------------------------------------------//
 
-struct IOPlugin::Impl
+struct IOComponent::Impl
 {
     Impl();
     ~Impl();
@@ -29,14 +29,14 @@ struct IOPlugin::Impl
 
 //---------------------------------------------------------------------------//
 
-IOPlugin::Impl::Impl()
+IOComponent::Impl::Impl()
 {
     mwnd = nullptr;
 }
 
 //---------------------------------------------------------------------------//
 
-IOPlugin::Impl::~Impl()
+IOComponent::Impl::~Impl()
 {
     if ( mwnd )
     {
@@ -47,7 +47,7 @@ IOPlugin::Impl::~Impl()
 
 //---------------------------------------------------------------------------//
 
-IOPlugin::IOPlugin(IUnknown* pUnkOuter)
+IOComponent::IOComponent(IUnknown* pUnkOuter)
 {
     DebugPrintLn(NAME TEXT("::Constructor() begin"));
 
@@ -59,7 +59,7 @@ IOPlugin::IOPlugin(IUnknown* pUnkOuter)
     {
         auto hr = pUnkOuter->QueryInterface
         (
-            IID_IPlugin, (void**)&m_owner
+            IID_IComponent, (void**)&m_owner
         );
         if ( FAILED(hr) )
         {
@@ -75,7 +75,7 @@ IOPlugin::IOPlugin(IUnknown* pUnkOuter)
 
 //---------------------------------------------------------------------------//
 
-IOPlugin::~IOPlugin()
+IOComponent::~IOComponent()
 {
     DebugPrintLn(NAME TEXT("::Destructor() begin"));
 
@@ -101,7 +101,7 @@ IOPlugin::~IOPlugin()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall IOPlugin::QueryInterface(REFIID riid, void** ppvObject)
+HRESULT __stdcall IOComponent::QueryInterface(REFIID riid, void** ppvObject)
 {
     DebugPrintLn(NAME TEXT("::QueryInterface() begin"));
 
@@ -112,9 +112,9 @@ HRESULT __stdcall IOPlugin::QueryInterface(REFIID riid, void** ppvObject)
 
     *ppvObject = nullptr;
 
-    if ( IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IPlugin) )
+    if ( IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IComponent) )
     {
-        *ppvObject = static_cast<IPlugin*>(this);
+        *ppvObject = static_cast<IComponent*>(this);
     }
     else
     {
@@ -130,7 +130,7 @@ HRESULT __stdcall IOPlugin::QueryInterface(REFIID riid, void** ppvObject)
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall IOPlugin::AddRef()
+ULONG __stdcall IOComponent::AddRef()
 {
     DebugPrintLn(NAME TEXT("::AddRef() begin %d"), m_cRef);
 
@@ -145,7 +145,7 @@ ULONG __stdcall IOPlugin::AddRef()
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall IOPlugin::Release()
+ULONG __stdcall IOComponent::Release()
 {
     DebugPrintLn(NAME TEXT("::Release() begin %d"), m_cRef);
 
@@ -166,44 +166,44 @@ ULONG __stdcall IOPlugin::Release()
 
 //---------------------------------------------------------------------------//
 
-REFCLSID __stdcall IOPlugin::ClassID() const
+REFCLSID __stdcall IOComponent::ClassID() const
 {
-    return CLSID_Plugin;
+    return CLSID_Component;
 }
 
 //---------------------------------------------------------------------------//
 
-IPlugin* __stdcall IOPlugin::Owner() const
+IComponent* __stdcall IOComponent::Owner() const
 {
     return m_owner;
 }
 
 //---------------------------------------------------------------------------//
 
-STATE __stdcall IOPlugin::Status() const
+STATE __stdcall IOComponent::Status() const
 {
     return m_state;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall IOPlugin::Attach(LPCWSTR msg, IPlugin* listener)
+HRESULT __stdcall IOComponent::Attach(LPCWSTR msg, IComponent* listener)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall IOPlugin::Detach(LPCWSTR msg, IPlugin* listener)
+HRESULT __stdcall IOComponent::Detach(LPCWSTR msg, IComponent* listener)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall IOPlugin::Notify
+HRESULT __stdcall IOComponent::Notify
 (
-    IPlugin* sender, LPCWSTR msg, LPVOID data, size_t cb_data
+    IComponent* sender, LPCWSTR msg, LPVOID data, size_t cb_data
 )
 {
     return E_NOTIMPL;
@@ -211,11 +211,14 @@ HRESULT __stdcall IOPlugin::Notify
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall IOPlugin::GetPluginInstance(REFCLSID rclsid, REFIID riid, void** ppvObject)
+HRESULT __stdcall IOComponent::GetComponentInstance
+(
+    REFCLSID rclsid, REFIID riid, void** ppvObject
+)
 {
     if ( m_owner )
     {
-        return m_owner->GetPluginInstance(rclsid, riid, ppvObject);
+        return m_owner->GetComponentInstance(rclsid, riid, ppvObject);
     }
     else
     {
@@ -225,7 +228,7 @@ HRESULT __stdcall IOPlugin::GetPluginInstance(REFCLSID rclsid, REFIID riid, void
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall IOPlugin::Start(LPCVOID args)
+HRESULT __stdcall IOComponent::Start(LPCVOID args)
 {
     DebugPrintLn(NAME TEXT("::Start() begin"));
 
@@ -249,7 +252,7 @@ HRESULT __stdcall IOPlugin::Start(LPCVOID args)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall IOPlugin::Stop()
+HRESULT __stdcall IOComponent::Stop()
 {
     DebugPrintLn(NAME TEXT("::Stop() begin"));
 
@@ -282,46 +285,55 @@ HRESULT __stdcall IOPlugin::Stop()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall IOPlugin::Close(IPlugin* listener)
+HRESULT __stdcall IOComponent::Close(IComponent* listener)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall IOPlugin::Open(LPCWSTR path, LPCWSTR format_as, IPlugin* listener)
+HRESULT __stdcall IOComponent::Open
+(
+    LPCWSTR path, LPCWSTR format_as, IComponent* listener
+)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall IOPlugin::QuerySupport(LPCWSTR path, LPCWSTR format_as)
+HRESULT __stdcall IOComponent::QuerySupport(LPCWSTR path, LPCWSTR format_as)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall IOPlugin::Read(LPVOID buffer, size_t buf_size, size_t* cb_read)
+HRESULT __stdcall IOComponent::Read
+(
+    LPVOID buffer, size_t buf_size, size_t* cb_read
+)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall IOPlugin::Seek(INT64 offset, DWORD origin, UINT64* new_pos)
+HRESULT __stdcall IOComponent::Seek(INT64 offset, DWORD origin, UINT64* new_pos)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall IOPlugin::Write(LPCVOID buffer, size_t buf_size, size_t* cb_written)
+HRESULT __stdcall IOComponent::Write
+(
+    LPCVOID buffer, size_t buf_size, size_t* cb_written
+)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-// Output.Wasapi.IOPlugin.cpp
+// Output.Wasapi.IOComponent.cpp

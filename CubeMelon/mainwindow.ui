@@ -51,6 +51,9 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOn</enum>
+      </property>
       <property name="editTriggers">
        <set>QAbstractItemView::NoEditTriggers</set>
       </property>
@@ -61,7 +64,7 @@
        <bool>false</bool>
       </property>
       <property name="columnCount">
-       <number>2</number>
+       <number>5</number>
       </property>
       <attribute name="headerVisible">
        <bool>true</bool>
@@ -70,7 +73,7 @@
        <bool>false</bool>
       </attribute>
       <attribute name="headerDefaultSectionSize">
-       <number>256</number>
+       <number>128</number>
       </attribute>
       <attribute name="headerMinimumSectionSize">
        <number>16</number>
@@ -78,6 +81,21 @@
       <column>
        <property name="text">
         <string>Name</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Version</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Description</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Copyright</string>
        </property>
       </column>
       <column>

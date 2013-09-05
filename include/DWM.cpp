@@ -15,7 +15,7 @@ HRESULT EnableAeroGlass(QWidget* widget)
 {
     if ( nullptr == widget )
     {
-        return E_INVALIDARG;
+        return E_POINTER;
     }
 
     HRESULT hr = E_FAIL;

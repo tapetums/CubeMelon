@@ -18,9 +18,9 @@ SOURCES += \
     ../include/LockModule.cpp \
     configurewindow.cpp \
     ClassFactory.cpp \
-    PluginProperty.cpp \
     DllMain.cpp \
-    IOPlugin.cpp
+    IOComponent.cpp \
+    ComponentProperty.cpp
 
 HEADERS += \
     ../include/DWM.h \
@@ -46,10 +46,10 @@ FORMS += \
 
 DEF_FILE += ../CubeMelon.def
 
-RES_FILE += Plugin.res
+RES_FILE += Component.res
 
 CONFIG += dll
 
 OTHER_FILES += \
-    Plugin.res \
-    ../CubeMelon.def
+    ../CubeMelon.def \
+    Component.res

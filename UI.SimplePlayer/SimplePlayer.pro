@@ -14,17 +14,17 @@ SOURCES += \
     ../include/DebugPrint.cpp \
     ../include/LockModule.cpp \
     mainwindow.cpp \
-    ClassFactory.cpp \
-    PluginProperty.cpp \
     DllMain.cpp \
-    Plugin.cpp
+    ClassFactory.cpp \
+    ComponentProperty.cpp \
+    Component.cpp
 
 HEADERS += \
     ../include/DWM.h \
     ../include/DebugPrint.h \
     ../include/Interfaces.h \
     ../include/LockModule.h \
-    ../include/PluginProperty.h \
+    ../include/ComponentProperty.h \
     ../include/ClassFactory.h \
     mainwindow.h
 
@@ -42,10 +42,10 @@ FORMS += \
 
 DEF_FILE += ../CubeMelon.def
 
-RES_FILE += Plugin.res
+RES_FILE += Component.res
 
 CONFIG += dll
 
 OTHER_FILES += \
-    Plugin.res \
+    Component.res \
     ../CubeMelon.def

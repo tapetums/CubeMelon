@@ -15,7 +15,7 @@
 
 struct MainWindow::Impl
 {
-    IPlugin* owner;
+    IComponent* owner;
 };
 
 //---------------------------------------------------------------------------//
@@ -44,7 +44,7 @@ MainWindow::~MainWindow()
 
 //---------------------------------------------------------------------------//
 
-void MainWindow::setOwner(IPlugin *owner)
+void MainWindow::setOwner(IComponent *owner)
 {
     pimpl->owner = owner;
 }

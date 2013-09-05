@@ -1,11 +1,11 @@
-﻿// UI.SimplePlayer.ClassFactory.cpp
+﻿// Input.Wave.ClassFactory.cpp
 
 #include <windows.h>
 
 #include "..\include\LockModule.h"
 #include "..\include\ClassFactory.h"
 #include "..\include\Interfaces.h"
-#include "..\include\IOPlugin.h"
+#include "..\include\IOComponent.h"
 
 //---------------------------------------------------------------------------//
 
@@ -68,16 +68,16 @@ STDMETHODIMP ClassFactory::CreateInstance
 
     *ppvObject = nullptr;
 
-    IPlugin* plugin = new IOPlugin(pUnkOuter);
-    if ( nullptr == plugin )
+    IComponent* comp = new IOComponent(pUnkOuter);
+    if ( nullptr == comp )
     {
         return E_OUTOFMEMORY;
     }
 
-    hr = plugin->QueryInterface(riid, ppvObject);
+    hr = comp->QueryInterface(riid, ppvObject);
     if ( SUCCEEDED(hr) && ppvObject )
     {
-        hr = plugin->Release();
+        hr = comp->Release();
     }
 
     return hr;
@@ -99,4 +99,4 @@ STDMETHODIMP ClassFactory::LockServer(BOOL bLock)
      return S_OK;
 }
 
-// UI.SimplePlayer.ClassFactory.cpp
+// Input.Wave.ClassFactory.cpp

@@ -1,4 +1,4 @@
-﻿// InputWave.PluginProperty.cpp
+﻿// Output.Wasapi.ComponentProperty.cpp
 
 #include <windows.h>
 #include <propsys.h>
@@ -7,28 +7,28 @@
 
 #include "..\include\LockModule.h"
 #include "..\include\Interfaces.h"
-#include "..\include\PluginProperty.h"
+#include "..\include\ComponentProperty.h"
 
 //---------------------------------------------------------------------------//
 
-extern const CLSID CLSID_Plugin =
-{ 0xae2c31a0, 0x7f16, 0x4e0d, { 0xb5, 0x2f, 0x22, 0x8e, 0xa0, 0x85, 0x15, 0x8f } };
+extern const CLSID CLSID_Component =
+{ 0xff3fc2e6, 0x2ea5, 0x4c75, { 0x95, 0x92, 0x95, 0x78, 0x7a, 0x22, 0xa8, 0xc5 } };
 
 //---------------------------------------------------------------------------//
 
-PluginProperty::PluginProperty()
+ComponentProperty::ComponentProperty()
 {
 }
 
 //---------------------------------------------------------------------------//
 
-PluginProperty::~PluginProperty()
+ComponentProperty::~ComponentProperty()
 {
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginProperty::QueryInterface(REFIID riid, void** ppvObject)
+HRESULT __stdcall ComponentProperty::QueryInterface(REFIID riid, void** ppvObject)
 {
     if ( nullptr == ppvObject )
     {
@@ -53,7 +53,7 @@ HRESULT __stdcall PluginProperty::QueryInterface(REFIID riid, void** ppvObject)
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall PluginProperty::AddRef()
+ULONG __stdcall ComponentProperty::AddRef()
 {
     LockModule();
 
@@ -62,7 +62,7 @@ ULONG __stdcall PluginProperty::AddRef()
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall PluginProperty::Release()
+ULONG __stdcall ComponentProperty::Release()
 {
     UnlockModule();
 
@@ -71,7 +71,7 @@ ULONG __stdcall PluginProperty::Release()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginProperty::GetCount(DWORD* cProps)
+HRESULT __stdcall ComponentProperty::GetCount(DWORD* cProps)
 {
      if ( nullptr == cProps )
     {
@@ -85,7 +85,7 @@ HRESULT __stdcall PluginProperty::GetCount(DWORD* cProps)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginProperty::GetAt(DWORD iProp, PROPERTYKEY* pkey)
+HRESULT __stdcall ComponentProperty::GetAt(DWORD iProp, PROPERTYKEY* pkey)
 {
     if ( nullptr == pkey )
     {
@@ -106,7 +106,7 @@ HRESULT __stdcall PluginProperty::GetAt(DWORD iProp, PROPERTYKEY* pkey)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
+HRESULT __stdcall ComponentProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
 {
     if ( nullptr == pv )
     {
@@ -124,7 +124,7 @@ HRESULT __stdcall PluginProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
         {
             pv->vt = VT_CLSID;
             auto puuid = (CLSID*)::CoTaskMemAlloc(sizeof(CLSID));
-            *puuid = CLSID_Plugin;
+            *puuid = CLSID_Component;
             pv->puuid = puuid;
             return S_OK;
         }
@@ -132,7 +132,7 @@ HRESULT __stdcall PluginProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
         {
             pv->vt = VT_LPWSTR;
             auto str = (LPWSTR)::CoTaskMemAlloc(MAX_PATH * sizeof(WCHAR));
-            ::StringCchPrintf(str, MAX_PATH, TEXT("Input.Wave"));
+            ::StringCchPrintf(str, MAX_PATH, TEXT("Output.Wasapi"));
             pv->pwszVal = str;
             return S_OK;
         }
@@ -140,7 +140,7 @@ HRESULT __stdcall PluginProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
         {
             pv->vt = VT_LPWSTR;
             auto str = (LPWSTR)::CoTaskMemAlloc(MAX_PATH * sizeof(WCHAR));
-            ::StringCchPrintf(str, MAX_PATH, TEXT("Input plugin for WAVE, RF64, CAF"));
+            ::StringCchPrintf(str, MAX_PATH, TEXT("Output component for Windows Audio Session API"));
             pv->pwszVal = str;
             return S_OK;
         }
@@ -148,7 +148,7 @@ HRESULT __stdcall PluginProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
         {
             pv->vt = VT_LPWSTR;
             auto str = (LPWSTR)::CoTaskMemAlloc(MAX_PATH * sizeof(WCHAR));
-            ::StringCchPrintf(str, MAX_PATH, TEXT("(C) 2012-2013 tapetums"));
+            ::StringCchPrintf(str, MAX_PATH, TEXT("(C) 2011-2013 tapetums"));
             pv->pwszVal = str;
             return S_OK;
         }
@@ -174,16 +174,16 @@ HRESULT __stdcall PluginProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginProperty::SetValue(REFPROPERTYKEY key, REFPROPVARIANT propvar)
+HRESULT __stdcall ComponentProperty::SetValue(REFPROPERTYKEY key, REFPROPVARIANT propvar)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginProperty::Commit()
+HRESULT __stdcall ComponentProperty::Commit()
 {
     return E_NOTIMPL;
 }
 
-// InputWave.PluginProperty.cpp
+// Output.Wasapi.ComponentProperty.cpp

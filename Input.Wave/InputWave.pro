@@ -17,18 +17,18 @@ SOURCES += \
     ../include/LockModule.cpp \
     configurewindow.cpp \
     ClassFactory.cpp \
-    PluginProperty.cpp \
     DllMain.cpp \
-    IOPlugin.cpp
+    IOComponent.cpp \
+    ComponentProperty.cpp
 
 HEADERS += \
     ../include/DWM.h \
     ../include/DebugPrint.h \
     ../include/Interfaces.h \
     ../include/LockModule.h \
-    ../include/PluginProperty.h \
+    ../include/ComponentProperty.h \
     ../include/ClassFactory.h \
-    ../include/IOPlugin.h \
+    ../include/IOComponent.h \
     configurewindow.h
 
 unix:!symbian {
@@ -45,10 +45,10 @@ FORMS += \
 
 DEF_FILE += ../CubeMelon.def
 
-RES_FILE += Plugin.res
+RES_FILE += Component.res
 
 CONFIG += dll
 
 OTHER_FILES += \
-    Plugin.res \
-    ../CubeMelon.def
+    ../CubeMelon.def \
+    Component.res

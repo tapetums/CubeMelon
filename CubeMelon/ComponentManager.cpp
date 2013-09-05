@@ -1,34 +1,33 @@
-﻿// PluginManager.cpp
+﻿// ComponentManager.cpp
 
 #include <memory>
 #include <map>
 #include <vector>
 
 #include <windows.h>
-#include <propsys.h>
 #include <strsafe.h>
+
 #include <shlwapi.h>
-#include <xmllite.h>
 #pragma comment(lib, "ole32.lib")
+#include <propsys.h>
 #pragma comment(lib, "shlwapi.lib")
-#pragma comment(lib, "xmllite.lib")
 
 #include "..\include\DebugPrint.h"
 #include "..\include\LockModule.h"
 #include "..\include\Interfaces.h"
 #include "..\include\Functions.h"
-#include "PluginManager.h"
+#include "ComponentManager.h"
 
 //---------------------------------------------------------------------------//
 
-#define MSG_01_E TEXT("Cannot find plugin directory.\nWould you like to create it?")
-#define MSG_01_J TEXT("plugins フォルダが見つかりません。\n作成しますか？")
+#define MSG_01_E TEXT("Cannot find component directory.\nWould you like to create it?")
+#define MSG_01_J TEXT("components フォルダが見つかりません。\n作成しますか？")
 #define MSG_01 MSG_01_J
 
-#define NAME1 TEXT("PluginManager")
-#define NAME2 TEXT("PluginContainer")
+#define NAME1 TEXT("ComponentManager")
+#define NAME2 TEXT("ComponentContainer")
 
-#define MAX_PLUGIN_COUNT 256
+#define MAX_COMPONENT_COUNT 256
 
 //---------------------------------------------------------------------------//
 
@@ -39,12 +38,12 @@ inline bool operator<(const GUID& lhs, const GUID& rhs)
 
 //---------------------------------------------------------------------------//
 
-struct PluginContainer::Impl
+struct ComponentContainer::Impl
 {
     Impl(LPCWSTR file_path, size_t index);
     ~Impl();
-    void __stdcall Reset();
-    void __stdcall GetProperty();
+    void    __stdcall Free();
+    HRESULT __stdcall GetProperty();
 
     size_t            index;
     LPWSTR            copyright;
@@ -56,16 +55,17 @@ struct PluginContainer::Impl
     DLLGETCLASSOBJECT DllGetClassObject;
     CLSID             clsid;
     WCHAR             file_path[MAX_PATH];
+    VersionInfo       ver_info;
 };
 
 //---------------------------------------------------------------------------//
 
-PluginContainer::Impl::Impl(LPCWSTR file_path, size_t index)
+ComponentContainer::Impl::Impl(LPCWSTR file_path, size_t index)
 {
     DebugPrintLn(NAME2 TEXT("::Impl::Constructor() begin"));
 
-    this->index       = index;
     ::StringCchPrintf(this->file_path, MAX_PATH, file_path);
+    this->index = index;
 
     copyright         = nullptr;
     description       = nullptr;
@@ -81,11 +81,11 @@ PluginContainer::Impl::Impl(LPCWSTR file_path, size_t index)
 
 //---------------------------------------------------------------------------//
 
-PluginContainer::Impl::~Impl()
+ComponentContainer::Impl::~Impl()
 {
     DebugPrintLn(NAME2 TEXT("::Impl::Destructor() begin"));
 
-    this->Reset();
+    this->Free();
 
     if ( copyright )
     {
@@ -108,9 +108,9 @@ PluginContainer::Impl::~Impl()
 
 //---------------------------------------------------------------------------//
 
-void __stdcall PluginContainer::Impl::Reset()
+void __stdcall ComponentContainer::Impl::Free()
 {
-    DebugPrintLn(NAME2 TEXT("::Impl::Reset() begin"));
+    DebugPrintLn(NAME2 TEXT("::Impl::Free() begin"));
 
     if ( nullptr == hModule )
     {
@@ -130,79 +130,148 @@ void __stdcall PluginContainer::Impl::Reset()
     DllGetProperty    = nullptr;
     DllGetClassObject = nullptr;
 
-    DebugPrintLn(NAME2 TEXT("::Impl::Reset() end"));
+    DebugPrintLn(NAME2 TEXT("::Impl::Free() end"));
 }
 
 //---------------------------------------------------------------------------//
 
-void __stdcall PluginContainer::Impl::GetProperty()
+HRESULT __stdcall ComponentContainer::Impl::GetProperty()
 {
-    HRESULT hr;
-    IPropertyStore* ps = nullptr;
+    HRESULT     hr;
     PROPERTYKEY key;
     PROPVARIANT pv;
+    size_t      wc_count;
 
     DebugPrintLn(NAME2 TEXT("::Impl::GetProperty() begin"));
 
     // IPropertyStore オブジェクトを取得
+    IPropertyStore* ps = nullptr;
     hr = DllGetProperty(index, &ps);
     if ( FAILED(hr) || nullptr == ps )
     {
         DebugPrintLn(TEXT("No object at index == %d"), index);
-        return;
+        return hr;
     }
 
     // クラスIDを取得
-    DebugPrintLn(TEXT("Getting ClassID..."));
-    key.fmtid = PKEY_CubeMelon_GetProperty;
-    key.pid   = CUBEMELON_PID_CLSID;
-    ::PropVariantInit(&pv);
-    hr = ps->GetValue(key, &pv);
-    if ( FAILED(hr) || pv.vt != VT_CLSID )
     {
-        DebugPrintLn(TEXT("IPropertyStore::GetValue() failed"));
-        return;
-    }
-    clsid = *pv.puuid;
-    ::PropVariantClear(&pv); // なるべくすぐに pv を解放
+        DebugPrintLn(TEXT("Getting ClassID..."));
+        key.fmtid = PKEY_CubeMelon_GetProperty;
+        key.pid   = CUBEMELON_PID_CLSID;
+        ::PropVariantInit(&pv);
+        hr = ps->GetValue(key, &pv);
+        if ( FAILED(hr) || pv.vt != VT_CLSID )
+        {
+            DebugPrintLn(TEXT("IPropertyStore::GetValue() failed"));
+            return hr;
+        }
+        clsid = *pv.puuid;
+        ::PropVariantClear(&pv); // なるべくすぐに pv を解放
 
-    // クラスIDを文字列化
-    DebugPrintLn
-    (
-        TEXT("{ %00000000X-%0000X-%0000X-%00X%00X-%00X%00X%00X%00X%00X%00X }"),
-        clsid.Data1, clsid.Data2, clsid.Data3,
-        clsid.Data4[0], clsid.Data4[1], clsid.Data4[2], clsid.Data4[3],
-        clsid.Data4[4], clsid.Data4[5], clsid.Data4[6], clsid.Data4[7]
-    );
+        // クラスIDを文字列化
+        DebugPrintLn
+        (
+            TEXT("{ %00000000X-%0000X-%0000X-%00X%00X-%00X%00X%00X%00X%00X%00X }"),
+            clsid.Data1, clsid.Data2, clsid.Data3,
+            clsid.Data4[0], clsid.Data4[1], clsid.Data4[2], clsid.Data4[3],
+            clsid.Data4[4], clsid.Data4[5], clsid.Data4[6], clsid.Data4[7]
+        );
+    }
 
     // プラグイン名を取得
-    DebugPrintLn(TEXT("Getting plugin name..."));
-    key.fmtid = PKEY_CubeMelon_GetProperty;
-    key.pid   = CUBEMELON_PID_NAME;
-    ::PropVariantInit(&pv);
-    hr = ps->GetValue(key, &pv);
-    if ( FAILED(hr) || pv.vt != VT_LPWSTR )
     {
-        DebugPrintLn(TEXT("IPropertyStore::GetValue() failed"));
-        return;
+        DebugPrintLn(TEXT("Getting component name..."));
+        key.fmtid = PKEY_CubeMelon_GetProperty;
+        key.pid   = CUBEMELON_PID_NAME;
+        ::PropVariantInit(&pv);
+        hr = ps->GetValue(key, &pv);
+        if ( FAILED(hr) || pv.vt != VT_LPWSTR )
+        {
+            DebugPrintLn(TEXT("IPropertyStore::GetValue() failed"));
+            return hr;
+        }
+
+        wc_count = sizeof(nullptr) + wcslen(pv.pwszVal); /// NULL文字分を絶対に忘れない！
+        name = (LPWSTR)::CoTaskMemAlloc(sizeof(WCHAR) * (wc_count));
+        ::StringCchPrintf(name, wc_count, pv.pwszVal);
+        ::PropVariantClear(&pv); // なるべくすぐに pv を解放
+        DebugPrintLn(name);
     }
 
-    auto str_count = sizeof(nullptr) + wcslen(pv.pwszVal);
-    name = (LPWSTR)::CoTaskMemAlloc(sizeof(WCHAR) * (str_count));
-    ::StringCchPrintf(name, str_count, pv.pwszVal);
-    ::PropVariantClear(&pv); // なるべくすぐに pv を解放
-    DebugPrintLn(name);
-    DebugPrintLn(TEXT("Got plugin properties"));
+    // プラグインの詳細説明を取得
+    {
+        DebugPrintLn(TEXT("Getting component description..."));
+        key.fmtid = PKEY_CubeMelon_GetProperty;
+        key.pid   = CUBEMELON_PID_DESCRIPTION;
+        ::PropVariantInit(&pv);
+        hr = ps->GetValue(key, &pv);
+        if ( FAILED(hr) || pv.vt != VT_LPWSTR )
+        {
+            DebugPrintLn(TEXT("IPropertyStore::GetValue() failed"));
+            return hr;
+        }
 
+        wc_count = sizeof(nullptr) + wcslen(pv.pwszVal); /// NULL文字分を絶対に忘れない！
+        description = (LPWSTR)::CoTaskMemAlloc(sizeof(WCHAR) * (wc_count));
+        ::StringCchPrintf(description, wc_count, pv.pwszVal);
+        ::PropVariantClear(&pv); // なるべくすぐに pv を解放
+        DebugPrintLn(description);
+    }
+
+    // プラグインの著作権情報を取得
+    {
+        DebugPrintLn(TEXT("Getting component copyright information..."));
+        key.fmtid = PKEY_CubeMelon_GetProperty;
+        key.pid   = CUBEMELON_PID_COPYRIGHT;
+        ::PropVariantInit(&pv);
+        hr = ps->GetValue(key, &pv);
+        if ( FAILED(hr) || pv.vt != VT_LPWSTR )
+        {
+            DebugPrintLn(TEXT("IPropertyStore::GetValue() failed"));
+            return hr;
+        }
+
+        wc_count = sizeof(nullptr) + wcslen(pv.pwszVal); /// NULL文字分を絶対に忘れない！
+        copyright = (LPWSTR)::CoTaskMemAlloc(sizeof(WCHAR) * (wc_count));
+        ::StringCchPrintf(copyright, wc_count, pv.pwszVal);
+        ::PropVariantClear(&pv); // なるべくすぐに pv を解放
+        DebugPrintLn(copyright);
+    }
+
+    // プラグインのバージョン情報を取得
+    {
+        DebugPrintLn(TEXT("Getting component version..."));
+        key.fmtid = PKEY_CubeMelon_GetProperty;
+        key.pid   = CUBEMELON_PID_VERSION;
+        ::PropVariantInit(&pv);
+        hr = ps->GetValue(key, &pv);
+        if ( FAILED(hr) || pv.vt != VT_PTR )
+        {
+            DebugPrintLn(TEXT("IPropertyStore::GetValue() failed"));
+            return hr;
+        }
+
+        ver_info = *((VersionInfo*)pv.pintVal);
+        ::PropVariantClear(&pv); // なるべくすぐに pv を解放
+        DebugPrintLn
+        (
+            TEXT("%d.%d.%d %s"),
+            ver_info.major, ver_info.minor, ver_info.revision, ver_info.stage
+        );
+    }
+
+    // IPropertyStore オブジェクトを解放
     ps->Release();
     ps = nullptr;
 
     DebugPrintLn(NAME2 TEXT("::Impl::GetProperty() end"));
+
+    return S_OK;
 }
 
 //---------------------------------------------------------------------------//
 
-PluginContainer::PluginContainer(LPCWSTR file_path, size_t index)
+ComponentContainer::ComponentContainer(LPCWSTR file_path, size_t index)
 {
     DebugPrintLn(NAME2 TEXT("::Constructor() begin"));
 
@@ -215,7 +284,7 @@ PluginContainer::PluginContainer(LPCWSTR file_path, size_t index)
 
 //---------------------------------------------------------------------------//
 
-PluginContainer::~PluginContainer()
+ComponentContainer::~ComponentContainer()
 {
     DebugPrintLn(NAME2 TEXT("::Destructor() begin"));
 
@@ -229,7 +298,7 @@ PluginContainer::~PluginContainer()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginContainer::QueryInterface(REFIID riid, void** ppvObject)
+HRESULT __stdcall ComponentContainer::QueryInterface(REFIID riid, void** ppvObject)
 {
     DebugPrintLn(NAME2 TEXT("::QueryInterface() begin"));
 
@@ -240,9 +309,9 @@ HRESULT __stdcall PluginContainer::QueryInterface(REFIID riid, void** ppvObject)
 
     *ppvObject = nullptr;
 
-    if ( IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IPluginContainer) )
+    if ( IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IComponentContainer) )
     {
-        *ppvObject = static_cast<IPluginContainer*>(this);
+        *ppvObject = static_cast<IComponentContainer*>(this);
     }
     else
     {
@@ -258,7 +327,7 @@ HRESULT __stdcall PluginContainer::QueryInterface(REFIID riid, void** ppvObject)
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall PluginContainer::AddRef()
+ULONG __stdcall ComponentContainer::AddRef()
 {
     DebugPrintLn(NAME2 TEXT("::AddRef() begin %d"), m_cRef);
 
@@ -273,7 +342,7 @@ ULONG __stdcall PluginContainer::AddRef()
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall PluginContainer::Release()
+ULONG __stdcall ComponentContainer::Release()
 {
     DebugPrintLn(NAME2 TEXT("::Release() begin %d"), m_cRef);
 
@@ -294,56 +363,56 @@ ULONG __stdcall PluginContainer::Release()
 
 //---------------------------------------------------------------------------//
 
-REFCLSID __stdcall PluginContainer::ClassID() const
+REFCLSID __stdcall ComponentContainer::ClassID() const
 {
     return pimpl->clsid;
 }
 
 //---------------------------------------------------------------------------//
 
-LPCWSTR __stdcall PluginContainer::Copyright() const
+LPCWSTR __stdcall ComponentContainer::Copyright() const
 {
     return pimpl->copyright;
 }
 
 //---------------------------------------------------------------------------//
 
-LPCWSTR __stdcall PluginContainer::Description() const
+LPCWSTR __stdcall ComponentContainer::Description() const
 {
     return pimpl->description;
 }
 
 //---------------------------------------------------------------------------//
 
-LPCWSTR __stdcall PluginContainer::FilePath() const
+LPCWSTR __stdcall ComponentContainer::FilePath() const
 {
     return pimpl->file_path;
 }
 
 //---------------------------------------------------------------------------//
 
-size_t __stdcall PluginContainer::Index() const
+size_t __stdcall ComponentContainer::Index() const
 {
     return pimpl->index;
 }
 
 //---------------------------------------------------------------------------//
 
-LPCWSTR __stdcall PluginContainer::Name() const
+LPCWSTR __stdcall ComponentContainer::Name() const
 {
     return pimpl->name;
 }
 
 //---------------------------------------------------------------------------//
 
-VersionInfo* __stdcall PluginContainer::Version() const
+VersionInfo* __stdcall ComponentContainer::Version() const
 {
-    return nullptr;
+    return &pimpl->ver_info;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginContainer::Load()
+HRESULT __stdcall ComponentContainer::Load()
 {
     DebugPrintLn(NAME2 TEXT("::Load() begin"));
     DebugPrintLn(pimpl->file_path);
@@ -363,7 +432,7 @@ HRESULT __stdcall PluginContainer::Load()
         );
         if ( nullptr == pimpl->hModule )
         {
-            throw TEXT("Failed to load plugin");
+            throw TEXT("Failed to load component");
         }
 
         // 公開関数のアドレスを取得
@@ -395,8 +464,8 @@ HRESULT __stdcall PluginContainer::Load()
         }
 
         // プラグイン情報を取得
-        pimpl->GetProperty();
-        if ( IsEqualCLSID(pimpl->clsid, CLSID_NULL) )
+        auto hr = pimpl->GetProperty();
+        if ( FAILED(hr) )
         {
             throw TEXT("DllGetProperty() failed");
         }
@@ -418,7 +487,7 @@ HRESULT __stdcall PluginContainer::Load()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginContainer::Free()
+HRESULT __stdcall ComponentContainer::Free()
 {
     DebugPrintLn(NAME2 TEXT("::Free() begin"));
     DebugPrintLn(pimpl->file_path);
@@ -432,11 +501,11 @@ HRESULT __stdcall PluginContainer::Free()
     auto hr = pimpl->DllCanUnloadNow();
     if ( S_OK != hr )
     {
-        DebugPrintLn(TEXT("Plugin is locked"));
+        DebugPrintLn(TEXT("Component is locked"));
         return E_FAIL;
     }
 
-    pimpl->Reset();
+    pimpl->Free();
 
     DebugPrintLn(NAME2 TEXT("::Free() end"));
 
@@ -445,14 +514,14 @@ HRESULT __stdcall PluginContainer::Free()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginContainer::GetProperty(IPropertyStore** ps)
+HRESULT __stdcall ComponentContainer::GetProperty(IPropertyStore** ps)
 {
     return pimpl->DllGetProperty(pimpl->index, ps);
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginContainer::GetClassObject(REFIID riid, void** ppvObject)
+HRESULT __stdcall ComponentContainer::GetClassObject(REFIID riid, void** ppvObject)
 {
     DebugPrintLn(NAME2 TEXT("::GetClassObject() begin"));
 
@@ -472,31 +541,31 @@ HRESULT __stdcall PluginContainer::GetClassObject(REFIID riid, void** ppvObject)
 
 //---------------------------------------------------------------------------//
 
-typedef std::map<CLSID, std::unique_ptr<PluginContainer>> PluginMap;
+typedef std::map<CLSID, std::unique_ptr<::ComponentContainer>> ComponentMap;
 
-struct PluginManager::Impl
+struct ComponentManager::Impl
 {
     Impl();
     ~Impl();
     void __stdcall Reset();
 
     void __stdcall ScanDirectory(LPCWSTR dir_path);
-    void __stdcall RegisterPlugin(LPCWSTR plugin_path);
+    void __stdcall RegisterComponent(LPCWSTR comp_path);
 
-    size_t              count;
-    ::PluginContainer** plugins;
-    PluginMap           pmap;
-    WCHAR               dir_path[MAX_PATH];
+    size_t                 count;
+    ::ComponentContainer** comps;
+    ComponentMap           cmap;
+    WCHAR                  dir_path[MAX_PATH];
 };
 
 //---------------------------------------------------------------------------//
 
-PluginManager::Impl::Impl()
+ComponentManager::Impl::Impl()
 {
     DebugPrintLn(NAME1 TEXT("::Impl::Constructor() begin"));
 
-    count = 0;
-    plugins = nullptr;
+    count       = 0;
+    comps       = nullptr;
     dir_path[0] = '\0';
 
     DebugPrintLn(NAME1 TEXT("::Impl::Constructor() end"));
@@ -504,7 +573,7 @@ PluginManager::Impl::Impl()
 
 //---------------------------------------------------------------------------//
 
-PluginManager::Impl::~Impl()
+ComponentManager::Impl::~Impl()
 {
     DebugPrintLn(NAME1 TEXT("::Impl::Destructor() begin"));
 
@@ -515,18 +584,18 @@ PluginManager::Impl::~Impl()
 
 //---------------------------------------------------------------------------//
 
-void __stdcall PluginManager::Impl::Reset()
+void __stdcall ComponentManager::Impl::Reset()
 {
     DebugPrintLn(NAME1 TEXT("::Impl::Reset() begin"));
 
-    pmap.clear();
+    cmap.clear();
 
     dir_path[0] = '\0';
 
-    if ( plugins )
+    if ( comps )
     {
-        delete[] plugins;
-        plugins = nullptr;
+        delete[] comps;
+        comps = nullptr;
     }
 
     count = 0;
@@ -536,7 +605,7 @@ void __stdcall PluginManager::Impl::Reset()
 
 //---------------------------------------------------------------------------//
 
-void __stdcall PluginManager::Impl::ScanDirectory(LPCWSTR dir_path)
+void __stdcall ComponentManager::Impl::ScanDirectory(LPCWSTR dir_path)
 {
     DebugPrintLn(NAME1 TEXT("::ScanDirectory() begin"));
 
@@ -553,7 +622,7 @@ void __stdcall PluginManager::Impl::ScanDirectory(LPCWSTR dir_path)
         auto ret = ::MessageBox(nullptr, MSG_01, nullptr, MB_YESNO | MB_DEFBUTTON2);
         if ( ret == IDYES )
         {
-            DebugPrintLn(TEXT("Creating plugins directory..."));
+            DebugPrintLn(TEXT("Creating components directory..."));
             ::CreateDirectory(dir_path, nullptr);
             DebugPrintLn(TEXT("Created."));
         }
@@ -599,7 +668,7 @@ void __stdcall PluginManager::Impl::ScanDirectory(LPCWSTR dir_path)
             if ( lstrcmp(::PathFindExtension(path), TEXT(".dll")) == 0 )
             {
                 // プラグインデータベースに記憶
-                RegisterPlugin(path);
+                RegisterComponent(path);
             }
         }
 
@@ -614,28 +683,28 @@ void __stdcall PluginManager::Impl::ScanDirectory(LPCWSTR dir_path)
 
 //---------------------------------------------------------------------------//
 
-void __stdcall PluginManager::Impl::RegisterPlugin(LPCWSTR plugin_path)
+void __stdcall ComponentManager::Impl::RegisterComponent(LPCWSTR comp_path)
 {
-    DebugPrintLn(NAME1 TEXT("::RegisterPlugin() begin"));
-    DebugPrintLn(plugin_path);
+    DebugPrintLn(NAME1 TEXT("::RegisterComponent() begin"));
+    DebugPrintLn(comp_path);
 
-    ::PluginContainer* pc = nullptr;
+    ::ComponentContainer* cc = nullptr;
     CLSID clsid = CLSID_NULL;
 
     // DLLファイルに含まれているクラスIDを全て取得
-    for ( size_t index = 0; index < MAX_PLUGIN_COUNT ; ++index )
+    for ( size_t index = 0; index < MAX_COMPONENT_COUNT ; ++index )
     {
         DebugPrintLn(TEXT("Searching ClassIDs: index == %d"), index);
 
         // プラグイン情報を管理するオブジェクトを生成
-        pc = new ::PluginContainer(plugin_path, index);
-        auto hr = pc->Load();
+        cc = new ::ComponentContainer(comp_path, index);
+        auto hr = cc->Load();
         if ( FAILED(hr) )
         {
-            DebugPrintLn(TEXT("Disposing plugin container..."));
+            DebugPrintLn(TEXT("Disposing component container..."));
 
-            delete pc;
-            pc = nullptr;
+            delete cc;
+            cc = nullptr;
 
             DebugPrintLn(TEXT("Disposed"));
 
@@ -643,13 +712,13 @@ void __stdcall PluginManager::Impl::RegisterPlugin(LPCWSTR plugin_path)
         }
 
         // プラグインのクラスIDを取得
-        clsid = pc->ClassID();
+        clsid = cc->ClassID();
 
         // 同じクラスIDがすでに登録されていないか確認
         DebugPrintLn(TEXT("Checking ClassID..."));
         {
-            auto it = pmap.find(clsid);
-            if ( it != pmap.end() )
+            auto it = cmap.find(clsid);
+            if ( it != cmap.end() )
             {
                 DebugPrintLn(TEXT("Duplicate ClassID"));
                 continue;
@@ -658,23 +727,23 @@ void __stdcall PluginManager::Impl::RegisterPlugin(LPCWSTR plugin_path)
         DebugPrintLn(TEXT("Checked ClassID: no duplicate"));
 
         // プラグイン情報を本体のデータベースに記憶
-        DebugPrintLn(TEXT("Registering plugin..."));
+        DebugPrintLn(TEXT("Registering component..."));
         {
-            pmap.emplace
+            cmap.emplace
             (
-                std::make_pair(clsid, std::unique_ptr<::PluginContainer>(pc))
+                std::make_pair(clsid, std::unique_ptr<::ComponentContainer>(cc))
             );
         }
-        DebugPrintLn(TEXT("Registered plugin"));
+        DebugPrintLn(TEXT("Registered component"));
     }
     DebugPrintLn(TEXT("Searched ClassIDs"));
 
-    DebugPrintLn(NAME1 TEXT("::RegisterPlugin() end"));
+    DebugPrintLn(NAME1 TEXT("::RegisterComponent() end"));
 }
 
 //---------------------------------------------------------------------------//
 
-PluginManager::PluginManager(LPCWSTR dir_path)
+ComponentManager::ComponentManager(LPCWSTR dir_path)
 {
     DebugPrintLn(NAME1 TEXT("::Constructor() begin"));
 
@@ -690,7 +759,7 @@ PluginManager::PluginManager(LPCWSTR dir_path)
 
 //---------------------------------------------------------------------------//
 
-PluginManager::~PluginManager()
+ComponentManager::~ComponentManager()
 {
     DebugPrintLn(NAME1 TEXT("::Destructor() begin"));
 
@@ -702,7 +771,7 @@ PluginManager::~PluginManager()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginManager::QueryInterface(REFIID riid, void** ppvObject)
+HRESULT __stdcall ComponentManager::QueryInterface(REFIID riid, void** ppvObject)
 {
     DebugPrintLn(NAME1 TEXT("::QueryInterface() begin"));
 
@@ -713,9 +782,9 @@ HRESULT __stdcall PluginManager::QueryInterface(REFIID riid, void** ppvObject)
 
     *ppvObject = nullptr;
 
-    if ( IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IPluginManager) )
+    if ( IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IComponentManager) )
     {
-        *ppvObject = static_cast<IPluginManager*>(this);
+        *ppvObject = static_cast<IComponentManager*>(this);
     }
     else
     {
@@ -731,7 +800,7 @@ HRESULT __stdcall PluginManager::QueryInterface(REFIID riid, void** ppvObject)
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall PluginManager::AddRef()
+ULONG __stdcall ComponentManager::AddRef()
 {
     DebugPrintLn(NAME1 TEXT("::AddRef() begin %d"), m_cRef);
 
@@ -746,7 +815,7 @@ ULONG __stdcall PluginManager::AddRef()
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall PluginManager::Release()
+ULONG __stdcall ComponentManager::Release()
 {
     DebugPrintLn(NAME1 TEXT("::Release() begin %d"), m_cRef);
 
@@ -767,25 +836,25 @@ ULONG __stdcall PluginManager::Release()
 
 //---------------------------------------------------------------------------//
 
-LPCWSTR __stdcall PluginManager::DirectoryPath() const
+LPCWSTR __stdcall ComponentManager::DirectoryPath() const
 {
     return pimpl->dir_path;
 }
 
 //---------------------------------------------------------------------------//
 
-size_t __stdcall PluginManager::PluginCount() const
+size_t __stdcall ComponentManager::ComponentCount() const
 {
     return pimpl->count;
 }
 
 //---------------------------------------------------------------------------//
 
-IPluginContainer* __stdcall PluginManager::PluginContainer(size_t index) const
+IComponentContainer* __stdcall ComponentManager::ComponentContainer(size_t index) const
 {
     if ( index < pimpl->count )
     {
-        return static_cast<IPluginContainer*>(pimpl->plugins[index]);
+        return static_cast<IComponentContainer*>(pimpl->comps[index]);
     }
     else
     {
@@ -795,27 +864,27 @@ IPluginContainer* __stdcall PluginManager::PluginContainer(size_t index) const
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginManager::LoadAll()
+HRESULT __stdcall ComponentManager::LoadAll()
 {
     DebugPrintLn(NAME1 TEXT("::LoadAll() begin"));
 
     pimpl->ScanDirectory(pimpl->dir_path);
 
-    pimpl->count = pimpl->pmap.size();
+    pimpl->count = pimpl->cmap.size();
     if ( pimpl->count < 1 )
     {
-        DebugPrintLn(TEXT("No plugin found"));
+        DebugPrintLn(TEXT("No component found"));
     }
 
-    pimpl->plugins = new ::PluginContainer*[pimpl->count + 1]; // 0でも空の配列を作る
+    pimpl->comps = new ::ComponentContainer*[pimpl->count + 1]; // 0でも空の配列を作る
 
-    auto it  = pimpl->pmap.begin();
-    auto end = pimpl->pmap.end();
+    auto it  = pimpl->cmap.begin();
+    auto end = pimpl->cmap.end();
     for ( size_t i = 0; it != end; ++i, ++it )
     {
-        pimpl->plugins[i] = it->second.get();
+        pimpl->comps[i] = it->second.get();
     }
-    pimpl->plugins[pimpl->count] = nullptr; // 配列はNULL終端
+    pimpl->comps[pimpl->count] = nullptr; // 配列はNULL終端
 
     DebugPrintLn(NAME1 TEXT("::LoadAll() end"));
 
@@ -824,7 +893,7 @@ HRESULT __stdcall PluginManager::LoadAll()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginManager::FreeAll()
+HRESULT __stdcall ComponentManager::FreeAll()
 {
     DebugPrintLn(NAME1 TEXT("::FreeAll() begin"));
 
@@ -834,7 +903,7 @@ HRESULT __stdcall PluginManager::FreeAll()
     auto count = pimpl->count;
     for ( size_t i = 0; i < count; ++i )
     {
-        hr = pimpl->plugins[i]->Free();
+        hr = pimpl->comps[i]->Free();
         if ( SUCCEEDED(hr) )
         {
             ++freed;
@@ -863,4 +932,4 @@ HRESULT __stdcall PluginManager::FreeAll()
 
 //---------------------------------------------------------------------------//
 
-// PluginManager.cpp
+// ComponentManager.cpp

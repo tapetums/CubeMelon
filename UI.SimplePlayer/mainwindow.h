@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 
-class IPlugin;
+class IComponent;
 
 namespace Ui {
 class MainWindow;
@@ -18,7 +18,7 @@ public:
     ~MainWindow();
 
 public:
-    void setOwner(IPlugin* owner);
+    void setOwner(IComponent* owner);
 
 protected:
     void closeEvent(QCloseEvent *event) override;

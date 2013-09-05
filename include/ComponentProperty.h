@@ -1,14 +1,14 @@
-﻿// PluginProperty.h
+﻿// ComponentProperty.h
 
 #pragma once
 
 //---------------------------------------------------------------------------//
 
-class PluginProperty : public IPropertyStore
+class ComponentProperty : public IPropertyStore
 {
 public:
-    PluginProperty();
-    ~PluginProperty();
+    ComponentProperty();
+    ~ComponentProperty();
 
     HRESULT __stdcall QueryInterface(REFIID riid, void** ppvObject) override;
     ULONG   __stdcall AddRef() override;
@@ -25,12 +25,12 @@ private:
     Impl* pimpl;
 
 private:
-    PluginProperty(const PluginProperty&);
-    PluginProperty(PluginProperty&&);
-    PluginProperty& operator =(const PluginProperty&);
-    PluginProperty& operator =(PluginProperty&&);
+    ComponentProperty(const ComponentProperty&);
+    ComponentProperty(ComponentProperty&&);
+    ComponentProperty& operator =(const ComponentProperty&);
+    ComponentProperty& operator =(ComponentProperty&&);
 };
 
 //---------------------------------------------------------------------------//
 
-// PluginProperty.h
+// ComponentProperty.h

@@ -1,15 +1,15 @@
-﻿// SimplePlayer.DllMain.cpp
+﻿// Output.Wasapi.DllMain.cpp
 
 #include <windows.h>
 #include <propsys.h>
 
 #include "..\include\LockModule.h"
 #include "..\include\ClassFactory.h"
-#include "..\include\PluginProperty.h"
+#include "..\include\ComponentProperty.h"
 
 //---------------------------------------------------------------------------//
 
-extern const CLSID CLSID_Plugin;
+extern const CLSID CLSID_Component;
 
 //---------------------------------------------------------------------------//
 
@@ -51,7 +51,7 @@ STDAPI DllGetProperty(size_t index, IPropertyStore** ps)
 
     if ( index == 0 )
     {
-        static PluginProperty prop;
+        static ComponentProperty prop;
         *ps = &prop;
         (*ps)->AddRef();
 
@@ -76,7 +76,7 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, void** ppvObject)
 
     *ppvObject = nullptr;
 
-    if ( !IsEqualCLSID(rclsid, CLSID_Plugin) )
+    if ( !IsEqualCLSID(rclsid, CLSID_Component) )
     {
         return CLASS_E_CLASSNOTAVAILABLE;
     }
@@ -93,4 +93,4 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, void** ppvObject)
     }
 }
 
-// SimplePlayer.DllMain.cpp
+// Output.Wasapi.DllMain.cpp

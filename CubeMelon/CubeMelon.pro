@@ -18,19 +18,19 @@ SOURCES +=\
     ../include/LockModule.cpp \
     main.cpp\
     mainwindow.cpp \
-    PluginManager.cpp \
-    PluginProperty.cpp \
-    Host.cpp
+    Component.cpp \
+    ComponentManager.cpp \
+    ComponentProperty.cpp
 
 HEADERS +=\
     ../include/DWM.h \
     ../include/DebugPrint.h \
     ../include/Interfaces.h \
     ../include/LockModule.h \
-    ../include/PluginProperty.h \
     mainwindow.h \
-    PluginManager.h \
-    Host.h
+    Component.h \
+    ComponentManager.h \
+    ../include/ComponentProperty.h
 
 unix:!symbian {
     maemo5 {

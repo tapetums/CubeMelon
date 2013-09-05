@@ -1,16 +1,17 @@
-﻿// PluginManager.h
+﻿// ComponentManager.h
 
 #pragma once
 
 //---------------------------------------------------------------------------//
 
+struct VersionInfo;
 struct IPropertyStore;
 
-class PluginContainer : public IPluginContainer
+class ComponentContainer : public IComponentContainer
 {
 public:
-    explicit PluginContainer(LPCWSTR file_path, size_t index);
-    ~PluginContainer();
+    explicit ComponentContainer(LPCWSTR file_path, size_t index);
+    ~ComponentContainer();
 
     HRESULT __stdcall QueryInterface(REFIID riid, void** ppvObject) override;
     ULONG   __stdcall AddRef() override;
@@ -37,27 +38,27 @@ private:
     Impl* pimpl;
 
 private:
-    PluginContainer(const PluginContainer&);
-    PluginContainer(PluginContainer&&);
-    PluginContainer& operator =(const PluginContainer&);
-    PluginContainer& operator =(PluginContainer&&);
+    ComponentContainer(const ComponentContainer&);
+    ComponentContainer(ComponentContainer&&);
+    ComponentContainer& operator =(const ComponentContainer&);
+    ComponentContainer& operator =(ComponentContainer&&);
 };
 
 //---------------------------------------------------------------------------//
 
-class PluginManager : public IPluginManager
+class ComponentManager : public IComponentManager
 {
 public:
-    explicit PluginManager(LPCWSTR dir_path);
-    ~PluginManager();
+    explicit ComponentManager(LPCWSTR dir_path);
+    ~ComponentManager();
 
     HRESULT __stdcall QueryInterface(REFIID riid, void** ppvObject) override;
     ULONG   __stdcall AddRef() override;
     ULONG   __stdcall Release() override;
 
-    LPCWSTR           __stdcall DirectoryPath() const override;
-    size_t            __stdcall PluginCount() const override;
-    IPluginContainer* __stdcall PluginContainer(size_t index) const override;
+    LPCWSTR              __stdcall DirectoryPath() const override;
+    size_t               __stdcall ComponentCount() const override;
+    IComponentContainer* __stdcall ComponentContainer(size_t index) const override;
 
     HRESULT __stdcall LoadAll() override;
     HRESULT __stdcall FreeAll() override;
@@ -70,12 +71,12 @@ private:
     Impl* pimpl;
 
 private:
-    PluginManager(const PluginManager&);
-    PluginManager(PluginManager&&);
-    PluginManager& operator =(const PluginManager&);
-    PluginManager& operator =(PluginManager&&);
+    ComponentManager(const ComponentManager&);
+    ComponentManager(ComponentManager&&);
+    ComponentManager& operator =(const ComponentManager&);
+    ComponentManager& operator =(ComponentManager&&);
 };
 
 //---------------------------------------------------------------------------//
 
-// PluginManager.h
+// ComponentManager.h

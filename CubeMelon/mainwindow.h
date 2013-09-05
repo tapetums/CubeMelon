@@ -14,6 +14,8 @@ class MainWindow;
 
 //---------------------------------------------------------------------------//
 
+struct VersionInfo;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -24,7 +26,7 @@ public:
 
 public:
     void addConsoleText(LPCWSTR text);
-    void addListItem(LPCWSTR  name, REFCLSID clsid);
+    void addListItem(REFCLSID clsid, LPCWSTR  name, LPCWSTR  description, LPCWSTR  copyright, VersionInfo* vi);
     void removeListItem();
     void clearList();
 

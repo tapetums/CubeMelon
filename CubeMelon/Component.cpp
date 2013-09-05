@@ -1,47 +1,53 @@
-﻿// CubeMelon.Host.cpp
+﻿// CubeMelon.Component.cpp
 
 #include <memory>
 #include <map>
 
 #include <windows.h>
+
 #include <shlwapi.h>
 #pragma comment(lib, "shlwapi.lib")
 
 #include "..\include\DebugPrint.h"
 #include "..\include\LockModule.h"
 #include "..\include\Interfaces.h"
-#include "PluginManager.h"
-#include "Host.h"
+#include "ComponentManager.h"
+#include "Component.h"
 
 //---------------------------------------------------------------------------//
 
-#define NAME TEXT("Host")
+#define NAME TEXT("CubeMelon")
 
-extern const CLSID CLSID_Plugin;
+extern const CLSID CLSID_Component;
 extern HINSTANCE g_hInst;
 
 //---------------------------------------------------------------------------//
 
-struct Host::Impl
+struct Component::Impl
 {
     Impl();
     ~Impl();
 
-    ::PluginManager* manager;
-    IPlugin*         child;
+    ::ComponentManager* manager;
+    IComponent*         child;
+    CLSID            clsid_autorun;
 };
 
 //---------------------------------------------------------------------------//
 
-Host::Impl::Impl()
+Component::Impl::Impl()
 {
+    CLSID clsid =
+    { 0x520e13ad, 0x3345, 0x4377, { 0xb2, 0xef, 0x68, 0x42, 0xea, 0x79, 0xb2, 0x5b } };
+
     manager = nullptr;
     child  = nullptr;
+    clsid_autorun = clsid;//CLSID_NULL;
 }
 
 //---------------------------------------------------------------------------//
 
-Host::Impl::~Impl()
+Component::Impl::~Impl()
 {
     if ( child )
     {
@@ -57,7 +63,7 @@ Host::Impl::~Impl()
 
 //---------------------------------------------------------------------------//
 
-Host::Host(IUnknown* pUnkOuter)
+Component::Component(IUnknown* pUnkOuter)
 {
     DebugPrintLn(NAME TEXT("::Constructor() begin"));
 
@@ -66,8 +72,8 @@ Host::Host(IUnknown* pUnkOuter)
     WCHAR dir_path[MAX_PATH];
     ::GetModuleFileName(nullptr, dir_path, MAX_PATH);
     ::PathRemoveFileSpec(dir_path);
-    ::PathAppend(dir_path, TEXT("\\plugins"));
-    pimpl->manager = new ::PluginManager(dir_path);
+    ::PathAppend(dir_path, TEXT("\\components"));
+    pimpl->manager = new ::ComponentManager(dir_path);
 
     m_cRef  = 0;
     m_owner = nullptr;
@@ -80,7 +86,7 @@ Host::Host(IUnknown* pUnkOuter)
 
 //---------------------------------------------------------------------------//
 
-Host::~Host()
+Component::~Component()
 {
     DebugPrintLn(NAME TEXT("::Destructor() begin"));
 
@@ -104,7 +110,7 @@ Host::~Host()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Host::QueryInterface(REFIID riid, void** ppvObject)
+HRESULT __stdcall Component::QueryInterface(REFIID riid, void** ppvObject)
 {
     DebugPrintLn(NAME TEXT("::QueryInterface() begin"));
 
@@ -115,13 +121,9 @@ HRESULT __stdcall Host::QueryInterface(REFIID riid, void** ppvObject)
 
     *ppvObject = nullptr;
 
-    if ( IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IPlugin) )
+    if ( IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IComponent) )
     {
-        *ppvObject = static_cast<IPlugin*>(this);
-    }
-    else if ( IsEqualIID(riid, IID_IPluginHost) )
-    {
-        *ppvObject = static_cast<IPluginHost*>(this);
+        *ppvObject = static_cast<IComponent*>(this);
     }
     else
     {
@@ -137,7 +139,7 @@ HRESULT __stdcall Host::QueryInterface(REFIID riid, void** ppvObject)
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall Host::AddRef()
+ULONG __stdcall Component::AddRef()
 {
     DebugPrintLn(NAME TEXT("::AddRef() begin %d"), m_cRef);
 
@@ -152,7 +154,7 @@ ULONG __stdcall Host::AddRef()
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall Host::Release()
+ULONG __stdcall Component::Release()
 {
     DebugPrintLn(NAME TEXT("::Release() begin %d"), m_cRef);
 
@@ -173,44 +175,44 @@ ULONG __stdcall Host::Release()
 
 //---------------------------------------------------------------------------//
 
-REFCLSID __stdcall Host::ClassID() const
+REFCLSID __stdcall Component::ClassID() const
 {
-    return CLSID_Plugin;
+    return CLSID_Component;
 }
 
 //---------------------------------------------------------------------------//
 
-IPlugin* __stdcall Host::Owner() const
+IComponent* __stdcall Component::Owner() const
 {
     return m_owner;
 }
 
 //---------------------------------------------------------------------------//
 
-STATE __stdcall Host::Status() const
+STATE __stdcall Component::Status() const
 {
     return m_state;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Host::Attach(LPCWSTR msg, IPlugin* listener)
+HRESULT __stdcall Component::Attach(LPCWSTR msg, IComponent* listener)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Host::Detach(LPCWSTR msg, IPlugin* listener)
+HRESULT __stdcall Component::Detach(LPCWSTR msg, IComponent* listener)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Host::Notify
+HRESULT __stdcall Component::Notify
 (
-    IPlugin* sender, LPCWSTR msg, LPVOID data, size_t cb_data
+    IComponent* sender, LPCWSTR msg, LPVOID data, size_t cb_data
 )
 {
     return E_NOTIMPL;
@@ -218,33 +220,33 @@ HRESULT __stdcall Host::Notify
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Host::GetPluginInstance
+HRESULT __stdcall Component::GetComponentInstance
 (
     REFCLSID rclsid, REFIID riid, void** ppvObject
 )
 {
-    DebugPrintLn(NAME TEXT("::GetPluginInstance() begin"));
+    DebugPrintLn(NAME TEXT("::GetComponentInstance() begin"));
 
     HRESULT hr;
 
     if ( nullptr == ppvObject )
     {
-        return E_INVALIDARG;
+        return E_POINTER;
     }
 
     *ppvObject = nullptr;
 
-    if ( IsEqualCLSID(rclsid, CLSID_Plugin) )
+    if ( IsEqualCLSID(rclsid, CLSID_Component) )
     {
         return this->QueryInterface(riid, ppvObject);
     }
 
     size_t index = 0;
-    auto count = pimpl->manager->PluginCount();
-    IPluginContainer* pc = nullptr;
+    auto count = pimpl->manager->ComponentCount();
+    IComponentContainer* pc = nullptr;
     for ( ; index < count; ++index )
     {
-        pc = pimpl->manager->PluginContainer(index);
+        pc = pimpl->manager->ComponentContainer(index);
         if ( pc && IsEqualCLSID(rclsid, pc->ClassID()) )
         {
             break;
@@ -265,7 +267,7 @@ HRESULT __stdcall Host::GetPluginInstance
         return hr;
     }
 
-    hr = factory->CreateInstance(static_cast<IUnknown*>((void*)this), riid, ppvObject);
+    hr = factory->CreateInstance(static_cast<IComponent*>(this), riid, ppvObject);
     factory->Release();
     factory = nullptr;
 
@@ -276,14 +278,14 @@ HRESULT __stdcall Host::GetPluginInstance
 
     /// 何の処理を入れるか未定 ///
 
-    DebugPrintLn(NAME TEXT("::GetPluginInstance() end"));
+    DebugPrintLn(NAME TEXT("::GetComponentInstance() end"));
 
     return hr;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Host::Start(LPCVOID args)
+HRESULT __stdcall Component::Start(LPCVOID args)
 {
     DebugPrintLn(NAME TEXT("::Start() begin"));
 
@@ -299,7 +301,7 @@ HRESULT __stdcall Host::Start(LPCVOID args)
     m_state = STATE_RUNNING;
 
     // プラグインの読み込み
-    DebugPrintLn(TEXT("Loading plugins..."));
+    DebugPrintLn(TEXT("Loading components..."));
     {
         hr = pimpl->manager->LoadAll();
         if ( FAILED(hr) )
@@ -307,27 +309,24 @@ HRESULT __stdcall Host::Start(LPCVOID args)
             return hr;
         }
     }
-    DebugPrintLn(TEXT("Loaded plugins"));
+    DebugPrintLn(TEXT("Loaded components"));
 
     // プラグインの起動
-    DebugPrintLn(TEXT("Executing plugin..."));
+    DebugPrintLn(TEXT("Executing component..."));
     {
-        CLSID clsid =
-        { 0x520e13ad, 0x3345, 0x4377, { 0xb2, 0xef, 0x68, 0x42, 0xea, 0x79, 0xb2, 0x5b } };
-
-        hr = this->GetPluginInstance
+        hr = this->GetComponentInstance
         (
-            clsid, IID_IPlugin, (void**)&pimpl->child
+            pimpl->clsid_autorun, IID_IComponent, (void**)&pimpl->child
         );
         if ( FAILED(hr) || nullptr == pimpl->child )
         {
-            DebugPrintLn(TEXT("Plugin was not found"));
+            DebugPrintLn(TEXT("Component was not found"));
             return hr;
         }
 
         hr = pimpl->child->Start(nullptr);
     }
-    DebugPrintLn(TEXT("Executed plugin"));
+    DebugPrintLn(TEXT("Executed component"));
 
     // 起動させなかったプラグインは一旦アンロード
     pimpl->manager->FreeAll();
@@ -339,7 +338,7 @@ HRESULT __stdcall Host::Start(LPCVOID args)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Host::Stop()
+HRESULT __stdcall Component::Stop()
 {
     DebugPrintLn(NAME TEXT("::Stop() begin"));
 
@@ -364,11 +363,11 @@ HRESULT __stdcall Host::Stop()
 
 //---------------------------------------------------------------------------//
 
-IPluginManager* __stdcall Host::PluginManager() const
+IComponentManager* __stdcall Component::ComponentManager() const
 {
     return pimpl->manager;
 }
 
 //---------------------------------------------------------------------------//
 
-// CubeMelon.Host.cpp
+// CubeMelon.Component.cpp

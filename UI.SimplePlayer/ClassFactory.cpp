@@ -5,7 +5,7 @@
 #include "..\include\LockModule.h"
 #include "..\include\ClassFactory.h"
 #include "..\include\Interfaces.h"
-#include "..\include\Plugin.h"
+#include "..\include\Component.h"
 
 //---------------------------------------------------------------------------//
 
@@ -68,16 +68,16 @@ STDMETHODIMP ClassFactory::CreateInstance
 
     *ppvObject = nullptr;
 
-    IPlugin* plugin = new Plugin(pUnkOuter);
-    if ( nullptr == plugin )
+    IComponent* comp = new Component(pUnkOuter);
+    if ( nullptr == comp )
     {
         return E_OUTOFMEMORY;
     }
 
-    hr = plugin->QueryInterface(riid, ppvObject);
+    hr = comp->QueryInterface(riid, ppvObject);
     if ( SUCCEEDED(hr) && ppvObject )
     {
-        hr = plugin->Release();
+        hr = comp->Release();
     }
 
     return hr;

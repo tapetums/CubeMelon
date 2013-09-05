@@ -1,11 +1,11 @@
-﻿// SimplePlayer.Plugin.cpp
+﻿// SimplePlayer.Component.cpp
 
 #include <windows.h>
 
 #include "..\include\DebugPrint.h"
 #include "..\include\LockModule.h"
 #include "..\include\Interfaces.h"
-#include "..\include\Plugin.h"
+#include "..\include\Component.h"
 
 #include "mainwindow.h"
 
@@ -15,11 +15,11 @@
 
 //---------------------------------------------------------------------------//
 
-extern const CLSID CLSID_Plugin;
+extern const CLSID CLSID_Component;
 
 //---------------------------------------------------------------------------//
 
-struct Plugin::Impl
+struct Component::Impl
 {
     Impl();
     ~Impl();
@@ -29,14 +29,14 @@ struct Plugin::Impl
 
 //---------------------------------------------------------------------------//
 
-Plugin::Impl::Impl()
+Component::Impl::Impl()
 {
     mwnd = nullptr;
 }
 
 //---------------------------------------------------------------------------//
 
-Plugin::Impl::~Impl()
+Component::Impl::~Impl()
 {
     if ( mwnd )
     {
@@ -47,7 +47,7 @@ Plugin::Impl::~Impl()
 
 //---------------------------------------------------------------------------//
 
-Plugin::Plugin(IUnknown* pUnkOuter)
+Component::Component(IUnknown* pUnkOuter)
 {
     DebugPrintLn(NAME TEXT("::Constructor() begin"));
 
@@ -59,7 +59,7 @@ Plugin::Plugin(IUnknown* pUnkOuter)
     {
         auto hr = pUnkOuter->QueryInterface
         (
-            IID_IPlugin, (void**)&m_owner
+            IID_IComponent, (void**)&m_owner
         );
         if ( FAILED(hr) )
         {
@@ -75,7 +75,7 @@ Plugin::Plugin(IUnknown* pUnkOuter)
 
 //---------------------------------------------------------------------------//
 
-Plugin::~Plugin()
+Component::~Component()
 {
     DebugPrintLn(NAME TEXT("::Destructor() begin"));
 
@@ -101,7 +101,7 @@ Plugin::~Plugin()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::QueryInterface(REFIID riid, void** ppvObject)
+HRESULT __stdcall Component::QueryInterface(REFIID riid, void** ppvObject)
 {
     DebugPrintLn(NAME TEXT("::QueryInterface() begin"));
 
@@ -112,9 +112,9 @@ HRESULT __stdcall Plugin::QueryInterface(REFIID riid, void** ppvObject)
 
     *ppvObject = nullptr;
 
-    if ( IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IPlugin) )
+    if ( IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IComponent) )
     {
-        *ppvObject = static_cast<IPlugin*>(this);
+        *ppvObject = static_cast<IComponent*>(this);
     }
     else
     {
@@ -130,7 +130,7 @@ HRESULT __stdcall Plugin::QueryInterface(REFIID riid, void** ppvObject)
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall Plugin::AddRef()
+ULONG __stdcall Component::AddRef()
 {
     DebugPrintLn(NAME TEXT("::AddRef() begin %d"), m_cRef);
 
@@ -145,7 +145,7 @@ ULONG __stdcall Plugin::AddRef()
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall Plugin::Release()
+ULONG __stdcall Component::Release()
 {
     DebugPrintLn(NAME TEXT("::Release() begin %d"), m_cRef);
 
@@ -166,44 +166,44 @@ ULONG __stdcall Plugin::Release()
 
 //---------------------------------------------------------------------------//
 
-REFCLSID __stdcall Plugin::ClassID() const
+REFCLSID __stdcall Component::ClassID() const
 {
-    return CLSID_Plugin;
+    return CLSID_Component;
 }
 
 //---------------------------------------------------------------------------//
 
-IPlugin* __stdcall Plugin::Owner() const
+IComponent* __stdcall Component::Owner() const
 {
     return m_owner;
 }
 
 //---------------------------------------------------------------------------//
 
-STATE __stdcall Plugin::Status() const
+STATE __stdcall Component::Status() const
 {
     return m_state;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::Attach(LPCWSTR msg, IPlugin* listener)
+HRESULT __stdcall Component::Attach(LPCWSTR msg, IComponent* listener)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::Detach(LPCWSTR msg, IPlugin* listener)
+HRESULT __stdcall Component::Detach(LPCWSTR msg, IComponent* listener)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::Notify
+HRESULT __stdcall Component::Notify
 (
-    IPlugin* sender, LPCWSTR msg, LPVOID data, size_t cb_data
+    IComponent* sender, LPCWSTR msg, LPVOID data, size_t cb_data
 )
 {
     return E_NOTIMPL;
@@ -211,11 +211,14 @@ HRESULT __stdcall Plugin::Notify
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::GetPluginInstance(REFCLSID rclsid, REFIID riid, void** ppvObject)
+HRESULT __stdcall Component::GetComponentInstance
+(
+    REFCLSID rclsid, REFIID riid, void** ppvObject
+)
 {
     if ( m_owner )
     {
-        return m_owner->GetPluginInstance(rclsid, riid, ppvObject);
+        return m_owner->GetComponentInstance(rclsid, riid, ppvObject);
     }
     else
     {
@@ -225,7 +228,7 @@ HRESULT __stdcall Plugin::GetPluginInstance(REFCLSID rclsid, REFIID riid, void**
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::Start(LPCVOID args)
+HRESULT __stdcall Component::Start(LPCVOID args)
 {
     DebugPrintLn(NAME TEXT("::Start() begin"));
 
@@ -252,7 +255,7 @@ HRESULT __stdcall Plugin::Start(LPCVOID args)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Plugin::Stop()
+HRESULT __stdcall Component::Stop()
 {
     DebugPrintLn(NAME TEXT("::Stop() begin"));
 
@@ -283,4 +286,4 @@ HRESULT __stdcall Plugin::Stop()
     return S_OK;
 }
 
-// SimplePlayer.Plugin.cpp
+// SimplePlayer.Component.cpp

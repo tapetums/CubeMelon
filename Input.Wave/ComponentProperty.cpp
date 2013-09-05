@@ -1,4 +1,4 @@
-﻿// UI.SimplePlayer.PluginProperty.cpp
+﻿// Inpu.tWave.ComponentProperty.cpp
 
 #include <windows.h>
 #include <propsys.h>
@@ -7,28 +7,28 @@
 
 #include "..\include\LockModule.h"
 #include "..\include\Interfaces.h"
-#include "..\include\PluginProperty.h"
+#include "..\include\ComponentProperty.h"
 
 //---------------------------------------------------------------------------//
 
-extern const CLSID CLSID_Plugin =
-{ 0x520e13ad, 0x3345, 0x4377, { 0xb2, 0xef, 0x68, 0x42, 0xea, 0x79, 0xb2, 0x5b } };
+extern const CLSID CLSID_Component =
+{ 0xae2c31a0, 0x7f16, 0x4e0d, { 0xb5, 0x2f, 0x22, 0x8e, 0xa0, 0x85, 0x15, 0x8f } };
 
 //---------------------------------------------------------------------------//
 
-PluginProperty::PluginProperty()
+ComponentProperty::ComponentProperty()
 {
 }
 
 //---------------------------------------------------------------------------//
 
-PluginProperty::~PluginProperty()
+ComponentProperty::~ComponentProperty()
 {
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginProperty::QueryInterface(REFIID riid, void** ppvObject)
+HRESULT __stdcall ComponentProperty::QueryInterface(REFIID riid, void** ppvObject)
 {
     if ( nullptr == ppvObject )
     {
@@ -53,7 +53,7 @@ HRESULT __stdcall PluginProperty::QueryInterface(REFIID riid, void** ppvObject)
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall PluginProperty::AddRef()
+ULONG __stdcall ComponentProperty::AddRef()
 {
     LockModule();
 
@@ -62,7 +62,7 @@ ULONG __stdcall PluginProperty::AddRef()
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall PluginProperty::Release()
+ULONG __stdcall ComponentProperty::Release()
 {
     UnlockModule();
 
@@ -71,7 +71,7 @@ ULONG __stdcall PluginProperty::Release()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginProperty::GetCount(DWORD* cProps)
+HRESULT __stdcall ComponentProperty::GetCount(DWORD* cProps)
 {
      if ( nullptr == cProps )
     {
@@ -85,7 +85,7 @@ HRESULT __stdcall PluginProperty::GetCount(DWORD* cProps)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginProperty::GetAt(DWORD iProp, PROPERTYKEY* pkey)
+HRESULT __stdcall ComponentProperty::GetAt(DWORD iProp, PROPERTYKEY* pkey)
 {
     if ( nullptr == pkey )
     {
@@ -106,7 +106,7 @@ HRESULT __stdcall PluginProperty::GetAt(DWORD iProp, PROPERTYKEY* pkey)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
+HRESULT __stdcall ComponentProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
 {
     if ( nullptr == pv )
     {
@@ -124,7 +124,7 @@ HRESULT __stdcall PluginProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
         {
             pv->vt = VT_CLSID;
             auto puuid = (CLSID*)::CoTaskMemAlloc(sizeof(CLSID));
-            *puuid = CLSID_Plugin;
+            *puuid = CLSID_Component;
             pv->puuid = puuid;
             return S_OK;
         }
@@ -132,7 +132,7 @@ HRESULT __stdcall PluginProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
         {
             pv->vt = VT_LPWSTR;
             auto str = (LPWSTR)::CoTaskMemAlloc(MAX_PATH * sizeof(WCHAR));
-            ::StringCchPrintf(str, MAX_PATH, TEXT("UI.SimplePlayer"));
+            ::StringCchPrintf(str, MAX_PATH, TEXT("Input.Wave"));
             pv->pwszVal = str;
             return S_OK;
         }
@@ -140,7 +140,7 @@ HRESULT __stdcall PluginProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
         {
             pv->vt = VT_LPWSTR;
             auto str = (LPWSTR)::CoTaskMemAlloc(MAX_PATH * sizeof(WCHAR));
-            ::StringCchPrintf(str, MAX_PATH, TEXT("Audio player window plugin for CubeMelon"));
+            ::StringCchPrintf(str, MAX_PATH, TEXT("Input component for WAVE, RF64, CAF"));
             pv->pwszVal = str;
             return S_OK;
         }
@@ -174,16 +174,16 @@ HRESULT __stdcall PluginProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginProperty::SetValue(REFPROPERTYKEY key, REFPROPVARIANT propvar)
+HRESULT __stdcall ComponentProperty::SetValue(REFPROPERTYKEY key, REFPROPVARIANT propvar)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginProperty::Commit()
+HRESULT __stdcall ComponentProperty::Commit()
 {
     return E_NOTIMPL;
 }
 
-// UI.SimplePlayer.PluginProperty.cpp
+// Input.Wave.ComponentProperty.cpp

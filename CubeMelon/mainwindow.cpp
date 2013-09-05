@@ -11,6 +11,7 @@
 #include "ui_mainwindow.h"
 
 #include "..\include\DWM.h"
+#include "..\include\Interfaces.h"
 
 //---------------------------------------------------------------------------//
 
@@ -90,13 +91,16 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 
 //---------------------------------------------------------------------------//
 
-void MainWindow::addListItem(LPCWSTR name, REFCLSID clsid)
+void MainWindow::addListItem
+(
+    REFCLSID clsid, LPCWSTR  name,
+    LPCWSTR  description, LPCWSTR  copyright, VersionInfo* vi
+)
 {
+    WCHAR buf[256];
+
     auto item = new QTreeWidgetItem;
 
-    item->setText(0, QString::fromUtf16((const ushort*)name));
-
-    WCHAR buf[256];
     ::StringCchPrintf
     (
         buf, 256,
@@ -104,6 +108,20 @@ void MainWindow::addListItem(LPCWSTR name, REFCLSID clsid)
         clsid.Data1, clsid.Data2, clsid.Data3,
         clsid.Data4[0], clsid.Data4[1], clsid.Data4[2], clsid.Data4[3],
         clsid.Data4[4], clsid.Data4[5], clsid.Data4[6], clsid.Data4[7]
+    );
+    item->setText(4, QString::fromUtf16((const ushort*)buf));
+
+    item->setText(0, QString::fromUtf16((const ushort*)name));
+
+    item->setText(2, QString::fromUtf16((const ushort*)description));
+
+    item->setText(3, QString::fromUtf16((const ushort*)copyright));
+
+    ::StringCchPrintf
+    (
+        buf, 256,
+        TEXT("%d.%d.%d %s"),
+        vi->major, vi->minor, vi->revision, vi->stage
     );
     item->setText(1, QString::fromUtf16((const ushort*)buf));
 

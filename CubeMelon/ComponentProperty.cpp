@@ -1,34 +1,35 @@
-﻿// CubeMelon.PluginProperty.cpp
+﻿// CubeMelon.ComponentProperty.cpp
 
 #include <windows.h>
-#include <propsys.h>
 #include <strsafe.h>
+
+#include <propsys.h>
 #pragma comment(lib, "ole32.lib")
 
 #include "..\include\LockModule.h"
 #include "..\include\Interfaces.h"
-#include "..\include\PluginProperty.h"
+#include "..\include\ComponentProperty.h"
 
 //---------------------------------------------------------------------------//
 
-extern const CLSID CLSID_Plugin =
+extern const CLSID CLSID_Component =
 { 0x1511e8d0, 0x55a8, 0x4cc2, { 0x94, 0x8b, 0x9f, 0xee, 0xe, 0x63, 0x92, 0x5a } };
 
 //---------------------------------------------------------------------------//
 
-PluginProperty::PluginProperty()
+ComponentProperty::ComponentProperty()
 {
 }
 
 //---------------------------------------------------------------------------//
 
-PluginProperty::~PluginProperty()
+ComponentProperty::~ComponentProperty()
 {
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginProperty::QueryInterface(REFIID riid, void** ppvObject)
+HRESULT __stdcall ComponentProperty::QueryInterface(REFIID riid, void** ppvObject)
 {
     if ( nullptr == ppvObject )
     {
@@ -53,7 +54,7 @@ HRESULT __stdcall PluginProperty::QueryInterface(REFIID riid, void** ppvObject)
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall PluginProperty::AddRef()
+ULONG __stdcall ComponentProperty::AddRef()
 {
     LockModule();
 
@@ -62,7 +63,7 @@ ULONG __stdcall PluginProperty::AddRef()
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall PluginProperty::Release()
+ULONG __stdcall ComponentProperty::Release()
 {
     UnlockModule();
 
@@ -71,11 +72,11 @@ ULONG __stdcall PluginProperty::Release()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginProperty::GetCount(DWORD* cProps)
+HRESULT __stdcall ComponentProperty::GetCount(DWORD* cProps)
 {
     if ( nullptr == cProps )
    {
-       return E_INVALIDARG;
+       return E_POINTER;
    }
 
    *cProps = 5;
@@ -85,11 +86,11 @@ HRESULT __stdcall PluginProperty::GetCount(DWORD* cProps)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginProperty::GetAt(DWORD iProp, PROPERTYKEY* pkey)
+HRESULT __stdcall ComponentProperty::GetAt(DWORD iProp, PROPERTYKEY* pkey)
 {
     if ( nullptr == pkey )
     {
-        return E_INVALIDARG;
+        return E_POINTER;
     }
 
     iProp += CUBEMELON_PID_CLSID;
@@ -106,11 +107,11 @@ HRESULT __stdcall PluginProperty::GetAt(DWORD iProp, PROPERTYKEY* pkey)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
+HRESULT __stdcall ComponentProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
 {
     if ( nullptr == pv )
     {
-        return E_INVALIDARG;
+        return E_POINTER;
     }
 
     if ( !IsEqualGUID(key.fmtid, PKEY_CubeMelon_GetProperty) )
@@ -124,7 +125,7 @@ HRESULT __stdcall PluginProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
         {
             pv->vt = VT_CLSID;
             auto puuid = (CLSID*)::CoTaskMemAlloc(sizeof(CLSID));
-            *puuid = CLSID_Plugin;
+            *puuid = CLSID_Component;
             pv->puuid = puuid;
             return S_OK;
         }
@@ -140,7 +141,7 @@ HRESULT __stdcall PluginProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
         {
             pv->vt = VT_LPWSTR;
             auto str = (LPWSTR)::CoTaskMemAlloc(MAX_PATH * sizeof(WCHAR));
-            ::StringCchPrintf(str, MAX_PATH, TEXT("Plugin-based Application System"));
+            ::StringCchPrintf(str, MAX_PATH, TEXT("Component-based Application System"));
             pv->pwszVal = str;
             return S_OK;
         }
@@ -174,18 +175,18 @@ HRESULT __stdcall PluginProperty::GetValue(REFPROPERTYKEY key, PROPVARIANT* pv)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginProperty::SetValue(REFPROPERTYKEY key, REFPROPVARIANT propvar)
+HRESULT __stdcall ComponentProperty::SetValue(REFPROPERTYKEY key, REFPROPVARIANT propvar)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall PluginProperty::Commit()
+HRESULT __stdcall ComponentProperty::Commit()
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-// CubeMelon.PluginProperty.cpp
+// CubeMelon.ComponentProperty.cpp
