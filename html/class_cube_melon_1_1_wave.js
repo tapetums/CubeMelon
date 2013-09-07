@@ -1,0 +1,27 @@
+var class_cube_melon_1_1_wave =
+[
+    [ "Impl", "struct_cube_melon_1_1_wave_1_1_impl.html", "struct_cube_melon_1_1_wave_1_1_impl" ],
+    [ "Wave", "class_cube_melon_1_1_wave.html#a6d86614b9159f1780192f1a8fe09aae6", null ],
+    [ "~Wave", "class_cube_melon_1_1_wave.html#a3712438746fcf59d0832c54a442bf5b0", null ],
+    [ "AddRef", "class_cube_melon_1_1_wave.html#a680b6b22d66fe59f70e8bd3e8d52058b", null ],
+    [ "Attach", "class_cube_melon_1_1_wave.html#ad670482f088cbe7c46ea5a3432f2c808", null ],
+    [ "ClassID", "class_cube_melon_1_1_wave.html#abdd54b7fc2b793fae118fc7a21b9f927", null ],
+    [ "Close", "class_cube_melon_1_1_wave.html#a63eb8be76796c2409c9d211dbadf86aa", null ],
+    [ "Detach", "class_cube_melon_1_1_wave.html#aac9f4a412ea664db339db065cdf335c0", null ],
+    [ "GetInstance", "class_cube_melon_1_1_wave.html#ad274b8bebe7710ac9287493d61fe62b6", null ],
+    [ "Notify", "class_cube_melon_1_1_wave.html#afdc372c7907d5d56561afc1bad2c6278", null ],
+    [ "Open", "class_cube_melon_1_1_wave.html#ad52e9cbd6fddce2cfcee1027049d7a9b", null ],
+    [ "Owner", "class_cube_melon_1_1_wave.html#acc207fa9cdb2ec683996c18d666ffc70", null ],
+    [ "Property", "class_cube_melon_1_1_wave.html#a5dd6940f0f9a983805542d21185a8050", null ],
+    [ "QueryInterface", "class_cube_melon_1_1_wave.html#a318a385bb7368394ea2eb1aa5c1a1083", null ],
+    [ "QuerySupport", "class_cube_melon_1_1_wave.html#a38a17908a994c68ed27641c088efd6fe", null ],
+    [ "Read", "class_cube_melon_1_1_wave.html#a8c2d27346ea623e87aeb67a64ea5fc8b", null ],
+    [ "Release", "class_cube_melon_1_1_wave.html#a29e0eeedd2dd1819f3fd4756f9e646de", null ],
+    [ "Seek", "class_cube_melon_1_1_wave.html#a0926cca339004e535246375a6ca2e130", null ],
+    [ "Start", "class_cube_melon_1_1_wave.html#a2f8d7886195f723023cb3f414ee83db8", null ],
+    [ "Status", "class_cube_melon_1_1_wave.html#a2685d4bc2a7f30348d5c288d20f45a97", null ],
+    [ "Stop", "class_cube_melon_1_1_wave.html#a70d905eab548b598ad0c9bd763be2b53", null ],
+    [ "m_cRef", "class_cube_melon_1_1_wave.html#a68c52b5bbcaf9c49603d191ba4180b50", null ],
+    [ "m_owner", "class_cube_melon_1_1_wave.html#a331058a3a0262243357870e855499a4c", null ],
+    [ "m_state", "class_cube_melon_1_1_wave.html#ace71e2809b04ace8e7bcf8657858af04", null ]
+];

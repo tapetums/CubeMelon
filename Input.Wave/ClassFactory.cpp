@@ -5,7 +5,7 @@
 #include "..\include\LockModule.h"
 #include "..\include\ClassFactory.h"
 #include "..\include\Interfaces.h"
-#include "..\include\IOComponent.h"
+#include "Wave.h"
 
 //---------------------------------------------------------------------------//
 
@@ -68,7 +68,7 @@ STDMETHODIMP ClassFactory::CreateInstance
 
     *ppvObject = nullptr;
 
-    IComponent* comp = new IOComponent(pUnkOuter);
+    auto comp = new CubeMelon::Wave(pUnkOuter);
     if ( nullptr == comp )
     {
         return E_OUTOFMEMORY;

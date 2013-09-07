@@ -5,7 +5,8 @@
 #include "..\include\LockModule.h"
 #include "..\include\ClassFactory.h"
 #include "..\include\Interfaces.h"
-#include "..\include\Component.h"
+
+#include "SimplePlayer.h"
 
 //---------------------------------------------------------------------------//
 
@@ -68,7 +69,7 @@ STDMETHODIMP ClassFactory::CreateInstance
 
     *ppvObject = nullptr;
 
-    IComponent* comp = new Component(pUnkOuter);
+    auto* comp = new CubeMelon::SimplePlayer(pUnkOuter);
     if ( nullptr == comp )
     {
         return E_OUTOFMEMORY;

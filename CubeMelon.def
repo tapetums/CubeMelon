@@ -1,4 +1,5 @@
 ﻿EXPORTS
 	DllCanUnloadNow		PRIVATE
+	DllConfigure		PRIVATE
 	DllGetProperty		PRIVATE
 	DllGetClassObject	PRIVATE

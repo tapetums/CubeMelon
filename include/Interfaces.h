@@ -4,6 +4,14 @@
 
 //---------------------------------------------------------------------------//
 
+struct IPropertyStore;
+
+//---------------------------------------------------------------------------//
+
+namespace CubeMelon {
+
+//---------------------------------------------------------------------------//
+
 static const GUID PKEY_CubeMelon_GetProperty =
 { 0xcfe104fb, 0x5b0a, 0x4e5f, { 0x91, 0x8a, 0xf2, 0xb6, 0x10, 0xa5, 0xb3, 0x9a } };
 
@@ -35,22 +43,24 @@ enum STATE : INT32
 //---------------------------------------------------------------------------//
 
 //!
-//! @enum VersionInfo Interfaces.h
+//! @struct VersionInfo Interfaces.h
 //! @brief コンポーネントのバージョン情報を格納します。
 //!
 #pragma pack(push, 1)
 struct VersionInfo
 {
+    //! @brief メジャーバージョン
     UINT16 major;
+    //! @brief マイナーバージョン
     UINT16 minor;
+    //! @brief リビジョン
     UINT16 revision;
-    WCHAR  stage[MAX_PATH];
+    //! @brief 補足説明 (alpha, beta, RTM など)
+    UINT16 stage;
 };
 #pragma pack(pop)
 
 //---------------------------------------------------------------------------//
-
-struct IPropertyStore;
 
 static const IID IID_IComponentContainer =
 { 0x6036103d, 0xe3bd, 0x46ba, { 0xb9, 0xa8, 0x3f, 0xfd, 0xfd, 0x68, 0xd7, 0x23 } };
@@ -67,43 +77,43 @@ public:
     //! @param なし
     //! @return コンポーネントのクラスID
     //!
-    virtual REFCLSID __stdcall ClassID() const = 0;
+    virtual REFCLSID     __stdcall ClassID()     const = 0;
     //!
     //! @brief コンポーネントの著作権情報を返します。
     //! @param なし
     //! @return コンポーネントの著作権情報
     //!
-    virtual LPCWSTR __stdcall Copyright() const = 0;
+    virtual LPCWSTR      __stdcall Copyright()   const = 0;
     //!
     //! @brief コンポーネントの詳細説明を返します。
     //! @param なし
     //! @return コンポーネントの詳細説明
     //!
-    virtual LPCWSTR __stdcall Description() const = 0;
+    virtual LPCWSTR      __stdcall Description() const = 0;
     //!
     //! @brief コンポーネントが格納されているDLLファイルのフルパスを返します。
     //! @param なし
     //! @return DLLファイルのフルパス
     //!
-    virtual LPCWSTR __stdcall FilePath() const = 0;
+    virtual LPCWSTR      __stdcall FilePath()    const = 0;
     //!
     //! @brief コンポーネントのDLLファイル中におけるインデックスを返します。
     //! @param なし
     //! @return コンポーネントのインデックス
     //!
-    virtual size_t __stdcall Index() const = 0;
+    virtual size_t       __stdcall Index()       const = 0;
     //!
     //! @brief コンポーネント名を返します。
     //! @param なし
     //! @return コンポーネント名
     //!
-    virtual LPCWSTR __stdcall Name() const = 0;
+    virtual LPCWSTR      __stdcall Name()        const = 0;
     //!
     //! @brief コンポーネントのバージョン情報を返します。
     //! @param なし
     //! @return コンポーネントのバージョン情報
     //!
-    virtual VersionInfo* __stdcall Version() const = 0;
+    virtual VersionInfo* __stdcall Version()     const = 0;
 
     //!
     //! @brief DLLファイルからコンポーネントを読み込みます。
@@ -122,6 +132,25 @@ public:
     //!
     virtual HRESULT __stdcall Free() = 0;
     //!
+    //! @brief コンポーネントの設定画面を呼び出します。
+    //! @param [in] hwndParent 親ウィンドウのハンドル
+    //! @return 無事画面を呼び出せたか
+    //! @retval S_OK 無事呼び出せた
+    //! @retval S_FALSE 既に表示されている
+    //! @retval E_FAIL 呼び出せなかった
+    //!
+    virtual HRESULT __stdcall Configure(HWND hwndParent = nullptr) = 0;
+    //!
+    //! @brief コンポーネントを生成します。
+    //! @param [in] pUnkOuter 親オブジェクト
+    //! @param [in] riid 取得したいインターフェイス
+    //! @param [out] ppvObject インスタンスの格納先アドレス
+    //! @return 無事生成できたか
+    //! @retval S_OK
+    //! @retval E_FAIL
+    //!
+    virtual HRESULT __stdcall CreateInstance(IUnknown* pUnkOuter, REFIID riid, void** ppvObject) = 0;
+    //!
     //! @brief コンポーネントのプロパティを取得します。
     //! @param [out] ps プロパティオブジェクトの格納先アドレス
     //! @return 無事取得できたか
@@ -130,14 +159,13 @@ public:
     //!
     virtual HRESULT __stdcall GetProperty(IPropertyStore** ps) = 0;
     //!
-    //! @brief ファクトリオブジェクトを取得します。
-    //! @param [in] riid IID_IClassFactory を指定します。
-    //! @param [out] ppvObject ファクトリオブジェクトの格納先アドレス
-    //! @return 無事取得できたか
+    //! @brief コンポーネントのプロパティを設定します。
+    //! @param [in] ps プロパティオブジェクト
+    //! @return 無事設定できたか
     //! @retval S_OK
     //! @retval E_FAIL
     //!
-    virtual HRESULT __stdcall GetClassObject(REFIID riid, void** ppvObject) = 0;
+    virtual HRESULT __stdcall SetProperty(const IPropertyStore* ps) = 0;
 };
 
 //---------------------------------------------------------------------------//
@@ -153,31 +181,40 @@ class IComponentManager : public IUnknown
 {
 public:
     //!
-    //! @brief 管理しているコンポーネントフォルダの名前を返します。。
-    //! @param なし
-    //! @return コンポーネントフォルダの名前
-    //!
-    virtual LPCWSTR __stdcall DirectoryPath() const = 0;
-    //!
-    //! @brief 管理しているコンポーネントの数を取得します。
-    //! @param なし
-    //! @return コンポーネントの数
-    //!
-    virtual size_t __stdcall ComponentCount() const = 0;
-    //!
     //! @brief コンポーネント格納オブジェクトを取得します。
     //! @param [in] index インデックス
     //! @return コンポーネント格納オブジェクト
     //! @retval nullptr 無効なインデックス値
     //!
-    virtual IComponentContainer* __stdcall ComponentContainer(size_t index) const = 0;
+    virtual IComponentContainer* __stdcall At(size_t index)      const = 0;
+    //!
+    //! @brief 管理しているコンポーネントの数を取得します。
+    //! @param なし
+    //! @return コンポーネントの数
+    //!
+    virtual size_t               __stdcall ComponentCount()      const = 0;
+    //!
+    //! @brief 管理しているコンポーネントフォルダの名前を返します。
+    //! @param なし
+    //! @return コンポーネントフォルダの名前
+    //!
+    virtual LPCWSTR              __stdcall DirectoryPath()       const = 0;
+    //!
+    //! @brief コンポーネント格納オブジェクトを取得します。
+    //! @param [in] rclsid コンポーネントのクラスID
+    //! @return コンポーネント格納オブジェクト
+    //! @retval nullptr 無効なクラスID
+    //!
+    virtual IComponentContainer* __stdcall Find(REFCLSID rclsid) const = 0;
 
     //!
     //! @brief 全てのコンポーネントを読み込みます。
     //! @param なし
     //! @return 無事読み込めたか
-    //! @retval S_OK
-    //! @retval E_FAIL
+    //! @retval S_OK 読み込めた
+    //! @retval S_FALSE コンポーネントは一つも見つからなかった
+    //! @retval E_ABORT 読み込みがキャンセルされた
+    //! @retval E_FAIL 読み込み中にエラーが発生した
     //!
     virtual HRESULT __stdcall LoadAll() = 0;
     //!
@@ -209,23 +246,30 @@ public:
     //! @return コンポーネントのクラスID
     //! @retval CLSID_NULL 初期化エラー
     //!
-    virtual REFCLSID __stdcall ClassID() const = 0;
+    virtual REFCLSID        __stdcall ClassID()  const = 0;
     //!
     //! @brief このコンポーネントを所有している親コンポーネントを返します。
     //! @param なし
     //! @return 親コンポーネント
     //! @retval nullptr 親コンポーネントを持っていない
     //!
-    virtual IComponent* __stdcall Owner() const = 0;
+    virtual IComponent*     __stdcall Owner()    const = 0;
+    //!
+    //! @brief このコンポーネントのプロパティを返します。
+    //! @param なし
+    //! @return コンポーネントのプロパティ
+    //! @retval nullptr 不明なエラー
+    //!
+    virtual IPropertyStore* __stdcall Property() const = 0;
     //!
     //! @brief コンポーネントの状態を返します。
     //! @param なし
     //! @return コンポーネントの状態
-    //! @retval STATE_IDLE = 0;         //コンポーネントは実行待ち状態
+    //! @retval STATE_IDLE = 0;         //コンポーネントはアイドル状態
     //! @retval STATE_RUNNING = 1;      //コンポーネントは実行中
     //! @retval STATE_TERMINATING = -1; //コンポーネントは解放処理中
     //!
-    virtual STATE __stdcall Status() const = 0;
+    virtual STATE           __stdcall Status()   const = 0;
 
     //!
     //! @brief コンポーネントとメッセージを関連付けます。
@@ -250,6 +294,18 @@ public:
     //!
     virtual HRESULT __stdcall Detach(LPCWSTR msg, IComponent* listener) = 0;
     //!
+    //! @brief コンポーネントの実体を取得します。
+    //! @details 指定されたクラスIDのコンポーネントを所有していない場合、<BR />
+    //!     メッセージは親コンポーネントに転送されます。
+    //! @param [in] rclsid 取得したいコンポーネントのクラスID
+    //! @param [in] riid 取得したいコンポーネントのインターフェイスID
+    //! @param [out] ppvObject 取得したコンポーネントの格納先アドレス
+    //! @return 無事取得できたか
+    //! @retval S_OK
+    //! @retval E_FAIL
+    //!
+    virtual HRESULT __stdcall GetInstance(REFCLSID rclsid, REFIID riid, void** ppvObject) = 0;
+    //!
     //! @brief メッセージを通知します。
     //! @details このメソッド内では、同期または非同期で<BR />
     //!     送信元もしくは別コンポーネントにメッセージを通知することがあります。
@@ -265,18 +321,6 @@ public:
     //!     同包のデータに関する扱いは、送受信側で予め定めた約束によって異なります。
     //!
     virtual HRESULT __stdcall Notify(IComponent* sender, LPCWSTR msg, LPVOID data, size_t cb_data) = 0;
-    //!
-    //! @brief コンポーネントの実体を取得します。
-    //! @details 指定されたクラスIDのコンポーネントを所有していない場合、<BR />
-    //!     メッセージは親コンポーネントに転送されます。
-    //! @param [in] rclsid 取得したいコンポーネントのクラスID
-    //! @param [in] riid 取得したいコンポーネントのインターフェイスID
-    //! @param [out] ppvObject 取得したコンポーネントの格納先アドレス
-    //! @return 無事取得できたか
-    //! @retval S_OK
-    //! @retval E_FAIL
-    //!
-    virtual HRESULT __stdcall GetComponentInstance(REFCLSID rclsid, REFIID riid, void** ppvObject) = 0;
     //!
     //! @brief コンポーネントの実行を開始します。
     //! @details 開始後、コンポーネントの状態は STATE_RUNNING になります。
@@ -304,10 +348,26 @@ public:
 static const IID IID_IUIComponent =
 { 0xf5dce27e, 0xa45b, 0x45ed, { 0x8f, 0x8e, 0x39, 0xf, 0xe, 0xc7, 0xf0, 0xd2 } };
 
+//!
+//! @interface IUIComponent Interfaces.h
+//! @brief UIコンポーネントのためのインターフェイスです。
+//!
 class IUIComponent : public IComponent
 {
 public:
+    //!
+    //! @brief 管理しているウィンドウの数を取得します。
+    //! @param なし
+    //! @return ウィンドウの数
+    //!
     virtual size_t __stdcall WindowCount()        const = 0;
+    //!
+    //! @brief 管理しているウィンドウのハンドルを取得します。
+    //! @details 停止後、コンポーネントの状態は STATE_IDLE になります。
+    //! @param [in] index 取得するウィンドウのインデックス
+    //! @return ウィンドウハンドル
+    //! @retval nullptr 無効なインデックス
+    //!
     virtual HWND   __stdcall Handle(size_t index) const = 0;
 };
 
@@ -318,7 +378,7 @@ static const IID IID_IIOComponent=
 
 //!
 //! @interface IIOComponent Interfaces.h
-//! @brief 入出力コンポーネントのためのインターフェイスです。
+//! @brief 入出力コンポーネントのための基底インターフェイスです。
 //!
 class IIOComponent : public IComponent
 {
@@ -329,9 +389,9 @@ public:
     //!     結果は非同期でも受け取ることができます。
     //! @param [in] listener 結果を非同期で受け取る場合の通知先オブジェクト<BR /><BR />
     //!     結果を非同期で受け取る場合、Notifyメッセージのパラメータは以下のようになります。
-    //!     @arg [in] <B>sender</B> このオブジェクト
+    //!     @arg [in] <B>sender</B> このコンポーネント
     //!     @arg [in] <B>msg</B> "IIOComponent.Close()"
-    //!     @arg [inout] <B>data</B> S_OK / S_FALSE / E_FAIL etc...
+    //!     @arg [inout] <B>data</B> HRESULT型変数へのポインタ
     //!     @arg [in] <B>cb_data</B> sizeof(HRESULT)
     //! @return 無事閉じられたか
     //! @retval S_OK オブジェクトは無事閉じられた
@@ -340,18 +400,18 @@ public:
     //! @retval E_FAIL オブジェクトを閉じられなかった
     //! @retval E_FAIL 非同期処理を開始できなかった
     //!
-    virtual HRESULT __stdcall Close(IComponent* listener) = 0;
+    virtual HRESULT __stdcall Close(IComponent* listener = nullptr) = 0;
     //!
-    //! @brief 所有しているオブジェクトを開きます。
+    //! @brief オブジェクトを開きます。
     //! @details 無事開いた場合、コンポーネントの状態には STATE_OPEN フラグが立ちます。<BR />
     //!     結果は非同期でも受け取ることができます。
     //! @param [in] path 開きたいオブジェクトのフルパス
     //! @param [in] format_as 開きたい形式
     //! @param [in] listener 結果を非同期で受け取る場合の通知先オブジェクト<BR /><BR />
     //!     結果を非同期で受け取る場合、Notifyメッセージのパラメータは以下のようになります。
-    //!     @arg [in] <B>sender</B> このオブジェクト
+    //!     @arg [in] <B>sender</B> このコンポーネント
     //!     @arg [in] <B>msg</B> "IIOComponent.Open()"
-    //!     @arg [inout] <B>data</B> S_OK / S_FALSE / E_FAIL etc...
+    //!     @arg [inout] <B>data</B> HRESULT型変数へのポインタ
     //!     @arg [in] <B>cb_data</B> sizeof(HRESULT)
     //! @return 無事開けたか
     //! @retval S_OK オブジェクトは無事開くことができた
@@ -360,7 +420,7 @@ public:
     //! @retval E_FAIL オブジェクトを開けなかった
     //! @retval E_FAIL 非同期処理を開始できなかった
     //!
-    virtual HRESULT __stdcall Open(LPCWSTR path, LPCWSTR format_as, IComponent* listener) = 0;
+    virtual HRESULT __stdcall Open(LPCWSTR path, LPCWSTR format_as, IComponent* listener = nullptr) = 0;
     //!
     //! @brief オブジェクトを指定のフォーマットで開くことができるかを問い合わせます。
     //! @details オブジェクトは開かれません。
@@ -371,16 +431,6 @@ public:
     //! @retval E_FAIL
     //!
     virtual HRESULT __stdcall QuerySupport(LPCWSTR path, LPCWSTR format_as) = 0;
-    //!
-    //! @brief オブジェクトから指定バイト分データを読み込み、ポインタを進めます。
-    //! @param [in] buffer データを読み込むバッファ
-    //! @param [in] buf_size バッファのサイズ
-    //! @param [out] cb_read 実際に読み込んだバイト数
-    //! @return 無事読み込めたか
-    //! @retval S_OK
-    //! @retval E_FAIL
-    //!
-    virtual HRESULT __stdcall Read(LPVOID buffer, size_t buf_size, size_t* cb_read) = 0;
     //!
     //! @brief オブジェクトのポインタ位置を走査します。
     //! @param [in] offset origin パラメータからの差分
@@ -396,18 +446,76 @@ public:
     //! @retval E_FAIL
     //!
     virtual HRESULT __stdcall Seek(INT64 offset, DWORD origin, UINT64* new_pos) = 0;
+};
+
+//---------------------------------------------------------------------------//
+
+static const IID IID_IInputComponent=
+{ 0x6b132e6c, 0x4703, 0x4281, { 0x88, 0x8d, 0x36, 0x7c, 0x1b, 0x40, 0xbd, 0x6a } };
+
+//!
+//! @interface IInputComponent Interfaces.h
+//! @brief 入力コンポーネントのためのインターフェイスです。
+//!
+class IInputComponent : public IIOComponent
+{
+public:
+    //!
+    //! @brief オブジェクトから指定バイト分データを読み込み、ポインタを進めます。
+    //! @param [in] buffer データを読み込むバッファ
+    //! @param [in] buf_size バッファのサイズ
+    //! @param [out] cb_read 実際に読み込んだバイト数
+    //! @param [in] listener 結果を非同期で受け取る場合の通知先オブジェクト<BR /><BR />
+    //!     結果を非同期で受け取る場合、Notifyメッセージのパラメータは以下のようになります。
+    //!     @arg [in] <B>sender</B> このコンポーネント
+    //!     @arg [in] <B>msg</B> "IInputComponent.Read()"
+    //!     @arg [inout] <B>data</B> バッファ
+    //!     @arg [in] <B>cb_data</B> 実際に読み込んだバイト数
+    //! @return 無事読み込めたか
+    //! @retval S_OK 無事読み込めた
+    //! @retval S_OK 非同期処理を開始した
+    //! @retval S_FALSE cb_read < buf_size
+    //! @retval E_FAIL 正常に読み込めなかった
+    //! @retval E_FAIL 非同期処理を開始できなかった
+    //!
+    virtual HRESULT __stdcall Read(LPVOID buffer, size_t buf_size, size_t* cb_read, IComponent* listener = nullptr) = 0;
+};
+
+//---------------------------------------------------------------------------//
+
+static const IID IID_IOutputComponent=
+{ 0xba6ffb76, 0xa1cb, 0x439c, { 0x9f, 0x6d, 0xca, 0xd6, 0xd1, 0x8a, 0x8f, 0x3e } };
+
+//!
+//! @interface IOutputComponent Interfaces.h
+//! @brief 出力コンポーネントのためのインターフェイスです。
+//!
+class IOutputComponent : public IIOComponent
+{
+public:
     //!
     //! @brief オブジェクトに指定バイト分データを書き込み、ポインタを進めます。
     //! @param [in] buffer 書き込むデータのバッファ
     //! @param [in] buf_size バッファのサイズ
-    //! @param [out] cb_read 実際に書き込んだバイト数
+    //! @param [out] cb_written 実際に書き込んだバイト数
+    //! @param [in] listener 結果を非同期で受け取る場合の通知先オブジェクト<BR /><BR />
+    //!     結果を非同期で受け取る場合、Notifyメッセージのパラメータは以下のようになります。
+    //!     @arg [in] <B>sender</B> このコンポーネント
+    //!     @arg [in] <B>msg</B> "IOutputComponent.Write()"
+    //!     @arg [inout] <B>data</B> バッファ
+    //!     @arg [in] <B>cb_data</B> 実際に書き込んだバイト数
     //! @return 無事書き込めたか
-    //! @retval S_OK
-    //! @retval E_FAIL
+    //! @retval S_OK 無事書き込めた
+    //! @retval S_OK 非同期処理を開始した
+    //! @retval S_FALSE cb_written < buf_size
+    //! @retval E_FAIL 正常に書き込めなかった
+    //! @retval E_FAIL 非同期処理を開始できなかった
     //!
-    virtual HRESULT __stdcall Write(LPCVOID buffer, size_t buf_size, size_t* cb_written) = 0;
+    virtual HRESULT __stdcall Write(LPCVOID buffer, size_t buf_size, size_t* cb_written, IComponent* listener = nullptr) = 0;
 };
 
 //---------------------------------------------------------------------------//
+
+} // namespace CubeMelon
 
 // Interfaces.h

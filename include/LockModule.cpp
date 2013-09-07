@@ -2,9 +2,9 @@
 
 #include <windows.h>
 
-#include "LockModule.h"
-
 #include "DebugPrint.h"
+
+#include "LockModule.h"
 
 //---------------------------------------------------------------------------//
 

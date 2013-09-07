@@ -16,17 +16,18 @@ SOURCES += \
     mainwindow.cpp \
     DllMain.cpp \
     ClassFactory.cpp \
-    ComponentProperty.cpp \
-    Component.cpp
+    SimplePlayer.cpp \
+    PropertyStore.cpp
 
 HEADERS += \
     ../include/DWM.h \
     ../include/DebugPrint.h \
     ../include/Interfaces.h \
     ../include/LockModule.h \
-    ../include/ComponentProperty.h \
     ../include/ClassFactory.h \
-    mainwindow.h
+    ../include/Property.h \
+    mainwindow.h \
+    SimplePlayer.h
 
 unix:!symbian {
     maemo5 {

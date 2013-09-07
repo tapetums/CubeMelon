@@ -3,11 +3,19 @@
 
 #include <QMainWindow>
 
-class IComponent;
+//---------------------------------------------------------------------------//
 
-namespace Ui {
-class MainWindow;
+namespace Ui
+{
+    class MainWindow;
 }
+
+namespace CubeMelon
+{
+    class IComponent;
+}
+
+//---------------------------------------------------------------------------//
 
 class MainWindow : public QMainWindow
 {
@@ -18,7 +26,7 @@ public:
     ~MainWindow();
 
 public:
-    void setOwner(IComponent* owner);
+    void setOwner(CubeMelon::IComponent* owner);
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -28,5 +36,7 @@ private:
     struct Impl;
     Impl* pimpl;
 };
+
+//---------------------------------------------------------------------------//
 
 #endif // MAINWINDOW_H

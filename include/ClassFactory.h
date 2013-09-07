@@ -15,4 +15,6 @@ public:
     HRESULT __stdcall LockServer(BOOL fLock) override;
 };
 
+//---------------------------------------------------------------------------//
+
 // ClassFactory.h

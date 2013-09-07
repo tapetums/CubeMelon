@@ -15,7 +15,7 @@
 
 struct MainWindow::Impl
 {
-    IComponent* owner;
+    CubeMelon::IComponent* owner;
 };
 
 //---------------------------------------------------------------------------//
@@ -44,22 +44,26 @@ MainWindow::~MainWindow()
 
 //---------------------------------------------------------------------------//
 
-void MainWindow::setOwner(IComponent *owner)
+void MainWindow::setOwner(CubeMelon::IComponent *owner)
 {
     pimpl->owner = owner;
 }
 
 //---------------------------------------------------------------------------//
 
-
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     DebugPrintLn(NAME TEXT("::closeEvent() begin"));
+
     if ( pimpl->owner )
     {
         pimpl->owner->Stop();
     }
+
     DebugPrintLn(NAME TEXT("::closeEvent() end"));
 
     QMainWindow::closeEvent(event);
 }
+
+//---------------------------------------------------------------------------//
+

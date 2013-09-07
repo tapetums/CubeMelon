@@ -66,7 +66,7 @@ HRESULT EnableAeroGlass(QWidget* widget)
     widget->setAttribute(Qt::WA_TranslucentBackground);
     widget->setAttribute(Qt::WA_NoSystemBackground);
 
-    auto hwnd = (HWND)widget->winId();
+    auto hwnd = reinterpret_cast<HWND>(widget->winId());
 
     DWM_BLURBEHIND bb = { };
     bb.dwFlags = DWM_BB_ENABLE;

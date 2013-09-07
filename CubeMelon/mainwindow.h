@@ -9,12 +9,10 @@
 
 namespace Ui
 {
-class MainWindow;
+    class MainWindow;
 }
 
 //---------------------------------------------------------------------------//
-
-struct VersionInfo;
 
 class MainWindow : public QMainWindow
 {
@@ -26,7 +24,7 @@ public:
 
 public:
     void addConsoleText(LPCWSTR text);
-    void addListItem(REFCLSID clsid, LPCWSTR  name, LPCWSTR  description, LPCWSTR  copyright, VersionInfo* vi);
+    void addListItem(IUnknown* unk);
     void removeListItem();
     void clearList();
 

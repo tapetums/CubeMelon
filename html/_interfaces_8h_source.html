@@ -1,0 +1,280 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.3.1"/>
+<title>CubeMelon: include/Interfaces.h ソースファイル</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">CubeMelon
+   &#160;<span id="projectnumber">1.0.0</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 作成： Doxygen 1.8.3.1 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search",false,'検索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="index.html"><span>メインページ</span></a></li>
+      <li><a href="annotated.html"><span>クラス</span></a></li>
+      <li class="current"><a href="files.html"><span>ファイル</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="files.html"><span>ファイル一覧</span></a></li>
+    </ul>
+  </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('_interfaces_8h_source.html','');});
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全て</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>クラス</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>関数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>変数</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="headertitle">
+<div class="title">Interfaces.h</div>  </div>
+</div><!--header-->
+<div class="contents">
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;﻿<span class="comment">// Interfaces.h</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;</div>
+<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#pragma once</span></div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor"></span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment">//---------------------------------------------------------------------------//</span></div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;</div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="keyword">struct </span>IPropertyStore;</div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;</div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="comment">//---------------------------------------------------------------------------//</span></div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;</div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="keyword">namespace </span>CubeMelon {</div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;</div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="comment">//---------------------------------------------------------------------------//</span></div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="keyword">static</span> <span class="keyword">const</span> GUID PKEY_CubeMelon_GetProperty =</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;{ 0xcfe104fb, 0x5b0a, 0x4e5f, { 0x91, 0x8a, 0xf2, 0xb6, 0x10, 0xa5, 0xb3, 0x9a } };</div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="keyword">enum</span> CUBEMELON_PID : DWORD</div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;{</div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;    CUBEMELON_PID_CLSID       = PID_FIRST_USABLE + 0,</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    CUBEMELON_PID_NAME        = PID_FIRST_USABLE + 1,</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;    CUBEMELON_PID_DESCRIPTION = PID_FIRST_USABLE + 2,</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;    CUBEMELON_PID_COPYRIGHT   = PID_FIRST_USABLE + 3,</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    CUBEMELON_PID_VERSION     = PID_FIRST_USABLE + 4,</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;};</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;<span class="keyword">enum</span> STATE : INT32</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;{</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    STATE_TERMINATING  = -1,</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    STATE_IDLE         = 0,</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    STATE_RUNNING      = 1,</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    STATE_OPEN         = 1 &lt;&lt; 1,</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;};</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="comment">//---------------------------------------------------------------------------//</span></div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="preprocessor">#pragma pack(push, 1)</span></div>
+<div class="line"><a name="l00050"></a><span class="lineno"><a class="code" href="struct_cube_melon_1_1_version_info.html">   50</a></span>&#160;<span class="preprocessor"></span><span class="keyword">struct </span><a class="code" href="struct_cube_melon_1_1_version_info.html" title="コンポーネントのバージョン情報を格納します。">VersionInfo</a></div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;{</div>
+<div class="line"><a name="l00053"></a><span class="lineno"><a class="code" href="struct_cube_melon_1_1_version_info.html#ab6a63dcdecfbd02f8f46617213a4e21a">   53</a></span>&#160;    UINT16 <a class="code" href="struct_cube_melon_1_1_version_info.html#ab6a63dcdecfbd02f8f46617213a4e21a" title="メジャーバージョン">major</a>;</div>
+<div class="line"><a name="l00055"></a><span class="lineno"><a class="code" href="struct_cube_melon_1_1_version_info.html#a1b8d571bb47f1fee18628a38454cb29e">   55</a></span>&#160;    UINT16 <a class="code" href="struct_cube_melon_1_1_version_info.html#a1b8d571bb47f1fee18628a38454cb29e" title="マイナーバージョン">minor</a>;</div>
+<div class="line"><a name="l00057"></a><span class="lineno"><a class="code" href="struct_cube_melon_1_1_version_info.html#a84185456f2a2b54dc0c2aa280b38c8ce">   57</a></span>&#160;    UINT16 <a class="code" href="struct_cube_melon_1_1_version_info.html#a84185456f2a2b54dc0c2aa280b38c8ce" title="リビジョン">revision</a>;</div>
+<div class="line"><a name="l00059"></a><span class="lineno"><a class="code" href="struct_cube_melon_1_1_version_info.html#af6d20438d5c4615d7a0545a71d42fd31">   59</a></span>&#160;    UINT16 <a class="code" href="struct_cube_melon_1_1_version_info.html#af6d20438d5c4615d7a0545a71d42fd31" title="補足説明 (alpha, beta, RTM など)">stage</a>;</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;};</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="preprocessor">#pragma pack(pop)</span></div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;<span class="preprocessor"></span></div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;<span class="comment">//---------------------------------------------------------------------------//</span></div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="keyword">static</span> <span class="keyword">const</span> IID IID_IComponentContainer =</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;{ 0x6036103d, 0xe3bd, 0x46ba, { 0xb9, 0xa8, 0x3f, 0xfd, 0xfd, 0x68, 0xd7, 0x23 } };</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;</div>
+<div class="line"><a name="l00072"></a><span class="lineno"><a class="code" href="class_cube_melon_1_1_i_component_container.html">   72</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_cube_melon_1_1_i_component_container.html" title="コンポーネントの各種情報を格納するオブジェクトのインターフェイスです。">IComponentContainer</a> : <span class="keyword">public</span> IUnknown</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;{</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;    <span class="keyword">virtual</span> REFCLSID     __stdcall <a class="code" href="class_cube_melon_1_1_i_component_container.html#ad46a99531b01de9cd89674a5604e868a" title="コンポーネントのクラスIDを返します。">ClassID</a>()     <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;    <span class="keyword">virtual</span> LPCWSTR      __stdcall <a class="code" href="class_cube_melon_1_1_i_component_container.html#a82e8a74a4084c86ab8136cb8d857ae2b" title="コンポーネントの著作権情報を返します。">Copyright</a>()   <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    <span class="keyword">virtual</span> LPCWSTR      __stdcall <a class="code" href="class_cube_melon_1_1_i_component_container.html#a1486c98406fba5cdf3d7109f22f2f3e2" title="コンポーネントの詳細説明を返します。">Description</a>() <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;    <span class="keyword">virtual</span> LPCWSTR      __stdcall <a class="code" href="class_cube_melon_1_1_i_component_container.html#aed0815b4638f5a74a9e7aacdb1f73c14" title="コンポーネントが格納されているDLLファイルのフルパスを返します。">FilePath</a>()    <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">size_t</span>       __stdcall <a class="code" href="class_cube_melon_1_1_i_component_container.html#a07cf083b9c2147763664c5e1861d9b3c" title="コンポーネントのDLLファイル中におけるインデックスを返します。">Index</a>()       <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;    <span class="keyword">virtual</span> LPCWSTR      __stdcall <a class="code" href="class_cube_melon_1_1_i_component_container.html#a7ca1224ea84ab658a71c00050fb873c3" title="コンポーネント名を返します。">Name</a>()        <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;    <span class="keyword">virtual</span> <a class="code" href="struct_cube_melon_1_1_version_info.html" title="コンポーネントのバージョン情報を格納します。">VersionInfo</a>* __stdcall <a class="code" href="class_cube_melon_1_1_i_component_container.html#a70d64857355117c55e193f8720a6742c" title="コンポーネントのバージョン情報を返します。">Version</a>()     <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;</div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_component_container.html#ae5cea66a82171e99b35e09cd61930a55" title="DLLファイルからコンポーネントを読み込みます。">Load</a>() = 0;</div>
+<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_component_container.html#a4b3fcafa1857cb3c92310c2504d0694a" title="DLLファイルを解放します。">Free</a>() = 0;</div>
+<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_component_container.html#a0c189bb0edc947a791c12a2c39b3b5ef" title="コンポーネントの設定画面を呼び出します。">Configure</a>(HWND hwndParent = <span class="keyword">nullptr</span>) = 0;</div>
+<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_component_container.html#ae8aab351dedeb1e993b5b39942c041fa" title="コンポーネントを生成します。">CreateInstance</a>(IUnknown* pUnkOuter, REFIID riid, <span class="keywordtype">void</span>** ppvObject) = 0;</div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_component_container.html#ac560efa9e6a74de551fc5b967bb20ee3" title="コンポーネントのプロパティを取得します。">GetProperty</a>(IPropertyStore** ps) = 0;</div>
+<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_component_container.html#ad6cc3dcc051531e0fb799d29859a8ca5" title="コンポーネントのプロパティを設定します。">SetProperty</a>(<span class="keyword">const</span> IPropertyStore* ps) = 0;</div>
+<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;};</div>
+<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;</div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;<span class="comment">//---------------------------------------------------------------------------//</span></div>
+<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;</div>
+<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;<span class="keyword">static</span> <span class="keyword">const</span> IID IID_IComponentManager =</div>
+<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;{ 0x45e0aaf1, 0x3e4e, 0x4e6e, { 0x92, 0x5b, 0x92, 0x9e, 0xc1, 0xa5, 0x63, 0xf7 } };</div>
+<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;</div>
+<div class="line"><a name="l00180"></a><span class="lineno"><a class="code" href="class_cube_melon_1_1_i_component_manager.html">  180</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_cube_melon_1_1_i_component_manager.html" title="コンポーネント管理オブジェクトのインターフェイスです。">IComponentManager</a> : <span class="keyword">public</span> IUnknown</div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;{</div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;    <span class="keyword">virtual</span> <a class="code" href="class_cube_melon_1_1_i_component_container.html" title="コンポーネントの各種情報を格納するオブジェクトのインターフェイスです。">IComponentContainer</a>* __stdcall <a class="code" href="class_cube_melon_1_1_i_component_manager.html#aac982e8ae71710aa509cec68299a5cfe" title="コンポーネント格納オブジェクトを取得します。">At</a>(<span class="keywordtype">size_t</span> index)      <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">size_t</span>               __stdcall <a class="code" href="class_cube_melon_1_1_i_component_manager.html#a3e8d5409a6ebbf882e11d0e06521ba30" title="管理しているコンポーネントの数を取得します。">ComponentCount</a>()      <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;    <span class="keyword">virtual</span> LPCWSTR              __stdcall <a class="code" href="class_cube_melon_1_1_i_component_manager.html#a11bc4f5fd2ea903f3507e455fabc6de1" title="管理しているコンポーネントフォルダの名前を返します。">DirectoryPath</a>()       <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;    <span class="keyword">virtual</span> <a class="code" href="class_cube_melon_1_1_i_component_container.html" title="コンポーネントの各種情報を格納するオブジェクトのインターフェイスです。">IComponentContainer</a>* __stdcall <a class="code" href="class_cube_melon_1_1_i_component_manager.html#ae5a22a1c162347ff6c879ed651ceea7a" title="コンポーネント格納オブジェクトを取得します。">Find</a>(REFCLSID rclsid) <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;</div>
+<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_component_manager.html#a969e96ba87a9d2fcc196f69c29d2cc9b" title="全てのコンポーネントを読み込みます。">LoadAll</a>() = 0;</div>
+<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_component_manager.html#a2ec38b576b7a5e3ad2cf04f690cf761f" title="全てのコンポーネントを解放します。">FreeAll</a>() = 0;</div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;};</div>
+<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;</div>
+<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;<span class="comment">//---------------------------------------------------------------------------//</span></div>
+<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;</div>
+<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;<span class="keyword">static</span> <span class="keyword">const</span> IID IID_IComponent =</div>
+<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;{ 0xa35dc0c3, 0xac5f, 0x447a, { 0xa4, 0x60, 0x9c, 0x52, 0x17, 0x72, 0x05, 0x7c } };</div>
+<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;</div>
+<div class="line"><a name="l00240"></a><span class="lineno"><a class="code" href="class_cube_melon_1_1_i_component.html">  240</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_cube_melon_1_1_i_component.html" title="コンポーネントの基幹インターフェイスです。">IComponent</a> : <span class="keyword">public</span> IUnknown</div>
+<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;{</div>
+<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;    <span class="keyword">virtual</span> REFCLSID        __stdcall <a class="code" href="class_cube_melon_1_1_i_component.html#a75c402024de4a02cf9b5a5164e103f49" title="コンポーネントのクラスIDを返します。">ClassID</a>()  <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;    <span class="keyword">virtual</span> <a class="code" href="class_cube_melon_1_1_i_component.html" title="コンポーネントの基幹インターフェイスです。">IComponent</a>*     __stdcall <a class="code" href="class_cube_melon_1_1_i_component.html#a8b9b3a8bf37a7d6196ac591e134f9ec1" title="このコンポーネントを所有している親コンポーネントを返します。">Owner</a>()    <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;    <span class="keyword">virtual</span> IPropertyStore* __stdcall <a class="code" href="class_cube_melon_1_1_i_component.html#aa55bf6a3b32afe0ac7467459c01b420f" title="このコンポーネントのプロパティを返します。">Property</a>() <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;    <span class="keyword">virtual</span> STATE           __stdcall <a class="code" href="class_cube_melon_1_1_i_component.html#aede8792d80ca9f7d23cad33182fdcf41" title="コンポーネントの状態を返します。">Status</a>()   <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;</div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_component.html#a87b391a926fd14f086b927f7d89f4a2f" title="コンポーネントとメッセージを関連付けます。">Attach</a>(LPCWSTR msg, <a class="code" href="class_cube_melon_1_1_i_component.html" title="コンポーネントの基幹インターフェイスです。">IComponent</a>* listener) = 0;</div>
+<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_component.html#abc54e0578c263671d151c656ceccca77" title="コンポーネントとメッセージの関連付けを解除します。">Detach</a>(LPCWSTR msg, <a class="code" href="class_cube_melon_1_1_i_component.html" title="コンポーネントの基幹インターフェイスです。">IComponent</a>* listener) = 0;</div>
+<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_component.html#a092fdc5235166cefa2cfd1bc7d436246" title="コンポーネントの実体を取得します。">GetInstance</a>(REFCLSID rclsid, REFIID riid, <span class="keywordtype">void</span>** ppvObject) = 0;</div>
+<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_component.html#a3a11405d8d454fb4df043f657beb3edb" title="メッセージを通知します。">Notify</a>(<a class="code" href="class_cube_melon_1_1_i_component.html" title="コンポーネントの基幹インターフェイスです。">IComponent</a>* sender, LPCWSTR msg, LPVOID data, <span class="keywordtype">size_t</span> cb_data) = 0;</div>
+<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_component.html#a86b6494eb726cd3a3fa3b120cfe98651" title="コンポーネントの実行を開始します。">Start</a>(LPCVOID args = <span class="keyword">nullptr</span>) = 0;</div>
+<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_component.html#a593b397805045df629e886e9676c2a52" title="コンポーネントの実行を停止します。">Stop</a>() = 0;</div>
+<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;};</div>
+<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;</div>
+<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;<span class="comment">//---------------------------------------------------------------------------//</span></div>
+<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;</div>
+<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;<span class="keyword">static</span> <span class="keyword">const</span> IID IID_IUIComponent =</div>
+<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;{ 0xf5dce27e, 0xa45b, 0x45ed, { 0x8f, 0x8e, 0x39, 0xf, 0xe, 0xc7, 0xf0, 0xd2 } };</div>
+<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;</div>
+<div class="line"><a name="l00355"></a><span class="lineno"><a class="code" href="class_cube_melon_1_1_i_u_i_component.html">  355</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_cube_melon_1_1_i_u_i_component.html" title="UIコンポーネントのためのインターフェイスです。">IUIComponent</a> : <span class="keyword">public</span> <a class="code" href="class_cube_melon_1_1_i_component.html" title="コンポーネントの基幹インターフェイスです。">IComponent</a></div>
+<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;{</div>
+<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">size_t</span> __stdcall <a class="code" href="class_cube_melon_1_1_i_u_i_component.html#a1e33f1f4a65324d9cf4e7640fcc3a52c" title="管理しているウィンドウの数を取得します。">WindowCount</a>()        <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;    <span class="keyword">virtual</span> HWND   __stdcall <a class="code" href="class_cube_melon_1_1_i_u_i_component.html#a28a3812dd9694eff0c69612a3b1ae79f" title="管理しているウィンドウのハンドルを取得します。">Handle</a>(<span class="keywordtype">size_t</span> index) <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;};</div>
+<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;</div>
+<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;<span class="comment">//---------------------------------------------------------------------------//</span></div>
+<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;</div>
+<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;<span class="keyword">static</span> <span class="keyword">const</span> IID IID_IIOComponent=</div>
+<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;{ 0xeefb9211, 0xfa4, 0x4c0c, { 0x99, 0xd6, 0xc0, 0xc, 0xc6, 0xc0, 0xe1, 0x1 } };</div>
+<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;</div>
+<div class="line"><a name="l00383"></a><span class="lineno"><a class="code" href="class_cube_melon_1_1_i_i_o_component.html">  383</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_cube_melon_1_1_i_i_o_component.html" title="入出力コンポーネントのための基底インターフェイスです。">IIOComponent</a> : <span class="keyword">public</span> <a class="code" href="class_cube_melon_1_1_i_component.html" title="コンポーネントの基幹インターフェイスです。">IComponent</a></div>
+<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;{</div>
+<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_i_o_component.html#a7898581c16d930a797a89966b77165ca" title="所有しているオブジェクトを閉じます。">Close</a>(<a class="code" href="class_cube_melon_1_1_i_component.html" title="コンポーネントの基幹インターフェイスです。">IComponent</a>* listener = <span class="keyword">nullptr</span>) = 0;</div>
+<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_i_o_component.html#aa54a59efec4fa7534c96c45afa59aa32" title="オブジェクトを開きます。">Open</a>(LPCWSTR path, LPCWSTR format_as, <a class="code" href="class_cube_melon_1_1_i_component.html" title="コンポーネントの基幹インターフェイスです。">IComponent</a>* listener = <span class="keyword">nullptr</span>) = 0;</div>
+<div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_i_o_component.html#a8c1b23049e6d97df4512e4d342c91d31" title="オブジェクトを指定のフォーマットで開くことができるかを問い合わせます。">QuerySupport</a>(LPCWSTR path, LPCWSTR format_as) = 0;</div>
+<div class="line"><a name="l00448"></a><span class="lineno">  448</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_i_o_component.html#ae737f8f50963a58afac0fdb2a17302c9" title="オブジェクトのポインタ位置を走査します。">Seek</a>(INT64 offset, DWORD origin, UINT64* new_pos) = 0;</div>
+<div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;};</div>
+<div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160;</div>
+<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;<span class="comment">//---------------------------------------------------------------------------//</span></div>
+<div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160;</div>
+<div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;<span class="keyword">static</span> <span class="keyword">const</span> IID IID_IInputComponent=</div>
+<div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160;{ 0x6b132e6c, 0x4703, 0x4281, { 0x88, 0x8d, 0x36, 0x7c, 0x1b, 0x40, 0xbd, 0x6a } };</div>
+<div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160;</div>
+<div class="line"><a name="l00460"></a><span class="lineno"><a class="code" href="class_cube_melon_1_1_i_input_component.html">  460</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_cube_melon_1_1_i_input_component.html" title="入力コンポーネントのためのインターフェイスです。">IInputComponent</a> : <span class="keyword">public</span> <a class="code" href="class_cube_melon_1_1_i_i_o_component.html" title="入出力コンポーネントのための基底インターフェイスです。">IIOComponent</a></div>
+<div class="line"><a name="l00461"></a><span class="lineno">  461</span>&#160;{</div>
+<div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00481"></a><span class="lineno">  481</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_input_component.html#ac76f7f9306a355e21dd78bb62b090fb6" title="オブジェクトから指定バイト分データを読み込み、ポインタを進めます。">Read</a>(LPVOID buffer, <span class="keywordtype">size_t</span> buf_size, <span class="keywordtype">size_t</span>* cb_read, <a class="code" href="class_cube_melon_1_1_i_component.html" title="コンポーネントの基幹インターフェイスです。">IComponent</a>* listener = <span class="keyword">nullptr</span>) = 0;</div>
+<div class="line"><a name="l00482"></a><span class="lineno">  482</span>&#160;};</div>
+<div class="line"><a name="l00483"></a><span class="lineno">  483</span>&#160;</div>
+<div class="line"><a name="l00484"></a><span class="lineno">  484</span>&#160;<span class="comment">//---------------------------------------------------------------------------//</span></div>
+<div class="line"><a name="l00485"></a><span class="lineno">  485</span>&#160;</div>
+<div class="line"><a name="l00486"></a><span class="lineno">  486</span>&#160;<span class="keyword">static</span> <span class="keyword">const</span> IID IID_IOutputComponent=</div>
+<div class="line"><a name="l00487"></a><span class="lineno">  487</span>&#160;{ 0xba6ffb76, 0xa1cb, 0x439c, { 0x9f, 0x6d, 0xca, 0xd6, 0xd1, 0x8a, 0x8f, 0x3e } };</div>
+<div class="line"><a name="l00488"></a><span class="lineno">  488</span>&#160;</div>
+<div class="line"><a name="l00493"></a><span class="lineno"><a class="code" href="class_cube_melon_1_1_i_output_component.html">  493</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_cube_melon_1_1_i_output_component.html" title="出力コンポーネントのためのインターフェイスです。">IOutputComponent</a> : <span class="keyword">public</span> <a class="code" href="class_cube_melon_1_1_i_i_o_component.html" title="入出力コンポーネントのための基底インターフェイスです。">IIOComponent</a></div>
+<div class="line"><a name="l00494"></a><span class="lineno">  494</span>&#160;{</div>
+<div class="line"><a name="l00495"></a><span class="lineno">  495</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00514"></a><span class="lineno">  514</span>&#160;    <span class="keyword">virtual</span> HRESULT __stdcall <a class="code" href="class_cube_melon_1_1_i_output_component.html#a197a394d948888806a98947bac705c5f" title="オブジェクトに指定バイト分データを書き込み、ポインタを進めます。">Write</a>(LPCVOID buffer, <span class="keywordtype">size_t</span> buf_size, <span class="keywordtype">size_t</span>* cb_written, <a class="code" href="class_cube_melon_1_1_i_component.html" title="コンポーネントの基幹インターフェイスです。">IComponent</a>* listener = <span class="keyword">nullptr</span>) = 0;</div>
+<div class="line"><a name="l00515"></a><span class="lineno">  515</span>&#160;};</div>
+<div class="line"><a name="l00516"></a><span class="lineno">  516</span>&#160;</div>
+<div class="line"><a name="l00517"></a><span class="lineno">  517</span>&#160;<span class="comment">//---------------------------------------------------------------------------//</span></div>
+<div class="line"><a name="l00518"></a><span class="lineno">  518</span>&#160;</div>
+<div class="line"><a name="l00519"></a><span class="lineno">  519</span>&#160;} <span class="comment">// namespace CubeMelon</span></div>
+<div class="line"><a name="l00520"></a><span class="lineno">  520</span>&#160;</div>
+<div class="line"><a name="l00521"></a><span class="lineno">  521</span>&#160;<span class="comment">// Interfaces.h</span></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><b>Interfaces.h</b></li>
+    <li class="footer">CubeMelonに対してSat Sep 7 2013 23:05:53に生成されました。
+    <a href="http://www.doxygen.org/index.html">
+    <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.3.1 </li>
+  </ul>
+</div>
+</body>
+</html>

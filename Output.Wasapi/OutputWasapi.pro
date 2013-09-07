@@ -16,21 +16,22 @@ SOURCES += \
     ../include/DWM.cpp \
     ../include/DebugPrint.cpp \
     ../include/LockModule.cpp \
-    configurewindow.cpp \
+    configurationwindow.cpp \
     ClassFactory.cpp \
+    PropertyStore.cpp \
     DllMain.cpp \
-    IOComponent.cpp \
-    ComponentProperty.cpp
+    Wasapi.cpp
 
 HEADERS += \
     ../include/DWM.h \
     ../include/DebugPrint.h \
     ../include/Interfaces.h \
     ../include/LockModule.h \
-    ../include/PluginProperty.h \
     ../include/ClassFactory.h \
+    ../include/PropertyStore.h \
     ../include/IOPlugin.h \
-    configurewindow.h
+    configurationwindow.h \
+    Wasapi.h \
 
 unix:!symbian {
     maemo5 {
@@ -42,7 +43,7 @@ unix:!symbian {
 }
 
 FORMS += \
-    configurewindow.ui
+    configurationwindow.ui
 
 DEF_FILE += ../CubeMelon.def
 

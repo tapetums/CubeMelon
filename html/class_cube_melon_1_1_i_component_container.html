@@ -1,0 +1,695 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.3.1"/>
+<title>CubeMelon: インタフェース CubeMelon::IComponentContainer</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">CubeMelon
+   &#160;<span id="projectnumber">1.0.0</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 作成： Doxygen 1.8.3.1 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search",false,'検索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="index.html"><span>メインページ</span></a></li>
+      <li class="current"><a href="annotated.html"><span>クラス</span></a></li>
+      <li><a href="files.html"><span>ファイル</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="annotated.html"><span>構成</span></a></li>
+      <li><a href="classes.html"><span>構成索引</span></a></li>
+      <li><a href="hierarchy.html"><span>クラス階層</span></a></li>
+      <li><a href="functions.html"><span>構成メンバ</span></a></li>
+    </ul>
+  </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('class_cube_melon_1_1_i_component_container.html','');});
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全て</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>クラス</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>関数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>変数</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public メソッド</a> &#124;
+<a href="interface_cube_melon_1_1_i_component_container-members.html">すべてのメンバ一覧</a>  </div>
+  <div class="headertitle">
+<div class="title">インタフェース CubeMelon::IComponentContainer<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>コンポーネントの各種情報を格納するオブジェクトのインターフェイスです。  
+ <a href="class_cube_melon_1_1_i_component_container.html#details">[詳細]</a></p>
+
+<p><code>#include &lt;<a class="el" href="_interfaces_8h_source.html">Interfaces.h</a>&gt;</code></p>
+<div class="dynheader">
+CubeMelon::IComponentContainerに対する継承グラフ</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="class_cube_melon_1_1_i_component_container.png" usemap="#CubeMelon::IComponentContainer_map" alt=""/>
+  <map id="CubeMelon::IComponentContainer_map" name="CubeMelon::IComponentContainer_map">
+<area href="class_cube_melon_1_1_component_container.html" alt="CubeMelon::ComponentContainer" shape="rect" coords="0,112,204,136"/>
+</map>
+ </div></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Public メソッド</h2></td></tr>
+<tr class="memitem:ad46a99531b01de9cd89674a5604e868a"><td class="memItemLeft" align="right" valign="top">virtual REFCLSID __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cube_melon_1_1_i_component_container.html#ad46a99531b01de9cd89674a5604e868a">ClassID</a> () const =0</td></tr>
+<tr class="memdesc:ad46a99531b01de9cd89674a5604e868a"><td class="mdescLeft">&#160;</td><td class="mdescRight">コンポーネントのクラスIDを返します。  <a href="#ad46a99531b01de9cd89674a5604e868a">[詳細]</a><br/></td></tr>
+<tr class="separator:ad46a99531b01de9cd89674a5604e868a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82e8a74a4084c86ab8136cb8d857ae2b"><td class="memItemLeft" align="right" valign="top">virtual LPCWSTR __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cube_melon_1_1_i_component_container.html#a82e8a74a4084c86ab8136cb8d857ae2b">Copyright</a> () const =0</td></tr>
+<tr class="memdesc:a82e8a74a4084c86ab8136cb8d857ae2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">コンポーネントの著作権情報を返します。  <a href="#a82e8a74a4084c86ab8136cb8d857ae2b">[詳細]</a><br/></td></tr>
+<tr class="separator:a82e8a74a4084c86ab8136cb8d857ae2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1486c98406fba5cdf3d7109f22f2f3e2"><td class="memItemLeft" align="right" valign="top">virtual LPCWSTR __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cube_melon_1_1_i_component_container.html#a1486c98406fba5cdf3d7109f22f2f3e2">Description</a> () const =0</td></tr>
+<tr class="memdesc:a1486c98406fba5cdf3d7109f22f2f3e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">コンポーネントの詳細説明を返します。  <a href="#a1486c98406fba5cdf3d7109f22f2f3e2">[詳細]</a><br/></td></tr>
+<tr class="separator:a1486c98406fba5cdf3d7109f22f2f3e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed0815b4638f5a74a9e7aacdb1f73c14"><td class="memItemLeft" align="right" valign="top">virtual LPCWSTR __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cube_melon_1_1_i_component_container.html#aed0815b4638f5a74a9e7aacdb1f73c14">FilePath</a> () const =0</td></tr>
+<tr class="memdesc:aed0815b4638f5a74a9e7aacdb1f73c14"><td class="mdescLeft">&#160;</td><td class="mdescRight">コンポーネントが格納されているDLLファイルのフルパスを返します。  <a href="#aed0815b4638f5a74a9e7aacdb1f73c14">[詳細]</a><br/></td></tr>
+<tr class="separator:aed0815b4638f5a74a9e7aacdb1f73c14"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a07cf083b9c2147763664c5e1861d9b3c"><td class="memItemLeft" align="right" valign="top">virtual size_t __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cube_melon_1_1_i_component_container.html#a07cf083b9c2147763664c5e1861d9b3c">Index</a> () const =0</td></tr>
+<tr class="memdesc:a07cf083b9c2147763664c5e1861d9b3c"><td class="mdescLeft">&#160;</td><td class="mdescRight">コンポーネントのDLLファイル中におけるインデックスを返します。  <a href="#a07cf083b9c2147763664c5e1861d9b3c">[詳細]</a><br/></td></tr>
+<tr class="separator:a07cf083b9c2147763664c5e1861d9b3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ca1224ea84ab658a71c00050fb873c3"><td class="memItemLeft" align="right" valign="top">virtual LPCWSTR __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cube_melon_1_1_i_component_container.html#a7ca1224ea84ab658a71c00050fb873c3">Name</a> () const =0</td></tr>
+<tr class="memdesc:a7ca1224ea84ab658a71c00050fb873c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">コンポーネント名を返します。  <a href="#a7ca1224ea84ab658a71c00050fb873c3">[詳細]</a><br/></td></tr>
+<tr class="separator:a7ca1224ea84ab658a71c00050fb873c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70d64857355117c55e193f8720a6742c"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="struct_cube_melon_1_1_version_info.html">VersionInfo</a> *__stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cube_melon_1_1_i_component_container.html#a70d64857355117c55e193f8720a6742c">Version</a> () const =0</td></tr>
+<tr class="memdesc:a70d64857355117c55e193f8720a6742c"><td class="mdescLeft">&#160;</td><td class="mdescRight">コンポーネントのバージョン情報を返します。  <a href="#a70d64857355117c55e193f8720a6742c">[詳細]</a><br/></td></tr>
+<tr class="separator:a70d64857355117c55e193f8720a6742c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae5cea66a82171e99b35e09cd61930a55"><td class="memItemLeft" align="right" valign="top">virtual HRESULT __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cube_melon_1_1_i_component_container.html#ae5cea66a82171e99b35e09cd61930a55">Load</a> ()=0</td></tr>
+<tr class="memdesc:ae5cea66a82171e99b35e09cd61930a55"><td class="mdescLeft">&#160;</td><td class="mdescRight">DLLファイルからコンポーネントを読み込みます。  <a href="#ae5cea66a82171e99b35e09cd61930a55">[詳細]</a><br/></td></tr>
+<tr class="separator:ae5cea66a82171e99b35e09cd61930a55"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b3fcafa1857cb3c92310c2504d0694a"><td class="memItemLeft" align="right" valign="top">virtual HRESULT __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cube_melon_1_1_i_component_container.html#a4b3fcafa1857cb3c92310c2504d0694a">Free</a> ()=0</td></tr>
+<tr class="memdesc:a4b3fcafa1857cb3c92310c2504d0694a"><td class="mdescLeft">&#160;</td><td class="mdescRight">DLLファイルを解放します。  <a href="#a4b3fcafa1857cb3c92310c2504d0694a">[詳細]</a><br/></td></tr>
+<tr class="separator:a4b3fcafa1857cb3c92310c2504d0694a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c189bb0edc947a791c12a2c39b3b5ef"><td class="memItemLeft" align="right" valign="top">virtual HRESULT __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cube_melon_1_1_i_component_container.html#a0c189bb0edc947a791c12a2c39b3b5ef">Configure</a> (HWND hwndParent=nullptr)=0</td></tr>
+<tr class="memdesc:a0c189bb0edc947a791c12a2c39b3b5ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">コンポーネントの設定画面を呼び出します。  <a href="#a0c189bb0edc947a791c12a2c39b3b5ef">[詳細]</a><br/></td></tr>
+<tr class="separator:a0c189bb0edc947a791c12a2c39b3b5ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae8aab351dedeb1e993b5b39942c041fa"><td class="memItemLeft" align="right" valign="top">virtual HRESULT __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cube_melon_1_1_i_component_container.html#ae8aab351dedeb1e993b5b39942c041fa">CreateInstance</a> (IUnknown *pUnkOuter, REFIID riid, void **ppvObject)=0</td></tr>
+<tr class="memdesc:ae8aab351dedeb1e993b5b39942c041fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">コンポーネントを生成します。  <a href="#ae8aab351dedeb1e993b5b39942c041fa">[詳細]</a><br/></td></tr>
+<tr class="separator:ae8aab351dedeb1e993b5b39942c041fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac560efa9e6a74de551fc5b967bb20ee3"><td class="memItemLeft" align="right" valign="top">virtual HRESULT __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cube_melon_1_1_i_component_container.html#ac560efa9e6a74de551fc5b967bb20ee3">GetProperty</a> (IPropertyStore **ps)=0</td></tr>
+<tr class="memdesc:ac560efa9e6a74de551fc5b967bb20ee3"><td class="mdescLeft">&#160;</td><td class="mdescRight">コンポーネントのプロパティを取得します。  <a href="#ac560efa9e6a74de551fc5b967bb20ee3">[詳細]</a><br/></td></tr>
+<tr class="separator:ac560efa9e6a74de551fc5b967bb20ee3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad6cc3dcc051531e0fb799d29859a8ca5"><td class="memItemLeft" align="right" valign="top">virtual HRESULT __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cube_melon_1_1_i_component_container.html#ad6cc3dcc051531e0fb799d29859a8ca5">SetProperty</a> (const IPropertyStore *ps)=0</td></tr>
+<tr class="memdesc:ad6cc3dcc051531e0fb799d29859a8ca5"><td class="mdescLeft">&#160;</td><td class="mdescRight">コンポーネントのプロパティを設定します。  <a href="#ad6cc3dcc051531e0fb799d29859a8ca5">[詳細]</a><br/></td></tr>
+<tr class="separator:ad6cc3dcc051531e0fb799d29859a8ca5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">説明</h2>
+<div class="textblock"><p>コンポーネントの各種情報を格納するオブジェクトのインターフェイスです。 </p>
+</div><h2 class="groupheader">関数</h2>
+<a class="anchor" id="ad46a99531b01de9cd89674a5604e868a"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual REFCLSID __stdcall CubeMelon::IComponentContainer::ClassID </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>コンポーネントのクラスIDを返します。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">なし</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>コンポーネントのクラスID </dd></dl>
+
+<p><a class="el" href="class_cube_melon_1_1_component_container.html#a63d64c74ebd94e616c6b76114150abfb">CubeMelon::ComponentContainer</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a0c189bb0edc947a791c12a2c39b3b5ef"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual HRESULT __stdcall CubeMelon::IComponentContainer::Configure </td>
+          <td>(</td>
+          <td class="paramtype">HWND&#160;</td>
+          <td class="paramname"><em>hwndParent</em> = <code>nullptr</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>コンポーネントの設定画面を呼び出します。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">hwndParent</td><td>親ウィンドウのハンドル </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>無事画面を呼び出せたか </dd></dl>
+<dl class="retval"><dt>戻り値</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">S_OK</td><td>無事呼び出せた </td></tr>
+    <tr><td class="paramname">S_FALSE</td><td>既に表示されている </td></tr>
+    <tr><td class="paramname">E_FAIL</td><td>呼び出せなかった </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p><a class="el" href="class_cube_melon_1_1_component_container.html#a734a38708c18cf6dec65f4944cbbdd3b">CubeMelon::ComponentContainer</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a82e8a74a4084c86ab8136cb8d857ae2b"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual LPCWSTR __stdcall CubeMelon::IComponentContainer::Copyright </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>コンポーネントの著作権情報を返します。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">なし</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>コンポーネントの著作権情報 </dd></dl>
+
+<p><a class="el" href="class_cube_melon_1_1_component_container.html#af0ad925f79406a917946407ba374da33">CubeMelon::ComponentContainer</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="ae8aab351dedeb1e993b5b39942c041fa"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual HRESULT __stdcall CubeMelon::IComponentContainer::CreateInstance </td>
+          <td>(</td>
+          <td class="paramtype">IUnknown *&#160;</td>
+          <td class="paramname"><em>pUnkOuter</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">REFIID&#160;</td>
+          <td class="paramname"><em>riid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>ppvObject</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>コンポーネントを生成します。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pUnkOuter</td><td>親オブジェクト </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">riid</td><td>取得したいインターフェイス </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">ppvObject</td><td>インスタンスの格納先アドレス </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>無事生成できたか </dd></dl>
+<dl class="retval"><dt>戻り値</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">S_OK</td><td></td></tr>
+    <tr><td class="paramname">E_FAIL</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p><a class="el" href="class_cube_melon_1_1_component_container.html#aac153eecd46b6b994544a31729149a55">CubeMelon::ComponentContainer</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a1486c98406fba5cdf3d7109f22f2f3e2"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual LPCWSTR __stdcall CubeMelon::IComponentContainer::Description </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>コンポーネントの詳細説明を返します。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">なし</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>コンポーネントの詳細説明 </dd></dl>
+
+<p><a class="el" href="class_cube_melon_1_1_component_container.html#abdda874276aa74078a5cd89bc1258718">CubeMelon::ComponentContainer</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="aed0815b4638f5a74a9e7aacdb1f73c14"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual LPCWSTR __stdcall CubeMelon::IComponentContainer::FilePath </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>コンポーネントが格納されているDLLファイルのフルパスを返します。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">なし</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>DLLファイルのフルパス </dd></dl>
+
+<p><a class="el" href="class_cube_melon_1_1_component_container.html#abca7394f1890b7fe1b108dc630e7d560">CubeMelon::ComponentContainer</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a4b3fcafa1857cb3c92310c2504d0694a"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual HRESULT __stdcall CubeMelon::IComponentContainer::Free </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>DLLファイルを解放します。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">なし</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>無事解放できたか </dd></dl>
+<dl class="retval"><dt>戻り値</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">S_OK</td><td></td></tr>
+    <tr><td class="paramname">E_FAIL</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p><a class="el" href="class_cube_melon_1_1_component_container.html#aecb6ff49a6ede1218437cf8fc6bb224d">CubeMelon::ComponentContainer</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="ac560efa9e6a74de551fc5b967bb20ee3"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual HRESULT __stdcall CubeMelon::IComponentContainer::GetProperty </td>
+          <td>(</td>
+          <td class="paramtype">IPropertyStore **&#160;</td>
+          <td class="paramname"><em>ps</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>コンポーネントのプロパティを取得します。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">ps</td><td>プロパティオブジェクトの格納先アドレス </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>無事取得できたか </dd></dl>
+<dl class="retval"><dt>戻り値</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">S_OK</td><td></td></tr>
+    <tr><td class="paramname">E_FAIL</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p><a class="el" href="class_cube_melon_1_1_component_container.html#a3c0803ca896e03e63d3c90625d587f09">CubeMelon::ComponentContainer</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a07cf083b9c2147763664c5e1861d9b3c"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual size_t __stdcall CubeMelon::IComponentContainer::Index </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>コンポーネントのDLLファイル中におけるインデックスを返します。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">なし</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>コンポーネントのインデックス </dd></dl>
+
+<p><a class="el" href="class_cube_melon_1_1_component_container.html#a7d1ac04d995b635f5159b025b7e79bbc">CubeMelon::ComponentContainer</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="ae5cea66a82171e99b35e09cd61930a55"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual HRESULT __stdcall CubeMelon::IComponentContainer::Load </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>DLLファイルからコンポーネントを読み込みます。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">なし</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>無事読み込めたか </dd></dl>
+<dl class="retval"><dt>戻り値</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">S_OK</td><td></td></tr>
+    <tr><td class="paramname">E_FAIL</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p><a class="el" href="class_cube_melon_1_1_component_container.html#a60b46f3a469d3cd801782ebb655a1e67">CubeMelon::ComponentContainer</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a7ca1224ea84ab658a71c00050fb873c3"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual LPCWSTR __stdcall CubeMelon::IComponentContainer::Name </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>コンポーネント名を返します。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">なし</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>コンポーネント名 </dd></dl>
+
+<p><a class="el" href="class_cube_melon_1_1_component_container.html#a271e3f2cd5bb84b4bc07c53a1d5610ed">CubeMelon::ComponentContainer</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="ad6cc3dcc051531e0fb799d29859a8ca5"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual HRESULT __stdcall CubeMelon::IComponentContainer::SetProperty </td>
+          <td>(</td>
+          <td class="paramtype">const IPropertyStore *&#160;</td>
+          <td class="paramname"><em>ps</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>コンポーネントのプロパティを設定します。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ps</td><td>プロパティオブジェクト </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>無事設定できたか </dd></dl>
+<dl class="retval"><dt>戻り値</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">S_OK</td><td></td></tr>
+    <tr><td class="paramname">E_FAIL</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p><a class="el" href="class_cube_melon_1_1_component_container.html#a20b5a3dc75b53cd8c0a9e7853d0b34bd">CubeMelon::ComponentContainer</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a70d64857355117c55e193f8720a6742c"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="struct_cube_melon_1_1_version_info.html">VersionInfo</a>* __stdcall CubeMelon::IComponentContainer::Version </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>コンポーネントのバージョン情報を返します。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">なし</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>コンポーネントのバージョン情報 </dd></dl>
+
+<p><a class="el" href="class_cube_melon_1_1_component_container.html#a8abf6372e112e0986fd4c55a81773bf7">CubeMelon::ComponentContainer</a>で実装されています。</p>
+
+</div>
+</div>
+<hr/>このインタフェースの説明は次のファイルから生成されました:<ul>
+<li>include/<a class="el" href="_interfaces_8h_source.html">Interfaces.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><b>CubeMelon</b></li><li class="navelem"><a class="el" href="class_cube_melon_1_1_i_component_container.html">IComponentContainer</a></li>
+    <li class="footer">CubeMelonに対してSat Sep 7 2013 23:05:53に生成されました。
+    <a href="http://www.doxygen.org/index.html">
+    <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.3.1 </li>
+  </ul>
+</div>
+</body>
+</html>

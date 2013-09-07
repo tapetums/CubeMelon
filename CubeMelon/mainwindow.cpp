@@ -6,12 +6,18 @@
 #include <strsafe.h>
 #include <dwmapi.h>
 
-#include <QDateTime>
+#include "..\include\DWM.h"
+#include "..\include\DebugPrint.h"
+#include "..\include\Interfaces.h"
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "..\include\DWM.h"
-#include "..\include\Interfaces.h"
+#include <QDateTime>
+
+//---------------------------------------------------------------------------//
+
+#define NAME TEXT("CubeMelon::MainWindow")
 
 //---------------------------------------------------------------------------//
 
@@ -39,18 +45,26 @@ MainWindow::MainWindow(QWidget* parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    DebugPrintLn(NAME TEXT("::Constructor() begin"));
+
     ui->setupUi(this);
     ui->tabWidget->setTabText(0, QString("Plugins"));
     ui->tabWidget->setTabText(1, QString("Console"));
 
     EnableAeroGlass(this);
+
+    DebugPrintLn(NAME TEXT("::Constructor() end"));
 }
 
 //---------------------------------------------------------------------------//
 
 MainWindow::~MainWindow()
 {
+    DebugPrintLn(NAME TEXT("::Destructor() begin"));
+
     delete ui;
+
+    DebugPrintLn(NAME TEXT("::Destructor() end"));
 }
 
 //---------------------------------------------------------------------------//
@@ -79,7 +93,7 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 
     auto w = event->size().width();
     auto h = event->size().height();
-    ui->tabWidget->setGeometry(0, m_bar, w, h - m_bar - s_bar);
+    ui->tabWidget->setGeometry(0, m_bar, w, h - m_bar - s_bar -1);
     ui->statusBar->setGeometry(0, h - s_bar, w, s_bar);
 
     w = ui->tabWidget->width();
@@ -91,16 +105,23 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 
 //---------------------------------------------------------------------------//
 
-void MainWindow::addListItem
-(
-    REFCLSID clsid, LPCWSTR  name,
-    LPCWSTR  description, LPCWSTR  copyright, VersionInfo* vi
-)
+void MainWindow::addListItem(IUnknown* unk)
 {
+    CubeMelon::IComponentContainer* cc = nullptr;
+    if ( unk )
+    {
+        unk->QueryInterface(CubeMelon::IID_IComponentContainer, (void**)&cc);
+        if ( nullptr == cc )
+        {
+            return;
+        }
+    }
+
     WCHAR buf[256];
 
     auto item = new QTreeWidgetItem;
 
+    auto clsid = cc->ClassID();
     ::StringCchPrintf
     (
         buf, 256,
@@ -111,16 +132,17 @@ void MainWindow::addListItem
     );
     item->setText(4, QString::fromUtf16((const ushort*)buf));
 
-    item->setText(0, QString::fromUtf16((const ushort*)name));
+    item->setText(0, QString::fromUtf16((const ushort*)cc->Name()));
 
-    item->setText(2, QString::fromUtf16((const ushort*)description));
+    item->setText(2, QString::fromUtf16((const ushort*)cc->Description()));
 
-    item->setText(3, QString::fromUtf16((const ushort*)copyright));
+    item->setText(3, QString::fromUtf16((const ushort*)cc->Copyright()));
 
+    auto vi = cc->Version();
     ::StringCchPrintf
     (
         buf, 256,
-        TEXT("%d.%d.%d %s"),
+        TEXT("%d.%d.%d %c"),
         vi->major, vi->minor, vi->revision, vi->stage
     );
     item->setText(1, QString::fromUtf16((const ushort*)buf));
@@ -135,6 +157,8 @@ void MainWindow::addListItem
         count
     );
     ui->statusBar->showMessage(QString::fromUtf16((const ushort*)buf));
+
+    cc->Release();
 }
 
 //---------------------------------------------------------------------------//

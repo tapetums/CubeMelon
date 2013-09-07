@@ -4,8 +4,9 @@
 
 //---------------------------------------------------------------------------//
 
-struct VersionInfo;
-struct IPropertyStore;
+namespace CubeMelon {
+
+//---------------------------------------------------------------------------//
 
 class ComponentContainer : public IComponentContainer
 {
@@ -27,8 +28,10 @@ public:
 
     HRESULT __stdcall Load() override;
     HRESULT __stdcall Free() override;
+    HRESULT __stdcall Configure(HWND hwndParent = nullptr) override;
+    HRESULT __stdcall CreateInstance(IUnknown* pUnkOuter, REFIID riid, void** ppvObject) override;
     HRESULT __stdcall GetProperty(IPropertyStore** ps) override;
-    HRESULT __stdcall GetClassObject(REFIID riid, void** ppvObject) override;
+    HRESULT __stdcall SetProperty(const IPropertyStore* ps) override;
 
 protected:
     ULONG m_cRef;
@@ -56,9 +59,10 @@ public:
     ULONG   __stdcall AddRef() override;
     ULONG   __stdcall Release() override;
 
-    LPCWSTR              __stdcall DirectoryPath() const override;
+    IComponentContainer* __stdcall At(size_t index) const override;
     size_t               __stdcall ComponentCount() const override;
-    IComponentContainer* __stdcall ComponentContainer(size_t index) const override;
+    LPCWSTR              __stdcall DirectoryPath() const override;
+    IComponentContainer* __stdcall Find(REFCLSID rclsid) const override;
 
     HRESULT __stdcall LoadAll() override;
     HRESULT __stdcall FreeAll() override;
@@ -76,6 +80,10 @@ private:
     ComponentManager& operator =(const ComponentManager&);
     ComponentManager& operator =(ComponentManager&&);
 };
+
+//---------------------------------------------------------------------------//
+
+} // namespace CubeMelon
 
 //---------------------------------------------------------------------------//
 

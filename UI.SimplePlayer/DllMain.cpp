@@ -5,7 +5,7 @@
 
 #include "..\include\LockModule.h"
 #include "..\include\ClassFactory.h"
-#include "..\include\ComponentProperty.h"
+#include "..\include\PropertyStore.h"
 
 //---------------------------------------------------------------------------//
 
@@ -42,6 +42,13 @@ STDAPI DllCanUnloadNow()
 
 //---------------------------------------------------------------------------//
 
+STDAPI DllConfigure(HWND hwndParent = nullptr)
+{
+    return E_NOTIMPL;
+}
+
+//---------------------------------------------------------------------------//
+
 STDAPI DllGetProperty(size_t index, IPropertyStore** ps)
 {
     if ( nullptr == ps )
@@ -51,7 +58,7 @@ STDAPI DllGetProperty(size_t index, IPropertyStore** ps)
 
     if ( index == 0 )
     {
-        static ComponentProperty prop;
+        static CubeMelon::PropertyStore prop;
         *ps = &prop;
         (*ps)->AddRef();
 
