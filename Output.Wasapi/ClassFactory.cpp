@@ -5,6 +5,8 @@
 #include "..\include\LockModule.h"
 #include "..\include\ClassFactory.h"
 #include "..\include\Interfaces.h"
+#include "..\include\ComponentBase.h"
+
 #include "Wasapi.h"
 
 //---------------------------------------------------------------------------//
@@ -98,5 +100,7 @@ STDMETHODIMP ClassFactory::LockServer(BOOL bLock)
 
      return S_OK;
 }
+
+//---------------------------------------------------------------------------//
 
 // Output.Wasapi.ClassFactory.cpp

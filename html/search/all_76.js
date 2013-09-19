@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['version',['Version',['../class_cube_melon_1_1_component_container.html#a8abf6372e112e0986fd4c55a81773bf7',1,'CubeMelon::ComponentContainer::Version()'],['../class_cube_melon_1_1_i_component_container.html#a70d64857355117c55e193f8720a6742c',1,'CubeMelon::IComponentContainer::Version()']]],
+  ['variant',['VARIANT',['../union_cube_melon_1_1_v_a_r_i_a_n_t.html',1,'CubeMelon']]],
+  ['version',['Version',['../struct_cube_melon_1_1_i_comp_adapter.html#ace03c0e67d64fd5fa29868efa2fcb9d7',1,'CubeMelon::ICompAdapter']]],
   ['versioninfo',['VersionInfo',['../struct_cube_melon_1_1_version_info.html',1,'CubeMelon']]]
 ];

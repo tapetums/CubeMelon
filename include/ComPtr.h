@@ -1,10 +1,10 @@
-//===================================================================================
-// Copyright (c) Microsoft Corporation.  All rights reserved.                        
-//                                                                                   
-// THIS CODE AND INFORMATION IS PROVIDED 'AS IS' WITHOUT WARRANTY                    
-// OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT                       
-// LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND                          
-// FITNESS FOR A PARTICULAR PURPOSE.                                                 
+﻿//===================================================================================
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+//
+// THIS CODE AND INFORMATION IS PROVIDED 'AS IS' WITHOUT WARRANTY
+// OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT
+// LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+// FITNESS FOR A PARTICULAR PURPOSE.
 //===================================================================================
 
 
@@ -117,7 +117,7 @@ public:
     }
 
     bool operator!() const
-    {    
+    {
         return (nullptr == m_ComPtr);
     }
 
@@ -137,7 +137,7 @@ public:
     }
 
     template <typename I>
-    HRESULT QueryInterface(I **interfacePtr)
+    HRESULT QueryInterface(I** interfacePtr)
     {
         return m_ComPtr->QueryInterface(IID_PPV_ARGS(interfacePtr));
     }

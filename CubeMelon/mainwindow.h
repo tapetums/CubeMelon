@@ -1,8 +1,6 @@
 ﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <windows.h>
-
 #include <QMainWindow>
 
 //---------------------------------------------------------------------------//
@@ -10,6 +8,11 @@
 namespace Ui
 {
     class MainWindow;
+}
+
+namespace CubeMelon
+{
+    struct ICompAdapter;
 }
 
 //---------------------------------------------------------------------------//
@@ -23,8 +26,8 @@ public:
     ~MainWindow();
 
 public:
-    void addConsoleText(LPCWSTR text);
-    void addListItem(IUnknown* unk);
+    void addConsoleText(const wchar_t* text);
+    void addListItem(CubeMelon::ICompAdapter* ca);
     void removeListItem();
     void clearList();
 
@@ -33,6 +36,8 @@ protected:
 
 private:
     Ui::MainWindow* ui;
+
+private:
     struct Impl;
     Impl* pimpl;
 };

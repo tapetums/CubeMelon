@@ -2,29 +2,39 @@
 
 #include <windows.h>
 
-#include <propsys.h>
-#pragma comment(lib, "ole32.lib")
-
 #include "..\include\DebugPrint.h"
 #include "..\include\LockModule.h"
 #include "..\include\Interfaces.h"
-#include "SimplePlayer.h"
+#include "..\include\ComponentBase.h"
 
 #include "mainwindow.h"
 
-//---------------------------------------------------------------------------//
-
-#define NAME TEXT("UI.SimplePlayer")
-
-//---------------------------------------------------------------------------//
-
-extern const CLSID CLSID_Component;
-
-STDAPI DllGetProperty(size_t index, IPropertyStore** ps);
+#include "SimplePlayer.h"
 
 //---------------------------------------------------------------------------//
 
 namespace CubeMelon {
+
+//---------------------------------------------------------------------------//
+
+extern const CLSID CLSID_Component =
+{ 0x520e13ad, 0x3345, 0x4377, { 0xb2, 0xef, 0x68, 0x42, 0xea, 0x79, 0xb2, 0x5b } };
+
+extern const size_t      MDL_PROP_COUNT    = 5;
+extern const wchar_t*    MDL_PROP_MGR_NAME = TEXT("UI.SimplePlayer.PropManager");
+extern const wchar_t*    MDL_PROP_NAME     = TEXT("UI.SimplePlayer.Property");
+
+extern const size_t      COMP_INDEX      = 0;
+extern const wchar_t*    COMP_NAME       = TEXT("UI.SimplePlayer");
+
+extern const wchar_t*    PropName        = TEXT("UI.SimplePlayer");
+extern const wchar_t*    PropDescription = TEXT("Audio player window component for CubeMelon");
+extern const wchar_t*    PropCopyright   = TEXT("(C) 2012-2013 tapetums");
+extern const VersionInfo PropVersion     = { 1, 0, 0, 0 };
+
+//---------------------------------------------------------------------------//
+
+STDAPI DllGetProperty(size_t index, IPropManager** pm);
 
 //---------------------------------------------------------------------------//
 
@@ -33,320 +43,164 @@ struct SimplePlayer::Impl
     Impl();
     ~Impl();
 
-    MainWindow* mwnd;
+    MainWindow* main_wnd;
+    IComponent* comp_input;
+    IComponent* comp_output;
 };
 
 //---------------------------------------------------------------------------//
 
 SimplePlayer::Impl::Impl()
 {
-    mwnd = nullptr;
+    main_wnd    = nullptr;
+    comp_input  = nullptr;
+    comp_output = nullptr;
 }
 
 //---------------------------------------------------------------------------//
 
 SimplePlayer::Impl::~Impl()
 {
-    if ( mwnd )
+    if ( comp_input )
     {
-        delete mwnd;
-        mwnd = nullptr;
+        comp_input->Release();
+        comp_input = nullptr;
+    }
+    if ( comp_output )
+    {
+        comp_output->Release();
+        comp_output = nullptr;
+    }
+    if ( main_wnd )
+    {
+        delete main_wnd;
+        main_wnd = nullptr;
     }
 }
 
 //---------------------------------------------------------------------------//
 
-SimplePlayer::SimplePlayer(IUnknown* pUnkOuter)
+SimplePlayer::SimplePlayer(IUnknown* pUnkOuter) : UIComponentBase(pUnkOuter)
 {
-    DebugPrintLn(NAME TEXT("::Constructor() begin"));
+    DebugPrintLn(TEXT("%s::Constructor() begin"), COMP_NAME);
 
     pimpl = new Impl;
 
-    m_cRef  = 0;
-    m_state = STATE_IDLE;
-    m_owner = nullptr;
-    if ( pUnkOuter )
-    {
-        auto hr = pUnkOuter->QueryInterface
-        (
-            IID_IComponent, (void**)&m_owner
-        );
-        if ( FAILED(hr) )
-        {
-            m_owner = nullptr;
-        }
-    }
-
-    this->AddRef();
-
-    DebugPrintLn(NAME TEXT("::Constructor() end"));
+    DebugPrintLn(TEXT("%s::Constructor() end"), COMP_NAME);
 }
 
 //---------------------------------------------------------------------------//
 
 SimplePlayer::~SimplePlayer()
 {
-    DebugPrintLn(NAME TEXT("::Destructor() begin"));
+    DebugPrintLn(TEXT("%s::Destructor() begin"), COMP_NAME);
 
     this->Stop();
-
-    m_state = STATE_TERMINATING;
-    if ( m_owner )
-    {
-        DebugPrintLn(TEXT("Releasing ") NAME TEXT("'s Owner..."));
-
-        m_owner->Release();
-        m_owner = nullptr;
-
-        DebugPrintLn(TEXT("Released ") NAME TEXT("'s Owner"));
-    }
-    m_cRef = 0;
 
     delete pimpl;
     pimpl = nullptr;
 
-    DebugPrintLn(NAME TEXT("::Destructor() end"));
+    DebugPrintLn(TEXT("%s::Destructor() end"), COMP_NAME);
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall SimplePlayer::QueryInterface(REFIID riid, void** ppvObject)
+HRESULT __stdcall SimplePlayer::Start(LPVOID args, IComponent* listener)
 {
-    DebugPrintLn(NAME TEXT("::QueryInterface() begin"));
+    DebugPrintLn(TEXT("%s::Start() begin"), COMP_NAME);
 
-    if ( nullptr == ppvObject )
+    if ( m_state & STATE_STARTING )
     {
-        return E_POINTER;
+        DebugPrintLn(TEXT("Now starting"));
+        return S_FALSE;
+    }
+    if ( m_state & STATE_ACTIVE )
+    {
+        DebugPrintLn(TEXT("Already started"));
+        return S_FALSE;
     }
 
-    *ppvObject = nullptr;
-
-    if ( IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IComponent) )
+    if ( listener )
     {
-        *ppvObject = static_cast<IComponent*>(this);
-    }
-    else if ( IsEqualIID(riid, IID_IUIComponent) )
-    {
-        *ppvObject = static_cast<IUIComponent*>(this);
-    }
-    else
-    {
-        return E_NOINTERFACE;
+        return E_NOTIMPL;
     }
 
-    this->AddRef();
+    m_state = (STATE)(m_state | STATE_STARTING);
 
-    DebugPrintLn(NAME TEXT("::QueryInterface() end"));
+    pimpl->main_wnd = new MainWindow;
+    pimpl->main_wnd->setOwner(static_cast<IComponent*>((void*)this));
+    pimpl->main_wnd->show();
+
+    m_hwnd = reinterpret_cast<HWND>(pimpl->main_wnd->winId());
+
+    m_state = (STATE)(m_state | STATE_ACTIVE);
+    m_state = (STATE)(m_state ^ STATE_STARTING);
+
+    DebugPrintLn(TEXT("%s::Start() end"), COMP_NAME);
 
     return S_OK;
 }
 
 //---------------------------------------------------------------------------//
 
-ULONG __stdcall SimplePlayer::AddRef()
+HRESULT __stdcall SimplePlayer::Stop(IComponent* listener)
 {
-    DebugPrintLn(NAME TEXT("::AddRef() begin %d"), m_cRef);
+    DebugPrintLn(TEXT("%s::Stop() begin"), COMP_NAME);
 
-    LockModule();
-
-    LONG cRef = ::InterlockedIncrement(&m_cRef);
-
-    DebugPrintLn(NAME TEXT("::AddRef() end %d"), cRef);
-
-    return static_cast<ULONG>(cRef);
-}
-
-//---------------------------------------------------------------------------//
-
-ULONG __stdcall SimplePlayer::Release()
-{
-    DebugPrintLn(NAME TEXT("::Release() begin %d"), m_cRef);
-
-    LONG cRef = ::InterlockedDecrement(&m_cRef);
-    if ( cRef == 0 )
+    if ( m_state & STATE_STOPPING )
     {
-        DebugPrintLn(TEXT("Deleting..."));
-        delete this;
-        DebugPrintLn(TEXT("Deleted"));
-    }
-
-    UnlockModule();
-
-    DebugPrintLn(NAME TEXT("::Release() end %d"), cRef);
-
-    return static_cast<ULONG>(cRef);
-}
-
-//---------------------------------------------------------------------------//
-
-REFCLSID __stdcall SimplePlayer::ClassID() const
-{
-    return CLSID_Component;
-}
-
-//---------------------------------------------------------------------------//
-
-IComponent* __stdcall SimplePlayer::Owner() const
-{
-    return m_owner;
-}
-
-//---------------------------------------------------------------------------//
-
-IPropertyStore* __stdcall SimplePlayer::Property() const
-{
-    return nullptr;
-}
-
-//---------------------------------------------------------------------------//
-
-STATE __stdcall SimplePlayer::Status() const
-{
-    return m_state;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall SimplePlayer::Attach(LPCWSTR msg, IComponent* listener)
-{
-    return E_NOTIMPL;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall SimplePlayer::Detach(LPCWSTR msg, IComponent* listener)
-{
-    return E_NOTIMPL;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall SimplePlayer::GetInstance
-(
-    REFCLSID rclsid, REFIID riid, void** ppvObject
-)
-{
-    HRESULT hr;
-
-    if ( IsEqualCLSID(rclsid, CLSID_Component) )
-    {
-        if ( IsEqualIID(riid, IID_IPropertyStore))
-        {
-            hr = DllGetProperty(0, (IPropertyStore**)ppvObject);
-        }
-        else
-        {
-            hr = this->QueryInterface(riid, ppvObject);
-        }
-    }
-    else
-    {
-        if ( m_owner )
-        {
-            hr = m_owner->GetInstance(rclsid, riid, ppvObject);
-        }
-        else
-        {
-            hr = E_NOTIMPL;
-        }
-    }
-
-    return hr;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall SimplePlayer::Notify
-(
-    IComponent* sender, LPCWSTR msg, LPVOID data, size_t cb_data
-)
-{
-    return E_NOTIMPL;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall SimplePlayer::Start(LPCVOID args)
-{
-    DebugPrintLn(NAME TEXT("::Start() begin"));
-
-    HRESULT hr = S_FALSE;
-
-    if ( m_state == STATE_RUNNING )
-    {
-        DebugPrintLn(TEXT("Already started"));
-
+        DebugPrintLn(TEXT("Now stopping"));
         return S_FALSE;
     }
-
-    /// ここに処理を書く
-    pimpl->mwnd = new MainWindow;
-    pimpl->mwnd->setOwner(this);
-    pimpl->mwnd->show();
-
-    m_state = STATE_RUNNING;
-
-    DebugPrintLn(NAME TEXT("::Start() end"));
-
-    return hr;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall SimplePlayer::Stop()
-{
-    DebugPrintLn(NAME TEXT("::Stop() begin"));
-
-    if ( m_state == STATE_IDLE )
+    if ( !(m_state & STATE_ACTIVE) )
     {
         DebugPrintLn(TEXT("Already stopped"));
         return S_FALSE;
     }
 
-    m_state = STATE_IDLE;
-
-    if ( pimpl->mwnd )
+    if ( listener )
     {
-        delete pimpl->mwnd;
-        pimpl->mwnd = nullptr;
+        return E_NOTIMPL;
+    }
+
+    m_state = (STATE)(m_state | STATE_STOPPING);
+
+    if ( pimpl->main_wnd )
+    {
+        delete pimpl->main_wnd;
+        pimpl->main_wnd = nullptr;
+    }
+    if ( pimpl->comp_input )
+    {
+        pimpl->comp_input->Release();
+        pimpl->comp_input = nullptr;
+    }
+    if ( pimpl->comp_output )
+    {
+        pimpl->comp_output->Release();
+        pimpl->comp_output = nullptr;
     }
     if ( m_owner )
     {
         auto hr = m_owner->Stop();
         if ( S_OK != hr )
         {
-            DebugPrintLn(TEXT("Failed to Stop ") NAME TEXT("'s Owner"));
+            DebugPrintLn(TEXT("Failed to Stop %s's Owner"), COMP_NAME);
         }
     }
 
-    DebugPrintLn(NAME TEXT("::Stop() end"));
+    m_state = (STATE)(m_state ^ STATE_ACTIVE);
+    m_state = (STATE)(m_state ^ STATE_STOPPING);
+
+    DebugPrintLn(TEXT("%s::Stop() end"), COMP_NAME);
 
     return S_OK;
 }
 
 //---------------------------------------------------------------------------//
 
-size_t __stdcall SimplePlayer::WindowCount() const
-{
-    return pimpl->mwnd ? 1 : 0;
-}
-
-//---------------------------------------------------------------------------//
-
-HWND   __stdcall SimplePlayer::Handle(size_t index) const
-{
-    if ( index > 1 || nullptr == pimpl->mwnd )
-    {
-        return nullptr;
-    }
-    else
-    {
-        return reinterpret_cast<HWND>(pimpl->mwnd->winId());
-    }
-}
-
-//---------------------------------------------------------------------------//
-
 } // namespace CubeMelon
+
+//---------------------------------------------------------------------------//
 
 // UI.SimplePlayer.SimplePlayer.cpp

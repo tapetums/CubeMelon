@@ -1,25 +1,45 @@
 ﻿// Input.Wave.Wave.cpp
 
+#include <queue>
+
 #include <windows.h>
 #include <strsafe.h>
 #include <mmreg.h>
+#include <process.h>
 
 #include "..\include\DebugPrint.h"
 #include "..\include\LockModule.h"
 #include "..\include\Interfaces.h"
+#include "..\include\ComponentBase.h"
+
+#include "Component.PropManager.h"
 #include "Wave.h"
+#include "WorkerThread.h"
 
 //---------------------------------------------------------------------------//
 
-#define NAME TEXT("Input.Wave")
-
-//---------------------------------------------------------------------------//
-
-extern const CLSID CLSID_Component;
+#define THREAD_WAIT_TIME 1000
 
 //---------------------------------------------------------------------------//
 
 namespace CubeMelon {
+
+//---------------------------------------------------------------------------//
+
+extern const CLSID CLSID_Component =
+{ 0xae2c31a0, 0x7f16, 0x4e0d, { 0xb5, 0x2f, 0x22, 0x8e, 0xa0, 0x85, 0x15, 0x8f } };
+
+extern const size_t      MDL_PROP_COUNT    = 5;
+extern const wchar_t*    MDL_PROP_MGR_NAME = TEXT("Output.Wasapi.PropManager");
+extern const wchar_t*    MDL_PROP_NAME     = TEXT("Output.Wasapi.Property");
+
+extern const size_t      COMP_INDEX      = 0;
+extern const wchar_t*    COMP_NAME       = TEXT("Input.Wave");
+
+extern const wchar_t*    PropName        = TEXT("Input.Wave");
+extern const wchar_t*    PropDescription = TEXT("Input component for WAVE and RF64");
+extern const wchar_t*    PropCopyright   = TEXT("(C) 2012-2013 tapetums");
+extern const VersionInfo PropVersion     = { 1, 0, 0, 0 };
 
 //---------------------------------------------------------------------------//
 
@@ -28,32 +48,31 @@ struct Wave::Impl
     Impl();
     ~Impl();
 
-    bool    IsSupportedFormat(LPCWSTR format);
-    HRESULT Close();
-    HRESULT Load();
-    HRESULT Open(LPCWSTR path);
+    void ClearQueue();
 
-    UINT64               position;
-    UINT64               size;
-    HANDLE               hFile;
-    HANDLE               hMap;
-    BYTE*                pView;
-    BYTE*                dataBegin;
+    InternalParams* params;
+
+    HANDLE hFile;
+    HANDLE hMap;
+    BYTE*  pView;
+    BYTE*  data_origin;
+    HANDLE reader_thread;
+
     WAVEFORMATEXTENSIBLE wfex;
-    WCHAR                path[MAX_PATH];
 };
 
 //---------------------------------------------------------------------------//
 
 Wave::Impl::Impl()
 {
-    position  = 0;
-    size      = 0;
-    hFile     = INVALID_HANDLE_VALUE;
-    hMap      = INVALID_HANDLE_VALUE;
-    pView     = nullptr;
-    dataBegin = nullptr;
-    path[0]   = '\0';
+    params = new InternalParams;
+
+    hFile         = INVALID_HANDLE_VALUE;
+    hMap          = INVALID_HANDLE_VALUE;
+    pView         = nullptr;
+    data_origin   = nullptr;
+    reader_thread = nullptr;
+
     ::ZeroMemory(&wfex, sizeof(WAVEFORMATEXTENSIBLE));
 }
 
@@ -61,518 +80,278 @@ Wave::Impl::Impl()
 
 Wave::Impl::~Impl()
 {
-    this->Close();
+    delete params;
+    params = nullptr;
 }
 
 //---------------------------------------------------------------------------//
 
-bool Wave::Impl::IsSupportedFormat(LPCWSTR format)
+void Wave::Impl::ClearQueue()
 {
-    if (format[0] == '.' )
-    {
-        ++format;
-    }
+    QueueData data = { };
+    const auto q = &params->q;
 
-    if ( lstrcmp(format, TEXT("wav"))  == 0 ||
-         lstrcmp(format, TEXT("WAV"))  == 0 ||
-         lstrcmp(format, TEXT("riff")) == 0 ||
-         lstrcmp(format, TEXT("RIFF")) == 0 ||
-         lstrcmp(format, TEXT("rf64")) == 0 ||
-         lstrcmp(format, TEXT("RF64")) == 0 )
+    ::EnterCriticalSection(&params->cs);
     {
-        return true;
+        while ( !q->empty() )
+        {
+            data = q->back();
+            q->pop();
+
+            data.listener->Release();
+            data.listener = nullptr;
+        }
     }
-    else
-    {
-        return false;
-    }
+    ::LeaveCriticalSection(&params->cs);
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT Wave::Impl::Close()
+Wave::Wave(IUnknown* pUnkOuter) : InputComponentBase(pUnkOuter)
 {
-    DebugPrintLn(NAME TEXT("Impl::Close() begin"));
-
-    if( pView )
-    {
-        ::UnmapViewOfFile(pView);
-        pView = nullptr;
-    }
-    if ( hMap != INVALID_HANDLE_VALUE )
-    {
-        ::CloseHandle(hMap);
-        hMap = INVALID_HANDLE_VALUE;
-    }
-    if ( hFile != INVALID_HANDLE_VALUE )
-    {
-        ::CloseHandle(hFile);
-        hFile = INVALID_HANDLE_VALUE;
-    }
-
-    position  = 0;
-    size      = 0;
-    dataBegin = nullptr;
-    path[0]   = '\0';
-    ::ZeroMemory(&wfex, sizeof(WAVEFORMATEXTENSIBLE));
-
-    DebugPrintLn(NAME TEXT("Impl::Close() end"));
-
-    return S_OK;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT Wave::Impl::Load()
-{
-    DebugPrintLn(NAME TEXT("Impl::Load() begin"));
-    DebugPrintLn(path);
-
-    try
-    {
-        CHAR  chunkId[4];
-        DWORD chunkSize;
-        CHAR  riffType[4];
-
-        auto p = pView;
-        ::CopyMemory(&chunkId,   p,     sizeof(chunkId));
-        ::CopyMemory(&chunkSize, p + 4, sizeof(chunkSize));
-        ::CopyMemory(&riffType,  p + 8, sizeof(riffType));
-        if ( strncmp(chunkId, "RIFF", sizeof(chunkId)) != 0 &&
-             strncmp(chunkId, "RF64", sizeof(chunkId)) != 0 )
-        {
-            throw TEXT("This file is neither RIFF nor RF64");
-        }
-        if ( strncmp(riffType, "WAVE", sizeof(chunkId)) != 0 )
-        {
-            throw TEXT("This file is not WAV");
-        }
-        p += 12;
-
-        UINT64 fileSize = 12;
-        if ( hFile == INVALID_HANDLE_VALUE )
-        {
-            MEMORY_BASIC_INFORMATION mbi = { };
-            fileSize = (UINT64)::VirtualQuery(pView, &mbi, sizeof(mbi));
-        }
-        else
-        {
-            LARGE_INTEGER li;
-            ::GetFileSizeEx(hFile, &li);
-            fileSize = li.QuadPart;
-        }
-        DebugPrintLn(TEXT("File size is %d"), fileSize);
-
-        while ( p < pView + fileSize )
-        {
-            ::CopyMemory(&chunkId,   p,     sizeof(chunkId));
-            ::CopyMemory(&chunkSize, p + 4, sizeof(chunkSize));
-
-            DebugPrintLn(TEXT("%s"), chunkId);
-
-            if ( strncmp(chunkId, "fmt ", sizeof(chunkId)) == 0 )
-            {
-                WORD tag = WAVE_FORMAT_UNKNOWN;
-                ::CopyMemory(&tag, p + 8, sizeof(tag));
-
-                if (tag == WAVE_FORMAT_PCM || tag == WAVE_FORMAT_IEEE_FLOAT)
-                {
-                    ::CopyMemory(&wfex, p + 8, sizeof(PCMWAVEFORMAT));
-                }
-                else if (tag == WAVE_FORMAT_EXTENSIBLE)
-                {
-                    ::CopyMemory(&wfex, p + 8, sizeof(WAVEFORMATEXTENSIBLE));
-                }
-                else
-                {
-                    throw TEXT("UNKNOWN FORMAT");
-                }
-            }
-            else if ( strncmp(chunkId, "ds64", sizeof(chunkId)) == 0 )
-            {
-                ::CopyMemory(&fileSize, p +  8, sizeof(fileSize));
-                ::CopyMemory(&size,     p + 16, sizeof(size));
-            }
-            else if ( strncmp(chunkId, "data", sizeof(chunkId)) == 0 )
-            {
-                if ( chunkSize != (DWORD)-1 )
-                {
-                    size = chunkSize;
-                }
-                dataBegin = p + 8;
-            }
-
-            if ( chunkSize == (DWORD)-1 )
-            {
-                // 仕様書でも今のところchunkSizeが32bitオーバーするのは
-                // RF64チャンクとdataチャンクだけだと言っている
-                // （levlチャンクはファイルサイズが512GBを超えると4GB超になる）
-                // EBU Tech 3306-2009 p.13
-                p = p + sizeof(chunkId) + sizeof(chunkSize) + size;
-            }
-            else
-            {
-                p = p + sizeof(chunkId) + sizeof(chunkSize) + chunkSize;
-            }
-        }
-
-        if ( dataBegin == nullptr )
-        {
-            throw TEXT("'data' chunk is not found");
-        }
-    }
-    catch (LPCWSTR msg)
-    {
-        DebugPrintLn(msg);
-
-        this->Close();
-
-        return E_FAIL;
-    }
-
-    DebugPrintLn(NAME TEXT("Impl::Load() end"));
-
-    return S_OK;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT Wave::Impl::Open(LPCWSTR path)
-{
-    DebugPrintLn(NAME TEXT("Impl::Open() begin"));
-    DebugPrintLn(path);
-
-    // パスを内部領域にコピー
-    ::StringCchCopy(this->path, MAX_PATH, path);
-
-    // ファイル or 共有メモリを開く
-    try
-    {
-        hFile = ::CreateFile
-        (
-            path, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
-            OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr
-        );
-        if ( hFile == INVALID_HANDLE_VALUE )
-        {
-            DebugPrintLn(TEXT("This is a memory mapped file"));
-
-            hMap = ::OpenFileMapping
-            (
-                FILE_MAP_READ, FALSE, path
-            );
-        }
-        else
-        {
-            DebugPrintLn(TEXT("This is a substantial file"));
-
-            hMap = ::CreateFileMapping
-            (
-                hFile, nullptr, PAGE_READONLY,
-                0, 0,
-                nullptr
-            );
-        }
-        if ( hMap <= 0 )
-        {
-            throw TEXT("File mapping failed");
-        }
-
-        pView = (BYTE*)::MapViewOfFile
-        (
-            hMap, FILE_MAP_READ, 0, 0, 0
-        );
-        if ( pView == nullptr )
-        {
-            throw TEXT("MapViewOfFile() failed");
-        }
-    }
-    catch (LPCWSTR msg)
-    {
-        DebugPrintLn(msg);
-
-        this->Close();
-
-        return E_FAIL;
-    }
-
-    DebugPrintLn(NAME TEXT("Impl::Open() end"));
-
-    return S_OK;
-}
-
-//---------------------------------------------------------------------------//
-
-Wave::Wave(IUnknown* pUnkOuter)
-{
-    DebugPrintLn(NAME TEXT("::Constructor() begin"));
+    DebugPrintLn(TEXT("%s::Constructor() begin"), COMP_NAME);
 
     pimpl = new Impl;
+    pimpl->params->sender = this;
 
-    m_cRef  = 0;
-    m_state = STATE_IDLE;
-    m_owner = nullptr;
-    if ( pUnkOuter )
-    {
-        auto hr = pUnkOuter->QueryInterface
-        (
-            IID_IComponent, (void**)&m_owner
-        );
-        if ( FAILED(hr) )
-        {
-            m_owner = nullptr;
-        }
-    }
+    m_prop_mgr = new CompPropManager(m_path, &pimpl->wfex);
 
-    this->AddRef();
-
-    DebugPrintLn(NAME TEXT("::Constructor() end"));
+    DebugPrintLn(TEXT("%s::Constructor() end"), COMP_NAME);
 }
 
 //---------------------------------------------------------------------------//
 
 Wave::~Wave()
 {
-    DebugPrintLn(NAME TEXT("::Destructor() begin"));
+    DebugPrintLn(TEXT("%s::Destructor() begin"), COMP_NAME);
 
-    this->Stop();
+    HRESULT hr;
 
-    m_state = STATE_TERMINATING;
-    if ( m_owner )
+    hr = E_FAIL;
+    while ( FAILED(hr) )
     {
-        DebugPrintLn(TEXT("Releasing ") NAME TEXT("'s Owner..."));
-
-        m_owner->Release();
-        m_owner = nullptr;
-
-        DebugPrintLn(TEXT("Released ") NAME TEXT("'s Owner"));
+        hr = this->Stop();
+        ::MsgWaitForMultipleObjects(0, nullptr, FALSE, THREAD_WAIT_TIME, QS_ALLINPUT);
     }
-    m_cRef = 0;
+
+    hr = E_FAIL;
+    while ( FAILED(hr) )
+    {
+        hr = this->Close();
+        ::MsgWaitForMultipleObjects(0, nullptr, FALSE, THREAD_WAIT_TIME, QS_ALLINPUT);
+    }
 
     delete pimpl;
     pimpl = nullptr;
 
-    DebugPrintLn(NAME TEXT("::Destructor() end"));
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall Wave::QueryInterface(REFIID riid, void** ppvObject)
-{
-    DebugPrintLn(NAME TEXT("::QueryInterface() begin"));
-
-    if ( nullptr == ppvObject )
-    {
-        return E_POINTER;
-    }
-
-    *ppvObject = nullptr;
-
-    if ( IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IComponent) )
-    {
-        *ppvObject = static_cast<IComponent*>(this);
-    }
-    else if ( IsEqualIID(riid, IID_IIOComponent) )
-    {
-        *ppvObject = static_cast<IIOComponent*>(this);
-    }
-    else if ( IsEqualIID(riid, IID_IInputComponent) )
-    {
-        *ppvObject = static_cast<IInputComponent*>(this);
-    }
-    else
-    {
-        return E_NOINTERFACE;
-    }
-
-    this->AddRef();
-
-    DebugPrintLn(NAME TEXT("::QueryInterface() end"));
-
-    return S_OK;
-}
-
-//---------------------------------------------------------------------------//
-
-ULONG __stdcall Wave::AddRef()
-{
-    DebugPrintLn(NAME TEXT("::AddRef() begin %d"), m_cRef);
-
-    LockModule();
-
-    LONG cRef = ::InterlockedIncrement(&m_cRef);
-
-    DebugPrintLn(NAME TEXT("::AddRef() end %d"), cRef);
-
-    return static_cast<ULONG>(cRef);
-}
-
-//---------------------------------------------------------------------------//
-
-ULONG __stdcall Wave::Release()
-{
-    DebugPrintLn(NAME TEXT("::Release() begin %d"), m_cRef);
-
-    LONG cRef = ::InterlockedDecrement(&m_cRef);
-    if ( cRef == 0 )
-    {
-        DebugPrintLn(TEXT("Deleting..."));
-        delete this;
-        DebugPrintLn(TEXT("Deleted"));
-    }
-
-    UnlockModule();
-
-    DebugPrintLn(NAME TEXT("::Release() end %d"), cRef);
-
-    return static_cast<ULONG>(cRef);
-}
-
-//---------------------------------------------------------------------------//
-
-REFCLSID __stdcall Wave::ClassID() const
-{
-    return CLSID_Component;
-}
-
-//---------------------------------------------------------------------------//
-
-IComponent* __stdcall Wave::Owner() const
-{
-    return m_owner;
-}
-
-//---------------------------------------------------------------------------//
-
-IPropertyStore* __stdcall Wave::Property() const
-{
-    return nullptr;
-}
-
-//---------------------------------------------------------------------------//
-
-STATE __stdcall Wave::Status() const
-{
-    return m_state;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall Wave::Attach(LPCWSTR msg, IComponent* listener)
-{
-    return E_NOTIMPL;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall Wave::Detach(LPCWSTR msg, IComponent* listener)
-{
-    return E_NOTIMPL;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall Wave::GetInstance
-(
-    REFCLSID rclsid, REFIID riid, void** ppvObject
-)
-{
-    if ( m_owner )
-    {
-        return m_owner->GetInstance(rclsid, riid, ppvObject);
-    }
-    else
-    {
-        return E_NOTIMPL;
-    }
+    DebugPrintLn(TEXT("%s::Destructor() end"), COMP_NAME);
 }
 
 //---------------------------------------------------------------------------//
 
 HRESULT __stdcall Wave::Notify
 (
-    IComponent* sender, LPCWSTR msg, LPVOID data, size_t cb_data
+    IMsgObject* msg_obj
 )
 {
-    DebugPrintLn(NAME TEXT("::Notify() begin"));
+    DebugPrintLn(TEXT("%s::Notify() begin"), COMP_NAME);
 
-    DebugPrintLn(NAME TEXT("::Notify() end"));
+    if ( nullptr == msg_obj )
+    {
+        DebugPrintLn(TEXT("Message object is void"));
+        return E_POINTER;
+    }
+
+    HRESULT hr;
+
+    auto sender   = msg_obj->Sender();
+    auto listener = msg_obj->Listener();
+    auto name     = msg_obj->Name();
+    auto msg      = msg_obj->Message();
+
+    DebugPrintLn(TEXT("%s: %s"), name, msg);
+
+    if ( sender == this )
+    {
+        if ( lstrcmp(msg, MSG_IO_READ_DONE) == 0 )
+        {
+            m_position += msg_obj->DataSize();
+            m_state = (STATE)(m_state ^ STATE_READING);
+            if ( listener )
+            {
+                msg_obj->AddRef();
+                hr = listener->Notify(msg_obj);
+            }
+            else
+            {
+                hr = S_OK;
+            }
+        }
+        else if ( lstrcmp(msg, MSG_IO_READ_FAILED) == 0 )
+        {
+            m_state = (STATE)(m_state ^ STATE_READING);
+            hr = S_OK;
+        }
+        else
+        {
+            hr = S_FALSE;
+        }
+    }
+    else
+    {
+        hr = S_FALSE;
+    }
+
+    msg_obj->Release();
+    msg_obj = nullptr;
+
+    DebugPrintLn(TEXT("%s::Notify() end"), COMP_NAME);
 
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wave::Start(LPCVOID args)
+HRESULT __stdcall Wave::Start
+(
+    LPVOID args, IComponent* listener
+)
 {
-    DebugPrintLn(NAME TEXT("::Start() begin"));
+    DebugPrintLn(TEXT("%s::Start() begin"), COMP_NAME);
 
-    HRESULT hr;
-
-    if ( m_state == STATE_RUNNING )
+    if ( m_state & STATE_STARTING )
+    {
+        DebugPrintLn(TEXT("Now starting"));
+        return S_FALSE;
+    }
+    if ( m_state & STATE_ACTIVE )
     {
         DebugPrintLn(TEXT("Already started"));
         return S_FALSE;
     }
 
-    /// ここに処理を書く
+    if ( listener )
+    {
+        return E_NOTIMPL;
+    }
 
-    m_state = STATE_RUNNING;
+    m_state = (STATE)(m_state | STATE_STARTING);
 
-    DebugPrintLn(NAME TEXT("::Start() end"));
+    pimpl->reader_thread = (HANDLE)_beginthreadex
+    (
+        nullptr, 0, ReadWave, pimpl->params, 0, nullptr
+    );
+    if ( nullptr == pimpl->reader_thread )
+    {
+        DebugPrintLn(TEXT("Could not create reader thread"));
+        return E_FAIL;
+    }
+
+    m_state = (STATE)(m_state | STATE_ACTIVE);
+    m_state = (STATE)(m_state ^ STATE_STARTING);
+
+    DebugPrintLn(TEXT("%s::Start() end"), COMP_NAME);
 
     return S_OK;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wave::Stop()
+HRESULT __stdcall Wave::Stop
+(
+    IComponent* listener
+)
 {
-    DebugPrintLn(NAME TEXT("::Stop() begin"));
+    DebugPrintLn(TEXT("%s::Stop() begin"), COMP_NAME);
 
-    if ( m_state == STATE_IDLE )
+    if ( m_state & STATE_STOPPING )
+    {
+        DebugPrintLn(TEXT("Now stopping"));
+        return S_FALSE;
+    }
+    if ( !(m_state & STATE_ACTIVE) )
     {
         DebugPrintLn(TEXT("Already stopped"));
         return S_FALSE;
     }
 
-    this->Close();
+    if ( listener )
+    {
+        return E_NOTIMPL;
+    }
 
-    m_state = STATE_IDLE;
+    m_state = (STATE)(m_state | STATE_STOPPING);
 
-    DebugPrintLn(NAME TEXT("::Stop() end"));
+    if ( pimpl->reader_thread )
+    {
+        pimpl->params->is_active = false;
+        ::SetEvent(pimpl->params->e_queued);
+
+        auto result = ::WaitForSingleObject
+        (
+            pimpl->reader_thread, THREAD_WAIT_TIME
+        );
+        if ( result == WAIT_TIMEOUT )
+        {
+            DebugPrintLn(TEXT("Thread termination timed out"));
+            return E_FAIL;
+        }
+
+        ::CloseHandle(pimpl->reader_thread);
+        pimpl->reader_thread = nullptr;
+    }
+
+    m_state = (STATE)(m_state ^ STATE_ACTIVE);
+    m_state = (STATE)(m_state ^ STATE_STOPPING);
+
+    DebugPrintLn(TEXT("%s::Stop() end"), COMP_NAME);
 
     return S_OK;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wave::Close(IComponent* listener)
+HRESULT __stdcall Wave::Close
+(
+    IComponent* listener
+)
 {
-    DebugPrintLn(NAME TEXT("::Close() begin"));
+    DebugPrintLn(TEXT("%s::Close() begin"), COMP_NAME);
 
+    if ( m_state & STATE_ACTIVE )
+    {
+        DebugPrintLn(TEXT("Stop component before closing"));
+        return E_COMP_BUSY;
+    }
+    if ( m_state & STATE_CLOSING )
+    {
+        DebugPrintLn(TEXT("Now closing"));
+        return S_FALSE;
+    }
     if ( !(m_state & STATE_OPEN) )
     {
+        DebugPrintLn(TEXT("Already closed"));
         return S_FALSE;
+    }
+
+    if ( listener )
+    {
+        return E_NOTIMPL;
     }
 
     HRESULT hr;
 
-    if ( listener )
+    m_state = (STATE)(m_state | STATE_CLOSING);
     {
-        //hr = pimpl->CloseAsync(pimpl, listener);
-        hr = E_NOTIMPL;
-    }
-    else
-    {
-        hr = pimpl->Close();
+        hr = this->CloseSync();
         if ( SUCCEEDED(hr) )
         {
             m_state = (STATE)(m_state ^ STATE_OPEN);
         }
     }
+    m_state = (STATE)(m_state ^ STATE_CLOSING);
 
-    DebugPrintLn(NAME TEXT("::Close() end"));
+    DebugPrintLn(TEXT("%s::Close() end"), COMP_NAME);
 
     return hr;
 }
@@ -584,34 +363,56 @@ HRESULT __stdcall Wave::Open
     LPCWSTR path, LPCWSTR format_as, IComponent* listener
 )
 {
-    DebugPrintLn(NAME TEXT("::Open() begin"));
+    DebugPrintLn(TEXT("%s::Open() begin"), COMP_NAME);
 
-    if ( !pimpl->IsSupportedFormat(format_as) )
+    if ( m_state & STATE_ACTIVE )
     {
-        return E_INVALIDARG;
+        DebugPrintLn(TEXT("Stop component before opening"));
+        return E_COMP_BUSY;
+    }
+    if ( m_state & STATE_OPENING )
+    {
+        DebugPrintLn(TEXT("Now opening"));
+        return S_FALSE;
+    }
+    if ( m_state & STATE_OPEN )
+    {
+        DebugPrintLn(TEXT("Already open"));
+        return S_FALSE;
+    }
+
+    if ( listener )
+    {
+        return E_NOTIMPL;
     }
 
     HRESULT hr;
 
-    if ( listener )
+    hr = this->QuerySupport(path, format_as);
+    if ( FAILED(hr) )
     {
-        //hr = pimpl->OpenAsync(pimpl, path, listener);
-        hr = E_NOTIMPL;
+        DebugPrintLn(TEXT("Unsupported format: %s"), format_as);
+        return E_INVALIDARG;
     }
-    else
+
+    m_state = (STATE)(m_state | STATE_OPENING);
     {
-        hr = pimpl->Open(path);
+        ::StringCchCopy(m_path, MAX_PATH, path);
+        DebugPrintLn(m_path);
+
+        hr = this->OpenSync();
         if ( SUCCEEDED(hr) )
         {
-            hr = pimpl->Load();
+            hr = this->LoadSync();
             if ( SUCCEEDED(hr) )
             {
                 m_state = (STATE)(m_state | STATE_OPEN);
             }
         }
     }
+    m_state = (STATE)(m_state ^ STATE_OPENING);
 
-    DebugPrintLn(NAME TEXT("::Open() end"));
+    DebugPrintLn(TEXT("%s::Open() end"), COMP_NAME);
 
     return hr;
 }
@@ -620,64 +421,98 @@ HRESULT __stdcall Wave::Open
 
 HRESULT __stdcall Wave::QuerySupport(LPCWSTR path, LPCWSTR format_as)
 {
-    DebugPrintLn(NAME TEXT("::QuerySupport() begin"));
+    DebugPrintLn(TEXT("%s::QuerySupport() begin"), COMP_NAME);
 
-    if ( !pimpl->IsSupportedFormat(format_as) )
+    if ( !this->IsSupportedExtention(path) )
     {
+        DebugPrintLn(TEXT("Unsupported extension: %S"), path);
+        return E_FAIL;
+    }
+    if ( !this->IsSupportedFormat(format_as) )
+    {
+        DebugPrintLn(TEXT("Unsupported format: %s"), format_as);
         return E_FAIL;
     }
 
-    DebugPrintLn(NAME TEXT("::QuerySupport() end"));
+    DebugPrintLn(TEXT("%s::QuerySupport() end"), COMP_NAME);
 
-    return E_NOTIMPL;
+    return S_OK;
 }
 
 //---------------------------------------------------------------------------//
 
 HRESULT __stdcall Wave::Seek(INT64 offset, DWORD origin, UINT64* new_pos)
 {
-    DebugPrintLn(NAME TEXT("::Seek() begin"));
+    DebugPrintLn(TEXT("%s::Seek() begin"), COMP_NAME);
 
-    switch ( origin )
+    if ( !(m_state & STATE_OPEN) )
     {
-        case FILE_BEGIN:
+        DebugPrintLn(TEXT("The object is not yet open"));
+        return E_PENDING;
+    }
+    if ( m_state & STATE_SEEKING )
+    {
+        DebugPrintLn(TEXT("Now seeking"));
+        return E_COMP_BUSY;
+    }
+
+    DebugPrintLn(TEXT("cur position: %020llu"), m_position);
+
+    if ( offset != 0 )
+    {
+        m_state = (STATE)(m_state | STATE_SEEKING);
+
+        if ( origin == FILE_BEGIN )
         {
-            pimpl->position = offset;
-            break;
-        }
-        case FILE_CURRENT:
-        {
-            pimpl->position += offset;
-            if ( pimpl->position > pimpl->size )
+            if ( offset < 0 )
             {
-                pimpl->position = pimpl->size;
-            }
-            break;
-        }
-        case FILE_END:
-        {
-            if ( offset > pimpl->size )
-            {
-                pimpl->position = 0;
+                m_position = 0;
             }
             else
             {
-                pimpl->position = pimpl->size - offset;
+                m_position = offset;
             }
-            break;
         }
-        default:
+        else if ( origin == FILE_CURRENT )
         {
-            return E_INVALIDARG;
-        }
-    }
+            m_position += offset;
 
+            // position は uint64 なので、負数になった場合
+            // 最上位ビットが立つため position > 2^63 になる
+            if ( m_position > m_size )
+            {
+                if ( offset < 0 )
+                {
+                    m_position = 0;
+                }
+                else
+                {
+                    m_position = m_size;
+                }
+            }
+        }
+        else
+        {
+            if ( offset > 0 )
+            {
+                m_position = m_size;
+            }
+            else
+            {
+                m_position = m_size - offset;
+            }
+        }
+
+        m_state = (STATE)(m_state ^ STATE_SEEKING);
+    }
     if ( new_pos )
     {
-        *new_pos = pimpl->position;
+        *new_pos = m_position;
     }
 
-    DebugPrintLn(NAME TEXT("::Seek() end"));
+    DebugPrintLn(TEXT("new position: %020llu"), m_position);
+
+    DebugPrintLn(TEXT("%s::Seek() end"), COMP_NAME);
 
     return S_OK;
 }
@@ -689,11 +524,388 @@ HRESULT __stdcall Wave::Read
     LPVOID buffer, size_t buf_size, size_t* cb_read, IComponent* listener
 )
 {
-    DebugPrintLn(NAME TEXT("::Read() begin"));
+    DebugPrintLn(TEXT("%s::Read() begin"), COMP_NAME);
 
-    DebugPrintLn(NAME TEXT("::Read() end"));
+    if ( !(m_state & STATE_OPEN) )
+    {
+        DebugPrintLn(TEXT("The object is not yet open"));
+        return E_FAIL;
+    }
+    if ( m_state & STATE_READING )
+    {
+        DebugPrintLn(TEXT("Now reading"));
+        return S_FALSE;
+    }
 
-    return E_NOTIMPL;
+    if ( buf_size > m_size - m_position )
+    {
+        buf_size = m_size - m_position;
+    }
+
+    HRESULT hr;
+
+    m_state = (STATE)(m_state | STATE_READING);
+
+    if ( listener )
+    {
+        hr = this->ReadAsync(buffer, buf_size, listener);
+        if ( FAILED(hr) )
+        {
+            m_state = (STATE)(m_state ^ STATE_READING);
+        }
+    }
+    else
+    {
+        hr = this->ReadSync(buffer, buf_size, cb_read);
+        m_state = (STATE)(m_state ^ STATE_READING);
+    }
+
+    DebugPrintLn(TEXT("%s::Read() end"), COMP_NAME);
+
+    return hr;
+}
+
+//---------------------------------------------------------------------------//
+
+bool Wave::IsSupportedExtention(LPCWSTR path) const
+{
+    WCHAR buf[_MAX_EXT];
+    auto err = ::_wsplitpath_s
+    (
+        path, nullptr, 0, nullptr, 0, nullptr, 0, buf, 0
+    );
+    if ( err )
+    {
+        DebugPrintLn(TEXT("_wsplitpath_s() failed"));
+        return false;
+    }
+
+    LPWSTR ext = nullptr;
+    if ( buf[0] == '.' )
+    {
+        ext = &buf[1];
+    }
+    else
+    {
+        ext = &buf[0];
+    }
+    DebugPrintLn(TEXT("%s::IsSupportedExtention(): %s"), COMP_NAME, ext);
+
+    if ( lstrcmp(ext, TEXT("wav"))  == 0 ||
+         lstrcmp(ext, TEXT("WAV"))  == 0 ||
+         lstrcmp(ext, TEXT("riff")) == 0 ||
+         lstrcmp(ext, TEXT("RIFF")) == 0 ||
+         lstrcmp(ext, TEXT("rf64")) == 0 ||
+         lstrcmp(ext, TEXT("RF64")) == 0 )
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+bool Wave::IsSupportedFormat(LPCWSTR format) const
+{
+    if ( format[0] == '.' )
+    {
+        ++format;
+    }
+
+    if ( lstrcmp(format, TEXT("wav")) )
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT Wave::CloseSync()
+{
+    DebugPrintLn(TEXT("%s::CloseSync() begin"), COMP_NAME);
+
+    pimpl->ClearQueue();
+
+    if( pimpl->pView )
+    {
+        ::UnmapViewOfFile(pimpl->pView);
+        pimpl->pView = nullptr;
+    }
+    if ( pimpl->hMap != INVALID_HANDLE_VALUE )
+    {
+        ::CloseHandle(pimpl->hMap);
+        pimpl->hMap = INVALID_HANDLE_VALUE;
+    }
+    if ( pimpl->hFile != INVALID_HANDLE_VALUE )
+    {
+        ::CloseHandle(pimpl->hFile);
+        pimpl->hFile = INVALID_HANDLE_VALUE;
+    }
+
+    m_position = 0;
+    m_size     = 0;
+    m_path[0]  = '\0';
+
+    pimpl->data_origin = nullptr;
+    ::ZeroMemory(&pimpl->wfex, sizeof(WAVEFORMATEXTENSIBLE));
+
+    DebugPrintLn(TEXT("%s::CloseSync() end"), COMP_NAME);
+
+    return S_OK;
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT Wave::OpenSync()
+{
+    DebugPrintLn(TEXT("%s::OpenSync() begin"), COMP_NAME);
+
+    WCHAR* err_msg = nullptr;
+
+    // ファイル or 共有メモリを開く
+    pimpl->hFile = ::CreateFile
+    (
+        m_path, GENERIC_READ, FILE_SHARE_READ, nullptr,
+        OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr
+    );
+    if ( pimpl->hFile == INVALID_HANDLE_VALUE )
+    {
+        DebugPrintLn(TEXT("This is a memory mapped file"));
+
+        pimpl->hMap = ::OpenFileMapping
+        (
+            FILE_MAP_READ, FALSE, m_path
+        );
+    }
+    else
+    {
+        DebugPrintLn(TEXT("This is a substantial file"));
+
+        pimpl->hMap = ::CreateFileMapping
+        (
+            pimpl->hFile, nullptr, PAGE_READONLY,
+            0, 0, nullptr
+        );
+    }
+    if ( pimpl->hMap <= 0 )
+    {
+        err_msg = TEXT("File mapping failed");
+        goto OPENSYNC_CLOSE_FILE;
+    }
+
+    pimpl->pView = (BYTE*)::MapViewOfFile
+    (
+        pimpl->hMap, FILE_MAP_READ, 0, 0, 0
+    );
+    if ( pimpl->pView == nullptr )
+    {
+        err_msg = TEXT("MapViewOfFile() failed");
+        goto OPENSYNC_CLOSE_FILE;
+    }
+
+    DebugPrintLn(TEXT("%s::OpenSync() end"), COMP_NAME);
+
+    return S_OK;
+
+OPENSYNC_CLOSE_FILE:
+    DebugPrintLn(err_msg);
+    DebugPrintLn(TEXT("This program is under %d-bit system"), 8 * sizeof(size_t));
+
+    this->CloseSync();
+
+    return E_FAIL;
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT Wave::LoadSync()
+{
+    DebugPrintLn(TEXT("%s::Load() begin"), COMP_NAME);
+
+    WCHAR* err_msg = nullptr;
+
+    CHAR  chunkId[4];
+    DWORD chunkSize;
+    CHAR  riffType[4];
+
+    auto p = pimpl->pView;
+    ::CopyMemory(&chunkId,   p,     sizeof(chunkId));
+    ::CopyMemory(&chunkSize, p + 4, sizeof(chunkSize));
+    ::CopyMemory(&riffType,  p + 8, sizeof(riffType));
+    if ( strncmp(chunkId, "RIFF", sizeof(chunkId)) != 0 &&
+         strncmp(chunkId, "RF64", sizeof(chunkId)) != 0 )
+    {
+        err_msg = TEXT("This file is neither RIFF nor RF64");
+        goto LOADSYNC_CLOSE_FILE;
+    }
+    if ( strncmp(riffType, "WAVE", sizeof(chunkId)) != 0 )
+    {
+        err_msg = TEXT("This file is not WAV");
+        goto LOADSYNC_CLOSE_FILE;
+    }
+    p += 12;
+
+    UINT64 fileSize = 12;
+    if ( pimpl->hFile == INVALID_HANDLE_VALUE )
+    {
+        MEMORY_BASIC_INFORMATION mbi = { };
+        fileSize = (UINT64)::VirtualQuery(pimpl->pView, &mbi, sizeof(mbi));
+    }
+    else
+    {
+        LARGE_INTEGER li;
+        ::GetFileSizeEx(pimpl->hFile, &li);
+        fileSize = li.QuadPart;
+    }
+    DebugPrintLn(TEXT("File size is %d"), fileSize);
+
+    while ( p < pimpl->pView + fileSize )
+    {
+        ::CopyMemory(&chunkId,   p,     sizeof(chunkId));
+        ::CopyMemory(&chunkSize, p + 4, sizeof(chunkSize));
+
+        DebugPrintLn(TEXT("%s"), chunkId);
+
+        if ( strncmp(chunkId, "fmt ", sizeof(chunkId)) == 0 )
+        {
+            WORD tag = WAVE_FORMAT_UNKNOWN;
+            ::CopyMemory(&tag, p + 8, sizeof(tag));
+            ::ZeroMemory(&pimpl->wfex, sizeof(WAVEFORMATEXTENSIBLE));
+
+            if ( tag == WAVE_FORMAT_PCM || tag == WAVE_FORMAT_IEEE_FLOAT )
+            {
+                ::CopyMemory(&pimpl->wfex, p + 8, sizeof(PCMWAVEFORMAT));
+            }
+            else if ( tag == WAVE_FORMAT_EXTENSIBLE )
+            {
+                ::CopyMemory(&pimpl->wfex, p + 8, sizeof(WAVEFORMATEXTENSIBLE));
+            }
+            else
+            {
+                err_msg = TEXT("UNKNOWN FORMAT");
+                goto LOADSYNC_CLOSE_FILE;
+            }
+        }
+        else if ( strncmp(chunkId, "ds64", sizeof(chunkId)) == 0 )
+        {
+            ::CopyMemory(&fileSize, p +  8, sizeof(fileSize));
+            ::CopyMemory(&m_size,   p + 16, sizeof(m_size));
+        }
+        else if ( strncmp(chunkId, "data", sizeof(chunkId)) == 0 )
+        {
+            if ( chunkSize != (DWORD)-1 )
+            {
+                m_size = chunkSize;
+            }
+            pimpl->data_origin = p + 8;
+        }
+
+        if ( chunkSize == (DWORD)-1 )
+        {
+            // 仕様書でも今のところchunkSizeが32bitオーバーするのは
+            // RF64チャンクとdataチャンクだけだと言っている
+            // （levlチャンクはファイルサイズが512GBを超えると4GB超になる）
+            // EBU Tech 3306-2009 p.13
+            p = p + sizeof(chunkId) + sizeof(chunkSize) + m_size;
+        }
+        else
+        {
+            p = p + sizeof(chunkId) + sizeof(chunkSize) + chunkSize;
+        }
+    }
+
+    if ( pimpl->data_origin == nullptr )
+    {
+        err_msg = TEXT("'data' chunk is not found");
+        goto LOADSYNC_CLOSE_FILE;
+    }
+
+    DebugPrintLn(TEXT("%s::Load() end"), COMP_NAME);
+
+    return S_OK;
+
+LOADSYNC_CLOSE_FILE:
+    DebugPrintLn(err_msg);
+
+    this->CloseSync();
+
+    return E_FAIL;
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT Wave::ReadSync
+(
+    LPVOID buffer, size_t buf_size, size_t* cb_read
+)
+{
+    DebugPrintLn(TEXT("%s::ReadSync() begin"), COMP_NAME);
+
+    if ( nullptr == buffer )
+    {
+        return E_POINTER;
+    }
+
+    ::CopyMemory
+    (
+        buffer, pimpl->data_origin + m_position, buf_size
+    );
+
+    m_state = (STATE)(m_state | STATE_SEEKING);
+    {
+        m_position += buf_size;
+    }
+    m_state = (STATE)(m_state ^ STATE_SEEKING);
+
+    if ( cb_read )
+    {
+        *cb_read = buf_size;
+    }
+
+    DebugPrintLn(TEXT("%s::ReadSync() end"), COMP_NAME);
+
+    return S_OK;
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT Wave::ReadAsync
+(
+    LPVOID buffer, size_t buf_size, IComponent* listener
+)
+{
+    DebugPrintLn(TEXT("%s::ReadAsync() begin"), COMP_NAME);
+
+    if ( nullptr == listener )
+    {
+        return E_POINTER;
+    }
+
+    listener->AddRef();
+
+    QueueData data =
+    {
+        buffer, pimpl->data_origin + m_position, buf_size, listener
+    };
+
+    ::EnterCriticalSection(&pimpl->params->cs);
+    {
+        pimpl->params->q.push(data);
+    }
+    ::LeaveCriticalSection(&pimpl->params->cs);
+
+    ::SetEvent(pimpl->params->e_queued);
+
+    DebugPrintLn(TEXT("%s::ReadAsync() end"), COMP_NAME);
+
+    return S_OK;
 }
 
 //---------------------------------------------------------------------------//

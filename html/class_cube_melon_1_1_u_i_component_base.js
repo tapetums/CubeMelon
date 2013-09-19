@@ -1,0 +1,27 @@
+var class_cube_melon_1_1_u_i_component_base =
+[
+    [ "UIComponentBase", "class_cube_melon_1_1_u_i_component_base.html#ab66d815d517292f312e48adfd2ec1238", null ],
+    [ "~UIComponentBase", "class_cube_melon_1_1_u_i_component_base.html#aeaf57c40444ea90cbd6d62b6d0fde331", null ],
+    [ "AddRef", "class_cube_melon_1_1_u_i_component_base.html#ab679a02d9b30bcacaa6b366ead34155f", null ],
+    [ "Attach", "class_cube_melon_1_1_u_i_component_base.html#acaf9f9ea665a40fecd4c589b377112ad", null ],
+    [ "ClassID", "class_cube_melon_1_1_u_i_component_base.html#a0544b2e036d7f670f72fea945895ce04", null ],
+    [ "Detach", "class_cube_melon_1_1_u_i_component_base.html#a14da7181f90ac75aafdb00ba4bc51997", null ],
+    [ "GetInstance", "class_cube_melon_1_1_u_i_component_base.html#ae391099ea4d71e67b6b93bc63cb3670d", null ],
+    [ "Handle", "class_cube_melon_1_1_u_i_component_base.html#adddd13e5125bdc457d75d0c2d7882c71", null ],
+    [ "Name", "class_cube_melon_1_1_u_i_component_base.html#ae9fadac75ab9441fec480fa1e6fe03d5", null ],
+    [ "Notify", "class_cube_melon_1_1_u_i_component_base.html#ab373f1438ac24a40268e4cd089461a6b", null ],
+    [ "Owner", "class_cube_melon_1_1_u_i_component_base.html#a50892274275a37156fc01a33dee86e98", null ],
+    [ "PropManager", "class_cube_melon_1_1_u_i_component_base.html#a946f5a5399535ece0f52274b7f835a70", null ],
+    [ "QueryInterface", "class_cube_melon_1_1_u_i_component_base.html#afe1d1d88b4a76e2066b032621456bff3", null ],
+    [ "Release", "class_cube_melon_1_1_u_i_component_base.html#a5a571dd3cb5bde8d7a69c9a46b903a08", null ],
+    [ "Start", "class_cube_melon_1_1_u_i_component_base.html#ae427943aacab42adddbaf51593cc1dbb", null ],
+    [ "Status", "class_cube_melon_1_1_u_i_component_base.html#a0fd39598316b46e7d6aac21c8afc5ed4", null ],
+    [ "Stop", "class_cube_melon_1_1_u_i_component_base.html#a55e2ced1a6a880f9a067b617f452f2f8", null ],
+    [ "WindowCount", "class_cube_melon_1_1_u_i_component_base.html#a4b7bbc045b45c50b73ee9307fb1b4901", null ],
+    [ "m_cRef", "class_cube_melon_1_1_u_i_component_base.html#a453ff860f6b9125ffa236c6f9f478d0a", null ],
+    [ "m_hwnd", "class_cube_melon_1_1_u_i_component_base.html#a364baf85cba5eb58495f732e850cad8b", null ],
+    [ "m_notify_map", "class_cube_melon_1_1_u_i_component_base.html#a1629ea3191040a11d76bdb684bf70118", null ],
+    [ "m_owner", "class_cube_melon_1_1_u_i_component_base.html#ad3c5c539dfdffe4a44bc6f04e4524b58", null ],
+    [ "m_prop_mgr", "class_cube_melon_1_1_u_i_component_base.html#ab70d86f6c7d89f41687e2ac06ba9e2cf", null ],
+    [ "m_state", "class_cube_melon_1_1_u_i_component_base.html#a260fcff038ac52dc5a26f62a26c75944", null ]
+];

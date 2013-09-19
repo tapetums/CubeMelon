@@ -1,5 +1,7 @@
 ﻿#include <windows.h>
 
+#include <QResizeEvent>
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -9,7 +11,7 @@
 
 //---------------------------------------------------------------------------//
 
-#define NAME TEXT("SimplePlayer::MainWindow")
+#define NAME TEXT("UI.SimplePlayer.MainWindow")
 
 //---------------------------------------------------------------------------//
 
@@ -63,6 +65,22 @@ void MainWindow::closeEvent(QCloseEvent *event)
     DebugPrintLn(NAME TEXT("::closeEvent() end"));
 
     QMainWindow::closeEvent(event);
+}
+
+//---------------------------------------------------------------------------//
+
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    DebugPrintLn(NAME TEXT("::resizeEvent() begin"));
+
+    const auto w = event->size().width();
+    const auto h = event->size().height();
+
+    ui->horizontalSlider->setGeometry(0, h - 20, w, 20);
+
+    DebugPrintLn(NAME TEXT("::resizeEvent() end"));
+
+    QMainWindow::resizeEvent(event);
 }
 
 //---------------------------------------------------------------------------//

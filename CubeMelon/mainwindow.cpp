@@ -6,6 +6,8 @@
 #include <strsafe.h>
 #include <dwmapi.h>
 
+#include <QDateTime>
+
 #include "..\include\DWM.h"
 #include "..\include\DebugPrint.h"
 #include "..\include\Interfaces.h"
@@ -13,11 +15,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include <QDateTime>
-
 //---------------------------------------------------------------------------//
 
-#define NAME TEXT("CubeMelon::MainWindow")
+#define NAME TEXT("CubeMelon.MainWindow")
 
 //---------------------------------------------------------------------------//
 
@@ -69,7 +69,7 @@ MainWindow::~MainWindow()
 
 //---------------------------------------------------------------------------//
 
-void MainWindow::addConsoleText(LPCWSTR text)
+void MainWindow::addConsoleText(const wchar_t* text)
 {
     WCHAR buf[1024];
 
@@ -100,28 +100,26 @@ void MainWindow::resizeEvent(QResizeEvent* event)
     h = ui->tabWidget->height();
     ui->treeWidget->setGeometry(0, 0, w, h);
     ui->plainTextEdit->setGeometry(0, 0, w, h);
-
 }
 
 //---------------------------------------------------------------------------//
 
-void MainWindow::addListItem(IUnknown* unk)
+void MainWindow::addListItem(CubeMelon::ICompAdapter* adapter)
 {
-    CubeMelon::IComponentContainer* cc = nullptr;
-    if ( unk )
+    DebugPrintLn(NAME TEXT("::addListItem() begin"));
+
+    if ( nullptr == adapter )
     {
-        unk->QueryInterface(CubeMelon::IID_IComponentContainer, (void**)&cc);
-        if ( nullptr == cc )
-        {
-            return;
-        }
+        return;
     }
+
+    adapter->AddRef();
 
     WCHAR buf[256];
 
     auto item = new QTreeWidgetItem;
 
-    auto clsid = cc->ClassID();
+    auto clsid = adapter->ClassID();
     ::StringCchPrintf
     (
         buf, 256,
@@ -132,17 +130,17 @@ void MainWindow::addListItem(IUnknown* unk)
     );
     item->setText(4, QString::fromUtf16((const ushort*)buf));
 
-    item->setText(0, QString::fromUtf16((const ushort*)cc->Name()));
+    item->setText(0, QString::fromUtf16((const ushort*)adapter->Name()));
 
-    item->setText(2, QString::fromUtf16((const ushort*)cc->Description()));
+    item->setText(2, QString::fromUtf16((const ushort*)adapter->Description()));
 
-    item->setText(3, QString::fromUtf16((const ushort*)cc->Copyright()));
+    item->setText(3, QString::fromUtf16((const ushort*)adapter->Copyright()));
 
-    auto vi = cc->Version();
+    auto vi = adapter->Version();
     ::StringCchPrintf
     (
         buf, 256,
-        TEXT("%d.%d.%d %c"),
+        TEXT("%d.%d.%d.%d"),
         vi->major, vi->minor, vi->revision, vi->stage
     );
     item->setText(1, QString::fromUtf16((const ushort*)buf));
@@ -153,12 +151,14 @@ void MainWindow::addListItem(IUnknown* unk)
     ::StringCchPrintf
     (
         buf, 256,
-        (count < 2) ? TEXT("%d plugin") : TEXT("%d plugins"),
+        (count < 2) ? TEXT("%d component") : TEXT("%d components"),
         count
     );
     ui->statusBar->showMessage(QString::fromUtf16((const ushort*)buf));
 
-    cc->Release();
+    adapter->Release();
+
+    DebugPrintLn(NAME TEXT("::addListItem() end"));
 }
 
 //---------------------------------------------------------------------------//

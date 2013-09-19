@@ -2,8 +2,7 @@
 
 #include "DebugPrint.h"
 
-#if defined(_DEBUG) || defined(DEBUG)
-// Debugのとき
+#if defined(_DEBUG) || defined(DEBUG) // Debugのとき
 
 #include <windows.h>
 #include <strsafe.h>
@@ -23,7 +22,7 @@ void DebugPrint(const wchar_t* format, ...)
     ::StringCchPrintf
     (
         buf, BUFSIZE,
-        TEXT("%02d:%02d:%02d;%04d> "),
+        TEXT("%02d:%02d:%02d;%03d> "),
         st.wHour, st.wMinute, st.wSecond, st.wMilliseconds
     );
     ::OutputDebugStringW(buf);
@@ -41,7 +40,25 @@ void DebugPrint(const wchar_t* format, ...)
 
 void DebugPrintLn(const wchar_t* format, ...)
 {
-    DebugPrint(format);
+    wchar_t buf[BUFSIZE];
+
+    SYSTEMTIME st;
+    ::GetLocalTime(&st);
+    ::StringCchPrintf
+    (
+        buf, BUFSIZE,
+        TEXT("%02d:%02d:%02d;%03d> "),
+        st.wHour, st.wMinute, st.wSecond, st.wMilliseconds
+    );
+    ::OutputDebugStringW(buf);
+
+    va_list al;
+    va_start(al, format);
+    {
+        ::StringCchVPrintfW(buf, BUFSIZE, format, al);
+    }
+    va_end(al);
+    ::OutputDebugStringW(buf);
 
     ::OutputDebugStringW(L"\n");
 }

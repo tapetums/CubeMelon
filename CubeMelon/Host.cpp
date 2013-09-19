@@ -1,30 +1,22 @@
 ﻿// CubeMelon.Host.cpp
 
-#include <memory>
-#include <map>
-
 #include <windows.h>
 
 #include <shlwapi.h>
 #pragma comment(lib, "shlwapi.lib")
-#include <propsys.h>
-#pragma comment(lib, "ole32.lib")
 
 #include "..\include\DebugPrint.h"
 #include "..\include\LockModule.h"
-#include "..\include\PropertyStore.h"
 #include "..\include\Interfaces.h"
+#include "..\include\ComponentBase.h"
 
-#include "ComponentManager.h"
-#include "Host.h"
-
+#include "CompManager.h"
 #include "mainwindow.h"
+
+#include "Host.h"
 
 //---------------------------------------------------------------------------//
 
-#define NAME TEXT("Host")
-
-extern const CLSID CLSID_Component;
 extern HINSTANCE g_hInst;
 
 //---------------------------------------------------------------------------//
@@ -33,34 +25,57 @@ namespace CubeMelon {
 
 //---------------------------------------------------------------------------//
 
+extern const CLSID CLSID_Component =
+{ 0x1511e8d0, 0x55a8, 0x4cc2, { 0x94, 0x8b, 0x9f, 0xee, 0xe, 0x63, 0x92, 0x5a } };
+
+extern const size_t      MDL_PROP_COUNT    = 5;
+extern const wchar_t*    MDL_PROP_MGR_NAME = TEXT("CubeMelon.PropManager");
+extern const wchar_t*    MDL_PROP_NAME     = TEXT("CubeMelon.Property");
+
+extern const size_t      COMP_INDEX      = 0;
+extern const wchar_t*    COMP_NAME       = TEXT("CubeMelon.Host");
+
+extern const wchar_t*    PropName        = TEXT("CubeMelon");
+extern const wchar_t*    PropDescription = TEXT("Component-based Application System");
+extern const wchar_t*    PropCopyright   = TEXT("(C) 2010-2013 tapetums");
+extern const VersionInfo PropVersion     = { 1, 0, 0, 0 };
+
+//---------------------------------------------------------------------------//
+
 struct Host::Impl
 {
     Impl();
     ~Impl();
 
-    ComponentManager* manager;
-    IComponent*       child;
-    MainWindow*       mwnd;
-    CLSID             clsid_autorun;
+    CompManager* manager;
+    IComponent*  child;
+    MainWindow*  mwnd;
+    CLSID        clsid_autorun;
 };
 
 //---------------------------------------------------------------------------//
 
 Host::Impl::Impl()
 {
-    manager = nullptr;
+    DebugPrintLn(TEXT("%s::Impl::Constructor() begin"), COMP_NAME);
+
+    manager = new CompManager();
     child   = nullptr;
     mwnd    = nullptr;
 
     CLSID clsid =
     { 0x520e13ad, 0x3345, 0x4377, { 0xb2, 0xef, 0x68, 0x42, 0xea, 0x79, 0xb2, 0x5b } };
     clsid_autorun = clsid;//CLSID_NULL;
+
+    DebugPrintLn(TEXT("%s::Impl::Constructor() end"), COMP_NAME);
 }
 
 //---------------------------------------------------------------------------//
 
 Host::Impl::~Impl()
 {
+    DebugPrintLn(TEXT("%s::Impl::Destructor() begin"), COMP_NAME);
+
     if ( child )
     {
         child->Release();
@@ -76,160 +91,33 @@ Host::Impl::~Impl()
         manager->Release();
         manager = nullptr;
     }
+
+    DebugPrintLn(TEXT("%s::Impl::Destructor() end"), COMP_NAME);
 }
 
 //---------------------------------------------------------------------------//
 
-Host::Host(IUnknown* pUnkOuter)
+Host::Host() : ComponentBase(nullptr)
 {
-    DebugPrintLn(NAME TEXT("::Constructor() begin"));
+    DebugPrintLn(TEXT("%s::Constructor() begin"), COMP_NAME);
 
     pimpl = new Impl;
 
-    WCHAR dir_path[MAX_PATH];
-    ::GetModuleFileName(nullptr, dir_path, MAX_PATH);
-    ::PathRemoveFileSpec(dir_path);
-    ::PathAppend(dir_path, TEXT("\\components"));
-    pimpl->manager = new ComponentManager(dir_path);
-
-    m_cRef  = 0;
-    m_state = STATE_IDLE;
-    m_owner = nullptr;
-
-    this->AddRef();
-
-    DebugPrintLn(NAME TEXT("::Constructor() end"));
+    DebugPrintLn(TEXT("%s::Constructor() end"), COMP_NAME);
 }
 
 //---------------------------------------------------------------------------//
 
 Host::~Host()
 {
-    DebugPrintLn(NAME TEXT("::Destructor() begin"));
+    DebugPrintLn(TEXT("%s::Destructor() begin"), COMP_NAME);
 
     this->Stop();
-
-    m_state = STATE_TERMINATING;
-    m_owner = nullptr;
-    m_cRef  = 0;
-
-    if ( pimpl->manager )
-    {
-        pimpl->manager->Release();
-        pimpl->manager = nullptr;
-    }
 
     delete pimpl;
     pimpl = nullptr;
 
-    DebugPrintLn(NAME TEXT("::Destructor() end"));
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall Host::QueryInterface(REFIID riid, void** ppvObject)
-{
-    DebugPrintLn(NAME TEXT("::QueryInterface() begin"));
-
-    if ( nullptr == ppvObject )
-    {
-        return E_POINTER;
-    }
-
-    *ppvObject = nullptr;
-
-    if ( IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IComponent) )
-    {
-        *ppvObject = static_cast<IComponent*>(this);
-    }
-    else
-    {
-        return E_NOINTERFACE;
-    }
-
-    this->AddRef();
-
-    DebugPrintLn(NAME TEXT("::QueryInterface() end"));
-
-    return S_OK;
-}
-
-//---------------------------------------------------------------------------//
-
-ULONG __stdcall Host::AddRef()
-{
-    DebugPrintLn(NAME TEXT("::AddRef() begin %d"), m_cRef);
-
-    LockModule();
-
-    LONG cRef = ::InterlockedIncrement(&m_cRef);
-
-    DebugPrintLn(NAME TEXT("::AddRef() end %d"), cRef);
-
-    return static_cast<ULONG>(cRef);
-}
-
-//---------------------------------------------------------------------------//
-
-ULONG __stdcall Host::Release()
-{
-    DebugPrintLn(NAME TEXT("::Release() begin %d"), m_cRef);
-
-    LONG cRef = ::InterlockedDecrement(&m_cRef);
-    if ( cRef == 0 )
-    {
-        DebugPrintLn(TEXT("Deleting..."));
-        delete this;
-        DebugPrintLn(TEXT("Deleted"));
-    }
-
-    UnlockModule();
-
-    DebugPrintLn(NAME TEXT("::Release() end %d"), cRef);
-
-    return static_cast<ULONG>(cRef);
-}
-
-//---------------------------------------------------------------------------//
-
-REFCLSID __stdcall Host::ClassID() const
-{
-    return CLSID_Component;
-}
-
-//---------------------------------------------------------------------------//
-
-IComponent* __stdcall Host::Owner() const
-{
-    return m_owner;
-}
-
-//---------------------------------------------------------------------------//
-
-IPropertyStore* __stdcall Host::Property() const
-{
-    return nullptr;
-}
-
-//---------------------------------------------------------------------------//
-
-STATE __stdcall Host::Status() const
-{
-    return m_state;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall Host::Attach(LPCWSTR msg, IComponent* listener)
-{
-    return E_NOTIMPL;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall Host::Detach(LPCWSTR msg, IComponent* listener)
-{
-    return E_NOTIMPL;
+    DebugPrintLn(TEXT("%s::Destructor() end"), COMP_NAME);
 }
 
 //---------------------------------------------------------------------------//
@@ -239,7 +127,7 @@ HRESULT __stdcall Host::GetInstance
     REFCLSID rclsid, REFIID riid, void** ppvObject
 )
 {
-    DebugPrintLn(NAME TEXT("::GetInstance() begin"));
+    DebugPrintLn(TEXT("%s::GetInstance() begin"), COMP_NAME);
 
     HRESULT hr;
 
@@ -250,25 +138,15 @@ HRESULT __stdcall Host::GetInstance
 
     *ppvObject = nullptr;
 
-    if ( IsEqualCLSID(rclsid, CLSID_Component) )
+    if ( IsEqualIID(riid, IID_ICompManager) )
     {
-        if ( IsEqualIID(riid, IID_IPropertyStore))
-        {
-            static PropertyStore ps;
-            *ppvObject = &ps;
-            ps.AddRef();
-            hr = S_OK;
-        }
-        else if ( IsEqualIID(riid, IID_IComponentManager) )
-        {
-            *ppvObject = pimpl->manager;
-            pimpl->manager->AddRef();
-            hr = S_OK;
-        }
-        else
-        {
-            hr = this->QueryInterface(riid, ppvObject);
-        }
+        pimpl->manager->AddRef();
+        *ppvObject = pimpl->manager;
+        hr = S_OK;
+    }
+    else if ( IsEqualCLSID(rclsid, CLSID_Component) )
+    {
+        hr = this->QueryInterface(riid, ppvObject);
     }
     else if ( pimpl->child && IsEqualCLSID(rclsid, pimpl->child->ClassID()) )
     {
@@ -276,53 +154,57 @@ HRESULT __stdcall Host::GetInstance
     }
     else
     {
-        auto cc = pimpl->manager->Find(rclsid);
-        if ( nullptr == cc )
+        auto ca = pimpl->manager->Find(rclsid);
+        if ( ca )
         {
-            hr = CS_E_CLASS_NOTFOUND;
+            hr = ca->CreateInstance(this, riid, ppvObject);
+            ca->Release();
         }
         else
         {
-            hr = cc->CreateInstance(this, riid, ppvObject);
+            hr = CS_E_CLASS_NOTFOUND;
         }
-        cc->Release();
     }
 
-    DebugPrintLn(NAME TEXT("::GetInstance() end"));
+    DebugPrintLn(TEXT("%s::GetInstance() end"), COMP_NAME);
     return hr;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Host::Notify
-(
-    IComponent* sender, LPCWSTR msg, LPVOID data, size_t cb_data
-)
+HRESULT __stdcall Host::Start(LPVOID args, IComponent* listener)
 {
-    return E_NOTIMPL;
-}
+    DebugPrintLn(TEXT("%s::Start() begin"), COMP_NAME);
 
-//---------------------------------------------------------------------------//
+    HRESULT hr;
 
-HRESULT __stdcall Host::Start(LPCVOID args)
-{
-    DebugPrintLn(NAME TEXT("::Start() begin"));
-
-    HRESULT hr = S_FALSE;
-
-    if ( m_state == STATE_RUNNING )
+    if ( m_state & STATE_ACTIVE )
     {
         DebugPrintLn(TEXT("Already started"));
-
-        return hr;
+        return S_FALSE;
+    }
+    if ( m_state & STATE_STARTING )
+    {
+        DebugPrintLn(TEXT("Now starting"));
+        return S_FALSE;
     }
 
-    m_state = STATE_RUNNING;
+    if ( listener )
+    {
+        return E_NOTIMPL;
+    }
+
+    m_state = (STATE)(m_state | STATE_STARTING);
 
     // コンポーネントの読み込み
     DebugPrintLn(TEXT("Loading components..."));
     {
-        hr = pimpl->manager->LoadAll();
+        WCHAR dir_path[MAX_PATH];
+        ::GetModuleFileName(nullptr, dir_path, MAX_PATH);
+        ::PathRemoveFileSpec(dir_path);
+        ::PathAppend(dir_path, TEXT("\\components"));
+
+        hr = pimpl->manager->LoadAll(dir_path);
         if ( FAILED(hr) )
         {
             return hr;
@@ -330,26 +212,31 @@ HRESULT __stdcall Host::Start(LPCVOID args)
     }
     DebugPrintLn(TEXT("Loaded components"));
 
-#if defined(_DEBUG) || defined(DEBUG)
     // メインウィンドウの起動
-    pimpl->mwnd = new MainWindow;
-    if ( pimpl->mwnd )
+    #if defined(_DEBUG) || defined(DEBUG)
+    DebugPrintLn(TEXT("Opening MainWindow..."));
     {
-        IComponentContainer* cc = nullptr;
-        auto count = pimpl->manager->ComponentCount();
-        for ( size_t index = 0; index < count; ++index )
+        pimpl->mwnd = new MainWindow;
+        if ( pimpl->mwnd )
         {
-            cc = pimpl->manager->At(index);
-            if ( cc )
+            ICompAdapter* adapter = nullptr;
+            auto count = pimpl->manager->ComponentCount();
+            for ( size_t index = 0; index < count; ++index )
             {
-                pimpl->mwnd->addListItem(cc);
-                pimpl->mwnd->addConsoleText(cc->Name());
+                adapter = pimpl->manager->GetAt(index);
+                if ( adapter )
+                {
+                    pimpl->mwnd->addListItem(adapter);
+                    pimpl->mwnd->addConsoleText(adapter->Name());
+                    adapter->Release();
+                }
             }
+            pimpl->mwnd->addConsoleText(TEXT("Ready"));
+            pimpl->mwnd->show();
         }
-        pimpl->mwnd->addConsoleText(TEXT("Ready"));
-        pimpl->mwnd->show();
     }
-#endif
+    DebugPrintLn(TEXT("Opened MainWindow"));
+    #endif
 
     // 子コンポーネントの起動
     DebugPrintLn(TEXT("Executing component..."));
@@ -358,37 +245,46 @@ HRESULT __stdcall Host::Start(LPCVOID args)
         (
             pimpl->clsid_autorun, IID_IComponent, (void**)&pimpl->child
         );
-        if ( FAILED(hr) || nullptr == pimpl->child )
+        if ( nullptr == pimpl->child )
         {
             DebugPrintLn(TEXT("Component was not found"));
             return hr;
         }
-
-        hr = pimpl->child->Start(nullptr);
+        hr = pimpl->child->Start();
     }
     DebugPrintLn(TEXT("Executed component"));
 
-    // 起動させなかったコンポーネントは一旦アンロード
-    pimpl->manager->FreeAll();
+    m_state = (STATE)(m_state | STATE_ACTIVE);
+    m_state = (STATE)(m_state ^ STATE_STARTING);
 
-    DebugPrintLn(NAME TEXT("::Start() end"));
+    DebugPrintLn(TEXT("%s::Start() end"), COMP_NAME);
 
     return hr;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Host::Stop()
+HRESULT __stdcall Host::Stop(IComponent* listener)
 {
-    DebugPrintLn(NAME TEXT("::Stop() begin"));
+    DebugPrintLn(TEXT("%s::Stop() begin"), COMP_NAME);
 
-    if ( m_state == STATE_IDLE )
+    if ( !(m_state & STATE_ACTIVE) )
     {
         DebugPrintLn(TEXT("Already stopped"));
         return S_FALSE;
     }
+    if ( m_state & STATE_STOPPING )
+    {
+        DebugPrintLn(TEXT("Now stopping"));
+        return S_FALSE;
+    }
 
-    m_state = STATE_IDLE;
+    if ( listener )
+    {
+        return E_NOTIMPL;
+    }
+
+    m_state = (STATE)(m_state | STATE_STOPPING);
 
     // 子コンポーネントの破棄
     if ( pimpl->child )
@@ -397,16 +293,19 @@ HRESULT __stdcall Host::Stop()
         pimpl->child = nullptr;
     }
 
-#if defined(_DEBUG) || defined(DEBUG)
     // メインウィンドウの破棄
+    #if defined(_DEBUG) || defined(DEBUG)
     if ( pimpl->mwnd )
     {
         delete pimpl->mwnd;
         pimpl->mwnd = nullptr;
     }
+    #endif
 
-    DebugPrintLn(NAME TEXT("::Stop() end"));
-#endif
+    m_state = (STATE)(m_state ^ STATE_ACTIVE);
+    m_state = (STATE)(m_state ^ STATE_STOPPING);
+
+    DebugPrintLn(TEXT("%s::Stop() end"), COMP_NAME);
 
     return S_OK;
 }

@@ -11,27 +11,31 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = CubeMelon
 TEMPLATE = app
 
-
 SOURCES +=\
     ../include/DWM.cpp \
     ../include/DebugPrint.cpp \
     ../include/LockModule.cpp \
-    main.cpp\
+    ../include/ComponentBase.cpp \
+    ../include/Module.PropManager.cpp \
+    ClassFactory.cpp \
+    CompManager.cpp \
     mainwindow.cpp \
-    ComponentManager.cpp \
-    Host.cpp \
-    PropertyStore.cpp
+    main.cpp\
+    Host.cpp
 
 HEADERS +=\
+    ../include/ComPtr.h \
     ../include/DWM.h \
     ../include/DebugPrint.h \
-    ../include/Interfaces.h \
     ../include/LockModule.h \
-    ../include/ComPtr.h \
+    ../include/Functions.h \
+    ../include/Interfaces.h \
+    ../include/ClassFactory.h \
+    ../include/ComponentBase.h \
+    ../include/PropManager.h \
+    CompManager.h \
     mainwindow.h \
-    ComponentManager.h \
-    Host.h \
-    ../include/PropertyStore.h
+    Host.h
 
 unix:!symbian {
     maemo5 {
@@ -45,7 +49,11 @@ unix:!symbian {
 FORMS += \
     mainwindow.ui
 
+DEF_FILE += ../CubeMelon.def
+
 RES_FILE += CubeMelon.res
 
 OTHER_FILES += \
-    CubeMelon.res
+    CubeMelon.res \
+    ../CubeMelon.def
+    ../CubeMelon.def

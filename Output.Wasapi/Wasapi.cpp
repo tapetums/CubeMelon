@@ -1,25 +1,47 @@
 ﻿// Output.Wasapi.Wasapi.cpp
 
+#include <queue>
+
 #include <windows.h>
 #include <strsafe.h>
 #include <mmreg.h>
+#include <process.h>
+
+#include <mmdeviceapi.h>
+#include <audioclient.h>
 
 #include "..\include\DebugPrint.h"
 #include "..\include\LockModule.h"
 #include "..\include\Interfaces.h"
+#include "..\include\ComponentBase.h"
+
 #include "Wasapi.h"
+#include "WorkerThread.h"
 
 //---------------------------------------------------------------------------//
 
-#define NAME TEXT("Output.Wasapi")
-
-//---------------------------------------------------------------------------//
-
-extern const CLSID CLSID_Component;
+#define THREAD_WAIT_TIME 1000
 
 //---------------------------------------------------------------------------//
 
 namespace CubeMelon {
+
+//---------------------------------------------------------------------------//
+
+extern const CLSID CLSID_Component =
+{ 0xff3fc2e6, 0x2ea5, 0x4c75, { 0x95, 0x92, 0x95, 0x78, 0x7a, 0x22, 0xa8, 0xc5 } };
+
+extern const size_t      MDL_PROP_COUNT    = 5;
+extern const wchar_t*    MDL_PROP_MGR_NAME = TEXT("Output.Wasapi.PropManager");
+extern const wchar_t*    MDL_PROP_NAME     = TEXT("Output.Wasapi.Property");
+
+extern const size_t      COMP_INDEX      = 0;
+extern const wchar_t*    COMP_NAME       = TEXT("Output.Wasapi");
+
+extern const wchar_t*    PropName        = TEXT("Output.Wasapi");
+extern const wchar_t*    PropDescription = TEXT("Output component for Windows Audio Session API");
+extern const wchar_t*    PropCopyright   = TEXT("(C) 2011-2013 tapetums");
+extern const VersionInfo PropVersion     = { 1, 0, 0, 0 };
 
 //---------------------------------------------------------------------------//
 
@@ -28,21 +50,23 @@ struct Wasapi::Impl
     Impl();
     ~Impl();
 
-    bool    IsSupportedFormat(LPCWSTR format);
-    HRESULT Close();
-    HRESULT Open(LPCWSTR path);
+    void ClearQueue();
 
-    UINT64               size;
+    InternalParams* params;
+
+    HANDLE writer_thread;
+
     WAVEFORMATEXTENSIBLE wfex;
-    WCHAR                path[MAX_PATH];
 };
 
 //---------------------------------------------------------------------------//
 
 Wasapi::Impl::Impl()
 {
-    size      = 0;
-    path[0]   = '\0';
+    params = new InternalParams;
+
+    writer_thread = nullptr;
+
     ::ZeroMemory(&wfex, sizeof(WAVEFORMATEXTENSIBLE));
 }
 
@@ -50,339 +74,272 @@ Wasapi::Impl::Impl()
 
 Wasapi::Impl::~Impl()
 {
-    this->Close();
+    delete params;
+    params = nullptr;
 }
 
 //---------------------------------------------------------------------------//
 
-bool Wasapi::Impl::IsSupportedFormat(LPCWSTR format)
+void Wasapi::Impl::ClearQueue()
 {
-    if (format[0] == '.' )
+    QueueData data = { };
+    const auto q = &params->q;
+
+    ::EnterCriticalSection(&params->cs);
     {
-        ++format;
-    }
-
-    if ( lstrcmp(format, TEXT("wav"))  == 0 ||
-         lstrcmp(format, TEXT("WAV"))  == 0 ||
-         lstrcmp(format, TEXT("riff")) == 0 ||
-         lstrcmp(format, TEXT("RIFF")) == 0 ||
-         lstrcmp(format, TEXT("rf64")) == 0 ||
-         lstrcmp(format, TEXT("RF64")) == 0 )
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT Wasapi::Impl::Close()
-{
-    DebugPrintLn(NAME TEXT("Impl::Close() begin"));
-
-    DebugPrintLn(NAME TEXT("Impl::Close() end"));
-
-    return E_NOTIMPL;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT Wasapi::Impl::Open(LPCWSTR path)
-{
-    DebugPrintLn(NAME TEXT("Impl::Open() begin"));
-    DebugPrintLn(path);
-
-    // パスを内部領域にコピー
-    ::StringCchCopy(this->path, MAX_PATH, path);
-
-    try
-    {
-    }
-    catch (LPCWSTR msg)
-    {
-        DebugPrintLn(msg);
-
-        this->Close();
-
-        return E_FAIL;
-    }
-
-    DebugPrintLn(NAME TEXT("Impl::Open() end"));
-
-    return E_NOTIMPL;
-}
-
-//---------------------------------------------------------------------------//
-
-Wasapi::Wasapi(IUnknown* pUnkOuter)
-{
-    DebugPrintLn(NAME TEXT("::Constructor() begin"));
-
-    pimpl = new Impl;
-
-    m_cRef  = 0;
-    m_state = STATE_IDLE;
-    m_owner = nullptr;
-    if ( pUnkOuter )
-    {
-        auto hr = pUnkOuter->QueryInterface
-        (
-            IID_IComponent, (void**)&m_owner
-        );
-        if ( FAILED(hr) )
+        while ( !q->empty() )
         {
-            m_owner = nullptr;
+            data = q->back();
+            q->pop();
+
+            data.listener->Release();
+            data.listener = nullptr;
         }
     }
+    ::LeaveCriticalSection(&params->cs);
+}
 
-    this->AddRef();
+//---------------------------------------------------------------------------//
 
-    DebugPrintLn(NAME TEXT("::Constructor() end"));
+Wasapi::Wasapi(IUnknown* pUnkOuter) : OutputComponentBase(pUnkOuter)
+{
+    DebugPrintLn(TEXT("%s::Constructor() begin"), COMP_NAME);
+
+    pimpl = new Impl;
+    pimpl->params->sender = this;
+
+    DebugPrintLn(TEXT("%s::Constructor() end"), COMP_NAME);
 }
 
 //---------------------------------------------------------------------------//
 
 Wasapi::~Wasapi()
 {
-    DebugPrintLn(NAME TEXT("::Destructor() begin"));
+    DebugPrintLn(TEXT("%s::Destructor() begin"), COMP_NAME);
 
-    this->Stop();
+    HRESULT hr;
 
-    m_state = STATE_TERMINATING;
-    if ( m_owner )
+    hr = E_FAIL;
+    while ( FAILED(hr) )
     {
-        DebugPrintLn(TEXT("Releasing ") NAME TEXT("'s Owner..."));
-
-        m_owner->Release();
-        m_owner = nullptr;
-
-        DebugPrintLn(TEXT("Released ") NAME TEXT("'s Owner"));
+        hr = this->Stop();
+        ::MsgWaitForMultipleObjects(0, nullptr, FALSE, THREAD_WAIT_TIME, QS_ALLINPUT);
     }
-    m_cRef = 0;
+
+    hr = E_FAIL;
+    while ( FAILED(hr) )
+    {
+        hr = this->Close();
+        ::MsgWaitForMultipleObjects(0, nullptr, FALSE, THREAD_WAIT_TIME, QS_ALLINPUT);
+    }
 
     delete pimpl;
     pimpl = nullptr;
 
-    DebugPrintLn(NAME TEXT("::Destructor() end"));
+    DebugPrintLn(TEXT("%s::Destructor() end"), COMP_NAME);
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wasapi::QueryInterface(REFIID riid, void** ppvObject)
+HRESULT __stdcall Wasapi::Notify(IMsgObject* msg_obj)
 {
-    DebugPrintLn(NAME TEXT("::QueryInterface() begin"));
+    DebugPrintLn(TEXT("%s::Notify() begin"), COMP_NAME);
 
-    if ( nullptr == ppvObject )
+    if ( nullptr == msg_obj )
     {
+        DebugPrintLn(TEXT("Message object is void"));
         return E_POINTER;
     }
 
-    *ppvObject = nullptr;
-
-    if ( IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IComponent) )
-    {
-        *ppvObject = static_cast<IComponent*>(this);
-    }
-    else if ( IsEqualIID(riid, IID_IIOComponent) )
-    {
-        *ppvObject = static_cast<IIOComponent*>(this);
-    }
-    else if ( IsEqualIID(riid, IID_IOutputComponent) )
-    {
-        *ppvObject = static_cast<IOutputComponent*>(this);
-    }
-    else
-    {
-        return E_NOINTERFACE;
-    }
-
-    this->AddRef();
-
-    DebugPrintLn(NAME TEXT("::QueryInterface() end"));
-
-    return S_OK;
-}
-
-//---------------------------------------------------------------------------//
-
-ULONG __stdcall Wasapi::AddRef()
-{
-    DebugPrintLn(NAME TEXT("::AddRef() begin %d"), m_cRef);
-
-    LockModule();
-
-    LONG cRef = ::InterlockedIncrement(&m_cRef);
-
-    DebugPrintLn(NAME TEXT("::AddRef() end %d"), cRef);
-
-    return static_cast<ULONG>(cRef);
-}
-
-//---------------------------------------------------------------------------//
-
-ULONG __stdcall Wasapi::Release()
-{
-    DebugPrintLn(NAME TEXT("::Release() begin %d"), m_cRef);
-
-    LONG cRef = ::InterlockedDecrement(&m_cRef);
-    if ( cRef == 0 )
-    {
-        DebugPrintLn(TEXT("Deleting..."));
-        delete this;
-        DebugPrintLn(TEXT("Deleted"));
-    }
-
-    UnlockModule();
-
-    DebugPrintLn(NAME TEXT("::Release() end %d"), cRef);
-
-    return static_cast<ULONG>(cRef);
-}
-
-//---------------------------------------------------------------------------//
-
-REFCLSID __stdcall Wasapi::ClassID() const
-{
-    return CLSID_Component;
-}
-
-//---------------------------------------------------------------------------//
-
-IComponent* __stdcall Wasapi::Owner() const
-{
-    return m_owner;
-}
-
-//---------------------------------------------------------------------------//
-
-IPropertyStore* __stdcall Wasapi::Property() const
-{
-    return nullptr;
-}
-
-//---------------------------------------------------------------------------//
-
-STATE __stdcall Wasapi::Status() const
-{
-    return m_state;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall Wasapi::Attach(LPCWSTR msg, IComponent* listener)
-{
-    return E_NOTIMPL;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall Wasapi::Detach(LPCWSTR msg, IComponent* listener)
-{
-    return E_NOTIMPL;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall Wasapi::GetInstance
-(
-    REFCLSID rclsid, REFIID riid, void** ppvObject
-)
-{
-    if ( m_owner )
-    {
-        return m_owner->GetInstance(rclsid, riid, ppvObject);
-    }
-    else
-    {
-        return E_NOTIMPL;
-    }
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall Wasapi::Notify
-(
-    IComponent* sender, LPCWSTR msg, LPVOID data, size_t cb_data
-)
-{
-    return E_NOTIMPL;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall Wasapi::Start(LPCVOID args)
-{
-    DebugPrintLn(NAME TEXT("::Start() begin"));
-
     HRESULT hr;
 
-    if ( m_state == STATE_RUNNING )
+    auto sender   = msg_obj->Sender();
+    auto listener = msg_obj->Listener();
+    auto name     = msg_obj->Name();
+    auto msg      = msg_obj->Message();
+
+    DebugPrintLn(TEXT("%s: %s"), name, msg);
+
+    if ( sender == this )
+    {
+        if ( lstrcmp(msg, MSG_IO_WRITE_DONE) == 0 )
+        {
+            //m_position += msg_obj->DataSize();
+            m_state = (STATE)(m_state ^ STATE_WRITING);
+            if ( listener )
+            {
+                msg_obj->AddRef();
+                hr = listener->Notify(msg_obj);
+            }
+            else
+            {
+                hr = S_OK;
+            }
+        }
+        else if ( lstrcmp(msg, MSG_IO_WRITE_FAILED) == 0 )
+        {
+            m_state = (STATE)(m_state ^ STATE_WRITING);
+            hr = S_OK;
+        }
+        else
+        {
+            hr = S_FALSE;
+        }
+    }
+    else
+    {
+        hr = S_FALSE;
+    }
+
+    msg_obj->Release();
+    msg_obj = nullptr;
+
+    DebugPrintLn(TEXT("%s::Notify() end"), COMP_NAME);
+
+    return hr;
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT __stdcall Wasapi::Start(LPVOID args, IComponent* listener)
+{
+    DebugPrintLn(TEXT("%s::Start() begin"), COMP_NAME);
+
+    if ( m_state & STATE_STARTING )
+    {
+        DebugPrintLn(TEXT("Now starting"));
+        return S_FALSE;
+    }
+    if ( m_state & STATE_ACTIVE )
     {
         DebugPrintLn(TEXT("Already started"));
         return S_FALSE;
     }
 
-    /// ここに処理を書く
+    if ( listener )
+    {
+        return E_NOTIMPL;
+    }
 
-    m_state = STATE_RUNNING;
+    m_state = (STATE)(m_state | STATE_STARTING);
 
-    DebugPrintLn(NAME TEXT("::Start() end"));
+    pimpl->writer_thread = (HANDLE)_beginthreadex
+    (
+        nullptr, 0, WriteWave, pimpl->params, 0, nullptr
+    );
+    if ( nullptr == pimpl->writer_thread )
+    {
+        DebugPrintLn(TEXT("Could not create reader thread"));
+        return E_FAIL;
+    }
+
+    m_state = (STATE)(m_state | STATE_ACTIVE);
+    m_state = (STATE)(m_state ^ STATE_STARTING);
+
+    DebugPrintLn(TEXT("%s::Start() end"), COMP_NAME);
 
     return S_OK;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wasapi::Stop()
+HRESULT __stdcall Wasapi::Stop(IComponent* listener)
 {
-    DebugPrintLn(NAME TEXT("::Stop() begin"));
+    DebugPrintLn(TEXT("%s::Stop() begin"), COMP_NAME);
 
-    if ( m_state == STATE_IDLE )
+    if ( m_state & STATE_STOPPING )
+    {
+        DebugPrintLn(TEXT("Now stopping"));
+        return S_FALSE;
+    }
+    if ( !(m_state & STATE_ACTIVE) )
     {
         DebugPrintLn(TEXT("Already stopped"));
         return S_FALSE;
     }
 
-    this->Close();
+    if ( listener )
+    {
+        return E_NOTIMPL;
+    }
 
-    m_state = STATE_IDLE;
+    m_state = (STATE)(m_state | STATE_STOPPING);
 
-    DebugPrintLn(NAME TEXT("::Stop() end"));
+    if ( pimpl->writer_thread )
+    {
+        pimpl->params->is_active = false;
+        ::SetEvent(pimpl->params->e_queued);
+
+        auto result = ::WaitForSingleObject
+        (
+            pimpl->writer_thread, THREAD_WAIT_TIME
+        );
+        if ( result == WAIT_TIMEOUT )
+        {
+            DebugPrintLn(TEXT("Thread termination timed out"));
+            return E_FAIL;
+        }
+
+        ::CloseHandle(pimpl->writer_thread);
+        pimpl->writer_thread = nullptr;
+    }
+
+    m_state = (STATE)(m_state ^ STATE_ACTIVE);
+    m_state = (STATE)(m_state ^ STATE_STOPPING);
+
+    DebugPrintLn(TEXT("%s::Stop() end"), COMP_NAME);
 
     return S_OK;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wasapi::Close(IComponent* listener)
+HRESULT __stdcall Wasapi::Close
+(
+    IComponent* listener
+)
 {
-    DebugPrintLn(NAME TEXT("::Close() begin"));
+    DebugPrintLn(TEXT("%s::Close() begin"), COMP_NAME);
 
+    if ( m_state & STATE_ACTIVE )
+    {
+        DebugPrintLn(TEXT("Stop component before closing"));
+        return E_COMP_BUSY;
+    }
+    if ( m_state & STATE_CLOSING )
+    {
+        DebugPrintLn(TEXT("Now closing"));
+        return S_FALSE;
+    }
     if ( !(m_state & STATE_OPEN) )
     {
+        DebugPrintLn(TEXT("Already closed"));
         return S_FALSE;
     }
 
     HRESULT hr;
 
+    m_state = (STATE)(m_state | STATE_CLOSING);
+
     if ( listener )
     {
-        //hr = pimpl->CloseAsync(pimpl, listener);
-        hr = E_NOTIMPL;
+        hr = this->CloseAsync(listener);
+        if ( FAILED(hr) )
+        {
+            m_state = (STATE)(m_state ^ STATE_CLOSING);
+        }
     }
     else
     {
-        hr = pimpl->Close();
+        hr = this->CloseSync();
         if ( SUCCEEDED(hr) )
         {
             m_state = (STATE)(m_state ^ STATE_OPEN);
         }
+        m_state = (STATE)(m_state ^ STATE_CLOSING);
     }
 
-    DebugPrintLn(NAME TEXT("::Close() end"));
+    DebugPrintLn(TEXT("%s::Close() end"), COMP_NAME);
 
     return hr;
 }
@@ -394,67 +351,273 @@ HRESULT __stdcall Wasapi::Open
     LPCWSTR path, LPCWSTR format_as, IComponent* listener
 )
 {
-    DebugPrintLn(NAME TEXT("::Open() begin"));
+    DebugPrintLn(TEXT("%s::Open() begin"), COMP_NAME);
 
-    if ( !pimpl->IsSupportedFormat(format_as) )
+    if ( m_state & STATE_ACTIVE )
     {
-        return E_INVALIDARG;
+        DebugPrintLn(TEXT("Stop component before opening"));
+        return E_COMP_BUSY;
+    }
+    if ( m_state & STATE_OPENING )
+    {
+        DebugPrintLn(TEXT("Now opening"));
+        return S_FALSE;
+    }
+    if ( m_state & STATE_OPEN )
+    {
+        DebugPrintLn(TEXT("Already open"));
+        return S_FALSE;
     }
 
     HRESULT hr;
 
+    hr = this->QuerySupport(path, format_as);
+    if ( FAILED(hr) )
+    {
+        DebugPrintLn(TEXT("Unsupported format: %s"), format_as);
+        return E_INVALIDARG;
+    }
+
+    m_state = (STATE)(m_state | STATE_OPENING);
+
+    ::StringCchCopy(m_path, MAX_PATH, path);
+    DebugPrintLn(m_path);
+
     if ( listener )
     {
-        //hr = pimpl->OpenAsync(pimpl, path, listener);
-        hr = E_NOTIMPL;
+        hr = this->OpenAsync(listener);
+        if ( FAILED(hr) )
+        {
+            m_state = (STATE)(m_state ^ STATE_OPENING);
+        }
     }
     else
     {
-        hr = pimpl->Open(path);
+        hr = this->OpenSync();
         if ( SUCCEEDED(hr) )
         {
             m_state = (STATE)(m_state | STATE_OPEN);
         }
+        m_state = (STATE)(m_state ^ STATE_OPENING);
     }
 
-    DebugPrintLn(NAME TEXT("::Open() end"));
+    DebugPrintLn(TEXT("%s::Open() end"), COMP_NAME);
 
     return hr;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wasapi::QuerySupport(LPCWSTR path, LPCWSTR format_as)
+HRESULT __stdcall Wasapi::QuerySupport
+(
+    LPCWSTR path, LPCWSTR format_as
+)
 {
-    DebugPrintLn(NAME TEXT("::QuerySupport() begin"));
+    DebugPrintLn(TEXT("%s::QuerySupport() begin"), COMP_NAME);
 
-    if ( !pimpl->IsSupportedFormat(format_as) )
+    if ( !this->IsSupportedExtention(path) )
     {
+        DebugPrintLn(TEXT("Unsupported extension: %S"), path);
+        return E_FAIL;
+    }
+    if ( !this->IsSupportedFormat(format_as) )
+    {
+        DebugPrintLn(TEXT("Unsupported format: %s"), format_as);
         return E_FAIL;
     }
 
-    DebugPrintLn(NAME TEXT("::QuerySupport() end"));
+    DebugPrintLn(TEXT("%s::QuerySupport() end"), COMP_NAME);
 
-    return E_NOTIMPL;
-}
-
-//---------------------------------------------------------------------------//
-
-HRESULT __stdcall Wasapi::Seek(INT64 offset, DWORD origin, UINT64* new_pos)
-{
-    return E_NOTIMPL;
+    return S_OK;
 }
 
 //---------------------------------------------------------------------------//
 
 HRESULT __stdcall Wasapi::Write
 (
-    LPCVOID buffer, size_t buf_size, size_t* cb_written, IComponent* listener
+    LPVOID buffer, size_t buf_size, size_t* cb_written, IComponent* listener
 )
 {
-    DebugPrintLn(NAME TEXT("::Write() begin"));
+    DebugPrintLn(TEXT("%s::Write() begin"), COMP_NAME);
 
-    DebugPrintLn(NAME TEXT("::Write() end"));
+    if ( !(m_state & STATE_OPEN) )
+    {
+        DebugPrintLn(TEXT("The object is not yet open"));
+        return E_PENDING;
+    }
+    if ( m_state & STATE_WRITING )
+    {
+        DebugPrintLn(TEXT("Now writing"));
+        return S_FALSE;
+    }
+
+    HRESULT hr;
+
+    m_state = (STATE)(m_state | STATE_WRITING);
+
+    if ( listener )
+    {
+        hr = this->WriteAsync(buffer, buf_size, listener);
+        if ( FAILED(hr) )
+        {
+            m_state = (STATE)(m_state ^ STATE_WRITING);
+        }
+    }
+    else
+    {
+        hr = this->WriteSync(buffer, buf_size, cb_written);
+        m_state = (STATE)(m_state ^ STATE_WRITING);
+    }
+
+    DebugPrintLn(TEXT("%s::Write() end"), COMP_NAME);
+
+    return hr;
+}
+
+//---------------------------------------------------------------------------//
+
+bool Wasapi::IsSupportedExtention(LPCWSTR path) const
+{
+    WCHAR buf[_MAX_EXT];
+    auto err = ::_wsplitpath_s
+    (
+        path, nullptr, 0, nullptr, 0, nullptr, 0, buf, 0
+    );
+    if ( err )
+    {
+        DebugPrintLn(TEXT("_wsplitpath_s() failed"));
+        return false;
+    }
+
+    LPWSTR ext = nullptr;
+    if ( buf[0] == '.' )
+    {
+        ext = &buf[1];
+    }
+    else
+    {
+        ext = &buf[0];
+    }
+    DebugPrintLn(TEXT("%s::Impl::IsSupportedExtention(): %s"), COMP_NAME, ext);
+
+    if ( lstrcmp(ext, TEXT("wav"))  == 0 ||
+         lstrcmp(ext, TEXT("WAV"))  == 0 ||
+         lstrcmp(ext, TEXT("riff")) == 0 ||
+         lstrcmp(ext, TEXT("RIFF")) == 0 ||
+         lstrcmp(ext, TEXT("rf64")) == 0 ||
+         lstrcmp(ext, TEXT("RF64")) == 0 )
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+bool Wasapi::IsSupportedFormat(LPCWSTR format) const
+{
+    if ( format[0] == '.' )
+    {
+        ++format;
+    }
+
+    if ( lstrcmp(format, TEXT("wav")) )
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT Wasapi::CloseSync()
+{
+    DebugPrintLn(TEXT("%s::Close() begin"), COMP_NAME);
+
+    pimpl->ClearQueue();
+
+    DebugPrintLn(TEXT("%s::Close() end"), COMP_NAME);
+
+    return S_OK;
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT Wasapi::CloseAsync(IComponent* listener)
+{
+    return E_NOTIMPL;
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT Wasapi::OpenSync()
+{
+    DebugPrintLn(TEXT("%s::Open() begin"), COMP_NAME);
+
+    DebugPrintLn(TEXT("%s::Open() end"), COMP_NAME);
+
+    return E_NOTIMPL;
+
+CLOSE_ENDPOINT:
+    DebugPrintLn(TEXT("Failed to open endpoint"));
+    this->CloseSync();
+
+    return E_FAIL;
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT Wasapi::OpenAsync(IComponent* listener)
+{
+    return E_NOTIMPL;
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT Wasapi::WriteSync
+(
+    LPVOID buffer, size_t buf_size, size_t* cb_written
+)
+{
+    return E_NOTIMPL;
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT Wasapi::WriteAsync
+(
+    LPVOID buffer, size_t buf_size, IComponent* listener
+)
+{
+    DebugPrintLn(TEXT("%s::WriteAsync() begin"), COMP_NAME);
+
+    if ( nullptr == listener )
+    {
+        return E_POINTER;
+    }
+
+    listener->AddRef();
+
+    QueueData data =
+    {
+        buffer, buf_size, listener
+    };
+
+    ::EnterCriticalSection(&pimpl->params->cs);
+    {
+        pimpl->params->q.push(data);
+    }
+    ::LeaveCriticalSection(&pimpl->params->cs);
+
+    ::SetEvent(pimpl->params->e_queued);
+
+    DebugPrintLn(TEXT("%s::WriteAsync() end"), COMP_NAME);
 
     return E_NOTIMPL;
 }

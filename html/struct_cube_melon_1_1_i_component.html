@@ -1,0 +1,719 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.3.1"/>
+<title>CubeMelon: インタフェース CubeMelon::IComponent</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">CubeMelon
+   &#160;<span id="projectnumber">1.0.0</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 作成： Doxygen 1.8.3.1 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search",false,'検索');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="index.html"><span>メインページ</span></a></li>
+      <li class="current"><a href="annotated.html"><span>クラス</span></a></li>
+      <li><a href="files.html"><span>ファイル</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="検索" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="annotated.html"><span>構成</span></a></li>
+      <li><a href="classes.html"><span>構成索引</span></a></li>
+      <li><a href="hierarchy.html"><span>クラス階層</span></a></li>
+      <li><a href="functions.html"><span>構成メンバ</span></a></li>
+    </ul>
+  </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('struct_cube_melon_1_1_i_component.html','');});
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>全て</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>クラス</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>関数</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>変数</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public メソッド</a> &#124;
+<a href="interface_cube_melon_1_1_i_component-members.html">すべてのメンバ一覧</a>  </div>
+  <div class="headertitle">
+<div class="title">インタフェース CubeMelon::IComponent<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>コンポーネントの基幹インターフェイスです。  
+ <a href="struct_cube_melon_1_1_i_component.html#details">[詳細]</a></p>
+
+<p><code>#include &lt;<a class="el" href="_interfaces_8h_source.html">Interfaces.h</a>&gt;</code></p>
+<div class="dynheader">
+CubeMelon::IComponentに対する継承グラフ</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="struct_cube_melon_1_1_i_component.png" usemap="#CubeMelon::IComponent_map" alt=""/>
+  <map id="CubeMelon::IComponent_map" name="CubeMelon::IComponent_map">
+<area href="class_cube_melon_1_1_component_base.html" alt="CubeMelon::ComponentBase" shape="rect" coords="0,112,211,136"/>
+<area href="struct_cube_melon_1_1_i_i_o_component.html" title="入出力コンポーネントのための基底インターフェイスです。" alt="CubeMelon::IIOComponent" shape="rect" coords="221,112,432,136"/>
+<area href="struct_cube_melon_1_1_i_u_i_component.html" title="UIコンポーネントのためのインターフェイスです。" alt="CubeMelon::IUIComponent" shape="rect" coords="552,112,763,136"/>
+<area href="struct_cube_melon_1_1_i_input_component.html" title="入力コンポーネントのためのインターフェイスです。" alt="CubeMelon::IInputComponent" shape="rect" coords="110,168,321,192"/>
+<area href="struct_cube_melon_1_1_i_output_component.html" title="出力コンポーネントのためのインターフェイスです。" alt="CubeMelon::IOutputComponent" shape="rect" coords="331,168,542,192"/>
+<area href="class_cube_melon_1_1_u_i_component_base.html" alt="CubeMelon::UIComponentBase" shape="rect" coords="552,168,763,192"/>
+<area href="class_cube_melon_1_1_input_component_base.html" alt="CubeMelon::InputComponentBase" shape="rect" coords="110,224,321,248"/>
+<area href="class_cube_melon_1_1_output_component_base.html" alt="CubeMelon::OutputComponentBase" shape="rect" coords="331,224,542,248"/>
+</map>
+ </div></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Public メソッド</h2></td></tr>
+<tr class="memitem:a75c402024de4a02cf9b5a5164e103f49"><td class="memItemLeft" align="right" valign="top">virtual REFCLSID __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_cube_melon_1_1_i_component.html#a75c402024de4a02cf9b5a5164e103f49">ClassID</a> () const =0</td></tr>
+<tr class="memdesc:a75c402024de4a02cf9b5a5164e103f49"><td class="mdescLeft">&#160;</td><td class="mdescRight">コンポーネントのクラスIDを返します。  <a href="#a75c402024de4a02cf9b5a5164e103f49">[詳細]</a><br/></td></tr>
+<tr class="separator:a75c402024de4a02cf9b5a5164e103f49"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc54c8166c16c100091ef7f3908b2579"><td class="memItemLeft" align="right" valign="top">virtual LPCWSTR __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_cube_melon_1_1_i_component.html#adc54c8166c16c100091ef7f3908b2579">Name</a> () const =0</td></tr>
+<tr class="memdesc:adc54c8166c16c100091ef7f3908b2579"><td class="mdescLeft">&#160;</td><td class="mdescRight">このコンポーネントの名前を返します。  <a href="#adc54c8166c16c100091ef7f3908b2579">[詳細]</a><br/></td></tr>
+<tr class="separator:adc54c8166c16c100091ef7f3908b2579"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b9b3a8bf37a7d6196ac591e134f9ec1"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="struct_cube_melon_1_1_i_component.html">IComponent</a> *__stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_cube_melon_1_1_i_component.html#a8b9b3a8bf37a7d6196ac591e134f9ec1">Owner</a> () const =0</td></tr>
+<tr class="memdesc:a8b9b3a8bf37a7d6196ac591e134f9ec1"><td class="mdescLeft">&#160;</td><td class="mdescRight">このコンポーネントを所有している親コンポーネントを返します。  <a href="#a8b9b3a8bf37a7d6196ac591e134f9ec1">[詳細]</a><br/></td></tr>
+<tr class="separator:a8b9b3a8bf37a7d6196ac591e134f9ec1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd7e9407fbf3b89910b432b0dae0909b"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="struct_cube_melon_1_1_i_prop_manager.html">IPropManager</a> *__stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_cube_melon_1_1_i_component.html#afd7e9407fbf3b89910b432b0dae0909b">PropManager</a> () const =0</td></tr>
+<tr class="memdesc:afd7e9407fbf3b89910b432b0dae0909b"><td class="mdescLeft">&#160;</td><td class="mdescRight">このコンポーネントのプロパティ管理オブジェクトを返します。  <a href="#afd7e9407fbf3b89910b432b0dae0909b">[詳細]</a><br/></td></tr>
+<tr class="separator:afd7e9407fbf3b89910b432b0dae0909b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aede8792d80ca9f7d23cad33182fdcf41"><td class="memItemLeft" align="right" valign="top">virtual STATE __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_cube_melon_1_1_i_component.html#aede8792d80ca9f7d23cad33182fdcf41">Status</a> () const =0</td></tr>
+<tr class="memdesc:aede8792d80ca9f7d23cad33182fdcf41"><td class="mdescLeft">&#160;</td><td class="mdescRight">このコンポーネントの状態を返します。  <a href="#aede8792d80ca9f7d23cad33182fdcf41">[詳細]</a><br/></td></tr>
+<tr class="separator:aede8792d80ca9f7d23cad33182fdcf41"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a87b391a926fd14f086b927f7d89f4a2f"><td class="memItemLeft" align="right" valign="top">virtual HRESULT __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_cube_melon_1_1_i_component.html#a87b391a926fd14f086b927f7d89f4a2f">Attach</a> (LPCWSTR msg, <a class="el" href="struct_cube_melon_1_1_i_component.html">IComponent</a> *listener)=0</td></tr>
+<tr class="memdesc:a87b391a926fd14f086b927f7d89f4a2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">このコンポーネントとメッセージを関連付けます。  <a href="#a87b391a926fd14f086b927f7d89f4a2f">[詳細]</a><br/></td></tr>
+<tr class="separator:a87b391a926fd14f086b927f7d89f4a2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc54e0578c263671d151c656ceccca77"><td class="memItemLeft" align="right" valign="top">virtual HRESULT __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_cube_melon_1_1_i_component.html#abc54e0578c263671d151c656ceccca77">Detach</a> (LPCWSTR msg, <a class="el" href="struct_cube_melon_1_1_i_component.html">IComponent</a> *listener)=0</td></tr>
+<tr class="memdesc:abc54e0578c263671d151c656ceccca77"><td class="mdescLeft">&#160;</td><td class="mdescRight">このコンポーネントとメッセージとの関連付けを解除します。  <a href="#abc54e0578c263671d151c656ceccca77">[詳細]</a><br/></td></tr>
+<tr class="separator:abc54e0578c263671d151c656ceccca77"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a092fdc5235166cefa2cfd1bc7d436246"><td class="memItemLeft" align="right" valign="top">virtual HRESULT __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_cube_melon_1_1_i_component.html#a092fdc5235166cefa2cfd1bc7d436246">GetInstance</a> (REFCLSID rclsid, REFIID riid, void **ppvObject)=0</td></tr>
+<tr class="memdesc:a092fdc5235166cefa2cfd1bc7d436246"><td class="mdescLeft">&#160;</td><td class="mdescRight">このコンポーネントが管理しているオブジェクトを取得します。  <a href="#a092fdc5235166cefa2cfd1bc7d436246">[詳細]</a><br/></td></tr>
+<tr class="separator:a092fdc5235166cefa2cfd1bc7d436246"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a757b7fbb439eff5b9ef7fdf96f7d29cc"><td class="memItemLeft" align="right" valign="top">virtual HRESULT __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_cube_melon_1_1_i_component.html#a757b7fbb439eff5b9ef7fdf96f7d29cc">Notify</a> (<a class="el" href="struct_cube_melon_1_1_i_msg_object.html">IMsgObject</a> *msg_obj)=0</td></tr>
+<tr class="memdesc:a757b7fbb439eff5b9ef7fdf96f7d29cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">メッセージを通知します。  <a href="#a757b7fbb439eff5b9ef7fdf96f7d29cc">[詳細]</a><br/></td></tr>
+<tr class="separator:a757b7fbb439eff5b9ef7fdf96f7d29cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c948534d8affa22c85e5d09d5af38e3"><td class="memItemLeft" align="right" valign="top">virtual HRESULT __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_cube_melon_1_1_i_component.html#a5c948534d8affa22c85e5d09d5af38e3">Start</a> (LPVOID args=nullptr, <a class="el" href="struct_cube_melon_1_1_i_component.html">IComponent</a> *listener=nullptr)=0</td></tr>
+<tr class="memdesc:a5c948534d8affa22c85e5d09d5af38e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">コンポーネントの実行を開始します。  <a href="#a5c948534d8affa22c85e5d09d5af38e3">[詳細]</a><br/></td></tr>
+<tr class="separator:a5c948534d8affa22c85e5d09d5af38e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a911af03b6d00c6c457428748626e2d"><td class="memItemLeft" align="right" valign="top">virtual HRESULT __stdcall&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_cube_melon_1_1_i_component.html#a2a911af03b6d00c6c457428748626e2d">Stop</a> (<a class="el" href="struct_cube_melon_1_1_i_component.html">IComponent</a> *listener=nullptr)=0</td></tr>
+<tr class="memdesc:a2a911af03b6d00c6c457428748626e2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">コンポーネントの実行を停止します。  <a href="#a2a911af03b6d00c6c457428748626e2d">[詳細]</a><br/></td></tr>
+<tr class="separator:a2a911af03b6d00c6c457428748626e2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">説明</h2>
+<div class="textblock"><p>コンポーネントの基幹インターフェイスです。 </p>
+</div><h2 class="groupheader">関数</h2>
+<a class="anchor" id="a87b391a926fd14f086b927f7d89f4a2f"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual HRESULT __stdcall CubeMelon::IComponent::Attach </td>
+          <td>(</td>
+          <td class="paramtype">LPCWSTR&#160;</td>
+          <td class="paramname"><em>msg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="struct_cube_melon_1_1_i_component.html">IComponent</a> *&#160;</td>
+          <td class="paramname"><em>listener</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>このコンポーネントとメッセージを関連付けます。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">msg</td><td>関連付けたいメッセージ </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">listener</td><td>メッセージの受け取り先コンポーネント </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>無事関連付けられたか </dd></dl>
+<dl class="retval"><dt>戻り値</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">S_OK</td><td>関連付け成功 </td></tr>
+    <tr><td class="paramname">S_FALSE</td><td>既に関連付けられている </td></tr>
+    <tr><td class="paramname">E_FAIL</td><td>関連付け失敗 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section attention"><dt>注意</dt><dd>引数に指定されたメッセージの文字列は、<br/>
+ 呼び出された側でコピーを作成し、保存する必要があります。 </dd></dl>
+
+<p><a class="el" href="class_cube_melon_1_1_output_component_base.html#aaeebd6685ad3a87770df70316cac28a6">CubeMelon::OutputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_input_component_base.html#a1461f7054f01c568a9fb0f7e1562644d">CubeMelon::InputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_u_i_component_base.html#acaf9f9ea665a40fecd4c589b377112ad">CubeMelon::UIComponentBase</a>, と <a class="el" href="class_cube_melon_1_1_component_base.html#a6a7f90ab09e5e449a63fa8adbcb6da6c">CubeMelon::ComponentBase</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a75c402024de4a02cf9b5a5164e103f49"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual REFCLSID __stdcall CubeMelon::IComponent::ClassID </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>コンポーネントのクラスIDを返します。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">なし</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>コンポーネントのクラスID </dd></dl>
+<dl class="retval"><dt>戻り値</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">CLSID_NULL</td><td>初期化エラー </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p><a class="el" href="class_cube_melon_1_1_output_component_base.html#a2e21539f207f9f1cb20aae8610ed51cd">CubeMelon::OutputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_input_component_base.html#a41f529adf5992a49eace32f8e003bb02">CubeMelon::InputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_u_i_component_base.html#a0544b2e036d7f670f72fea945895ce04">CubeMelon::UIComponentBase</a>, と <a class="el" href="class_cube_melon_1_1_component_base.html#a7daa4e7289d739d7452bd353c1b1c139">CubeMelon::ComponentBase</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="abc54e0578c263671d151c656ceccca77"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual HRESULT __stdcall CubeMelon::IComponent::Detach </td>
+          <td>(</td>
+          <td class="paramtype">LPCWSTR&#160;</td>
+          <td class="paramname"><em>msg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="struct_cube_melon_1_1_i_component.html">IComponent</a> *&#160;</td>
+          <td class="paramname"><em>listener</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>このコンポーネントとメッセージとの関連付けを解除します。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">msg</td><td>関連付けを解除したいメッセージ </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">listener</td><td>メッセージの受け取り先コンポーネント </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>無事解除できたか </dd></dl>
+<dl class="retval"><dt>戻り値</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">S_OK</td><td>解除成功 </td></tr>
+    <tr><td class="paramname">S_FALSE</td><td>そもそも登録されていなかった </td></tr>
+    <tr><td class="paramname">E_FAIL</td><td>解除失敗 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section attention"><dt>注意</dt><dd>引数に指定されたメッセージのメモリ領域を解放するのは、<br/>
+ 呼び出された側ではなく、呼び出した側の責任です。 </dd></dl>
+
+<p><a class="el" href="class_cube_melon_1_1_output_component_base.html#aa1eaad4c3fe68a011915876a4cad3527">CubeMelon::OutputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_input_component_base.html#af69b06613458bbb8667edf5532c644c2">CubeMelon::InputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_u_i_component_base.html#a14da7181f90ac75aafdb00ba4bc51997">CubeMelon::UIComponentBase</a>, と <a class="el" href="class_cube_melon_1_1_component_base.html#ac521a4c0d98f1cdc9442f07aeed7e548">CubeMelon::ComponentBase</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a092fdc5235166cefa2cfd1bc7d436246"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual HRESULT __stdcall CubeMelon::IComponent::GetInstance </td>
+          <td>(</td>
+          <td class="paramtype">REFCLSID&#160;</td>
+          <td class="paramname"><em>rclsid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">REFIID&#160;</td>
+          <td class="paramname"><em>riid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>ppvObject</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>このコンポーネントが管理しているオブジェクトを取得します。 </p>
+<p>指定されたクラスIDのオブジェクトを所有していない場合、<br/>
+ 呼び出された側は <b>親コンポーネントの <a class="el" href="struct_cube_melon_1_1_i_component.html#a092fdc5235166cefa2cfd1bc7d436246" title="このコンポーネントが管理しているオブジェクトを取得します。">GetInstance()</a> メソッドを呼び出します。</b> </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">rclsid</td><td>取得したいオブジェクトのクラスID </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">riid</td><td>取得したいオブジェクトのインターフェイスID </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">ppvObject</td><td>取得するオブジェクトの格納先アドレス </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>無事取得できたか </dd></dl>
+<dl class="retval"><dt>戻り値</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">S_OK</td><td></td></tr>
+    <tr><td class="paramname">E_FAIL</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p><a class="el" href="class_cube_melon_1_1_output_component_base.html#a10b05679395ccccbe3b45b2329f600f9">CubeMelon::OutputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_input_component_base.html#a1818f32b1b95a0e2eb96ed5e942e849f">CubeMelon::InputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_u_i_component_base.html#ae391099ea4d71e67b6b93bc63cb3670d">CubeMelon::UIComponentBase</a>, と <a class="el" href="class_cube_melon_1_1_component_base.html#a2816c1fa9153a73cca63f6a49eee0c26">CubeMelon::ComponentBase</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="adc54c8166c16c100091ef7f3908b2579"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual LPCWSTR __stdcall CubeMelon::IComponent::Name </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>このコンポーネントの名前を返します。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">なし</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>コンポーネントの名前 </dd></dl>
+
+<p><a class="el" href="class_cube_melon_1_1_output_component_base.html#a6393376f14bdb5b5a276cc881cef8c62">CubeMelon::OutputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_input_component_base.html#a6c482e0834f9af537ae2bfb38afcda25">CubeMelon::InputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_u_i_component_base.html#ae9fadac75ab9441fec480fa1e6fe03d5">CubeMelon::UIComponentBase</a>, と <a class="el" href="class_cube_melon_1_1_component_base.html#ac93fe5e9d5eb4a723ea804057dabf8bc">CubeMelon::ComponentBase</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a757b7fbb439eff5b9ef7fdf96f7d29cc"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual HRESULT __stdcall CubeMelon::IComponent::Notify </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="struct_cube_melon_1_1_i_msg_object.html">IMsgObject</a> *&#160;</td>
+          <td class="paramname"><em>msg_obj</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>メッセージを通知します。 </p>
+<p>このメソッド内では、さらに別のコンポーネントに<br/>
+ <a class="el" href="struct_cube_melon_1_1_i_component.html#a757b7fbb439eff5b9ef7fdf96f7d29cc" title="メッセージを通知します。">Notify()</a> メソッドを通じてメッセージを再送することがあります。<br/>
+ 呼び出し先でのメッセージの再送は <b>同期と非同期 両方</b>の場合があります。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">msg_obj</td><td>メッセージオブジェクト </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>通知に対する応答 </dd></dl>
+<dl class="retval"><dt>戻り値</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">S_OK</td><td>メッセージは適切に処理された </td></tr>
+    <tr><td class="paramname">S_OK_ASYNC</td><td>メッセージは非同期的に別のオブジェクトに再送された </td></tr>
+    <tr><td class="paramname">S_FALSE</td><td>メッセージは受け取ったが、何もしなかった </td></tr>
+    <tr><td class="paramname">E_FAIL</td><td>メッセージを適切に処理できなかった </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section attention"><dt>注意</dt><dd>呼び出し側は、通知する前に<br/>
+ メッセージオブジェクトの AddRef() メソッドを呼び出必要があります。<br/>
+ また呼び出された側は、このメソッド内で必ず<br/>
+ メッセージオブジェクトの Release() メソッドを呼び出さなければなりません。 </dd></dl>
+
+<p><a class="el" href="class_cube_melon_1_1_output_component_base.html#a0584cbc52957a897bfaf497dfd8e12d8">CubeMelon::OutputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_input_component_base.html#a5d766a4c08783e8ab41200a6d83b3864">CubeMelon::InputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_u_i_component_base.html#ab373f1438ac24a40268e4cd089461a6b">CubeMelon::UIComponentBase</a>, と <a class="el" href="class_cube_melon_1_1_component_base.html#a36c01a028d4feea25d0d74a2e4972a80">CubeMelon::ComponentBase</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a8b9b3a8bf37a7d6196ac591e134f9ec1"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="struct_cube_melon_1_1_i_component.html">IComponent</a>* __stdcall CubeMelon::IComponent::Owner </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>このコンポーネントを所有している親コンポーネントを返します。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">なし</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>親コンポーネント </dd></dl>
+<dl class="retval"><dt>戻り値</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">nullptr</td><td>親コンポーネントを持っていない </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p><a class="el" href="class_cube_melon_1_1_output_component_base.html#a13de4b9c0c1a6a94cac67c3ed635bb3c">CubeMelon::OutputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_input_component_base.html#a08051a4ae9e996cad55853a1965acbdc">CubeMelon::InputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_u_i_component_base.html#a50892274275a37156fc01a33dee86e98">CubeMelon::UIComponentBase</a>, と <a class="el" href="class_cube_melon_1_1_component_base.html#a23e5d0c493a74ad9bcd1ad5bb144c378">CubeMelon::ComponentBase</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="afd7e9407fbf3b89910b432b0dae0909b"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="struct_cube_melon_1_1_i_prop_manager.html">IPropManager</a>* __stdcall CubeMelon::IComponent::PropManager </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>このコンポーネントのプロパティ管理オブジェクトを返します。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">なし</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>プロパティ管理オブジェクト </dd></dl>
+<dl class="retval"><dt>戻り値</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">nullptr</td><td>不明なエラー </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p><a class="el" href="class_cube_melon_1_1_output_component_base.html#aa23344812ce2942ae14ebdcb234f26da">CubeMelon::OutputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_input_component_base.html#a2ab46765e75a775a916206c63a15f09c">CubeMelon::InputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_u_i_component_base.html#a946f5a5399535ece0f52274b7f835a70">CubeMelon::UIComponentBase</a>, と <a class="el" href="class_cube_melon_1_1_component_base.html#a02c12fa983a7a9d11b01d548955ee7a9">CubeMelon::ComponentBase</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a5c948534d8affa22c85e5d09d5af38e3"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual HRESULT __stdcall CubeMelon::IComponent::Start </td>
+          <td>(</td>
+          <td class="paramtype">LPVOID&#160;</td>
+          <td class="paramname"><em>args</em> = <code>nullptr</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="struct_cube_melon_1_1_i_component.html">IComponent</a> *&#160;</td>
+          <td class="paramname"><em>listener</em> = <code>nullptr</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>コンポーネントの実行を開始します。 </p>
+<p>開始後、コンポーネントの状態には STATE_ACTIVE フラグが立ちます。</p>
+<p>listener に nullptr 以外を渡した場合、<br/>
+ 結果は <a class="el" href="struct_cube_melon_1_1_i_component.html#a757b7fbb439eff5b9ef7fdf96f7d29cc" title="メッセージを通知します。">Notify()</a> メソッドを通じて非同期で送信されます。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">args</td><td>実行パラメータ </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">listener</td><td>非同期メッセージを受け取るコンポーネント </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>無事開始できたか </dd></dl>
+<dl class="retval"><dt>戻り値</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">S_OK</td><td>無事開始できた </td></tr>
+    <tr><td class="paramname">S_OK_ASYNC</td><td>非同期処理を開始した </td></tr>
+    <tr><td class="paramname">S_FALSE</td><td>既に実行中である </td></tr>
+    <tr><td class="paramname">E_FAIL</td><td>実行開始できなかった </td></tr>
+    <tr><td class="paramname">E_FAIL</td><td>非同期処理を開始できなかった </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p><a class="el" href="class_cube_melon_1_1_output_component_base.html#ad527b84c129e4df1690870c54cfc52d6">CubeMelon::OutputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_input_component_base.html#a8dc5f9c39ef0e66f21deb07c3404be84">CubeMelon::InputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_u_i_component_base.html#ae427943aacab42adddbaf51593cc1dbb">CubeMelon::UIComponentBase</a>, と <a class="el" href="class_cube_melon_1_1_component_base.html#aacbb6e72199dbeb3c3d8db7e63686fda">CubeMelon::ComponentBase</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="aede8792d80ca9f7d23cad33182fdcf41"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual STATE __stdcall CubeMelon::IComponent::Status </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>このコンポーネントの状態を返します。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">なし</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>コンポーネントの状態 </dd></dl>
+<dl class="retval"><dt>戻り値</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">STATE_IDLE</td><td>= 0; //コンポーネントはアイドル状態 </td></tr>
+    <tr><td class="paramname">STATE_ACTIVE</td><td>= 1; //コンポーネントは実行中 </td></tr>
+    <tr><td class="paramname">STATE_TERMINATING</td><td>= -1; //コンポーネントは解放処理中 </td></tr>
+    <tr><td class="paramname">他、実装による</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p><a class="el" href="class_cube_melon_1_1_output_component_base.html#a35ca76b18fc976c68d46f48f3c886e26">CubeMelon::OutputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_input_component_base.html#a124e2d185bd1126e377e32cb97c69780">CubeMelon::InputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_u_i_component_base.html#a0fd39598316b46e7d6aac21c8afc5ed4">CubeMelon::UIComponentBase</a>, と <a class="el" href="class_cube_melon_1_1_component_base.html#a95c3596d0dd7e035b9c7acf2fdab4fde">CubeMelon::ComponentBase</a>で実装されています。</p>
+
+</div>
+</div>
+<a class="anchor" id="a2a911af03b6d00c6c457428748626e2d"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual HRESULT __stdcall CubeMelon::IComponent::Stop </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="struct_cube_melon_1_1_i_component.html">IComponent</a> *&#160;</td>
+          <td class="paramname"><em>listener</em> = <code>nullptr</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>コンポーネントの実行を停止します。 </p>
+<p>停止後、コンポーネントの状態からは STATE_ACTIVE フラグが取り除かれます。<br/>
+</p>
+<p>listener に nullptr 以外を渡した場合、<br/>
+ 結果は <a class="el" href="struct_cube_melon_1_1_i_component.html#a757b7fbb439eff5b9ef7fdf96f7d29cc" title="メッセージを通知します。">Notify()</a> メソッドを通じて非同期で送信されます。 </p>
+<dl class="params"><dt>引数</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">listener</td><td>非同期メッセージを受け取るコンポーネント </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>戻り値</dt><dd>無事停止できたか </dd></dl>
+<dl class="retval"><dt>戻り値</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">S_OK</td><td>無事停止できた </td></tr>
+    <tr><td class="paramname">S_OK_ASYNC</td><td>非同期処理を開始した </td></tr>
+    <tr><td class="paramname">S_FALSE</td><td>既に停止していた </td></tr>
+    <tr><td class="paramname">E_FAIL</td><td>停止できなかった </td></tr>
+    <tr><td class="paramname">E_FAIL</td><td>非同期処理を開始できなかった </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p><a class="el" href="class_cube_melon_1_1_output_component_base.html#a355b76a9665c9aeadb30142f74dd2a36">CubeMelon::OutputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_input_component_base.html#a378986267ca8a68b8e974d2b8e64178b">CubeMelon::InputComponentBase</a>, <a class="el" href="class_cube_melon_1_1_u_i_component_base.html#a55e2ced1a6a880f9a067b617f452f2f8">CubeMelon::UIComponentBase</a>, と <a class="el" href="class_cube_melon_1_1_component_base.html#a89958279b84bedda8bb756f7274c6103">CubeMelon::ComponentBase</a>で実装されています。</p>
+
+</div>
+</div>
+<hr/>このインタフェースの説明は次のファイルから生成されました:<ul>
+<li>include/<a class="el" href="_interfaces_8h_source.html">Interfaces.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><b>CubeMelon</b></li><li class="navelem"><a class="el" href="struct_cube_melon_1_1_i_component.html">IComponent</a></li>
+    <li class="footer">CubeMelonに対してFri Sep 20 2013 00:37:22に生成されました。
+    <a href="http://www.doxygen.org/index.html">
+    <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.3.1 </li>
+  </ul>
+</div>
+</body>
+</html>

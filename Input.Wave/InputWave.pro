@@ -15,11 +15,14 @@ SOURCES += \
     ../include/DWM.cpp \
     ../include/DebugPrint.cpp \
     ../include/LockModule.cpp \
-    configurationwindow.cpp \
+    ../include/InputComponentBase.cpp \
+    ../include/Module.PropManager.cpp \
     ClassFactory.cpp \
-    PropertyStore.cpp \
+    configurationwindow.cpp \
     DllMain.cpp \
-    Wave.cpp
+    Component.PropManager.cpp \
+    Wave.cpp \
+    WorkerThread.cpp
 
 HEADERS += \
     ../include/DWM.h \
@@ -27,9 +30,12 @@ HEADERS += \
     ../include/Interfaces.h \
     ../include/LockModule.h \
     ../include/ClassFactory.h \
-    ../include/Property.h \
+    ../include/ComponentBase.h \
+    ../include/PropManager.h \
     configurationwindow.h \
-    Wave.h
+    Component.PropManager.h \
+    Wave.h \
+    WorkerThread.h \
 
 unix:!symbian {
     maemo5 {

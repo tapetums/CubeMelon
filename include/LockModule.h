@@ -6,8 +6,10 @@
 
 extern ULONG g_cLocks;
 
-extern void LockModule();
-extern void UnlockModule();
+//---------------------------------------------------------------------------//
+
+void LockModule();
+void UnlockModule();
 
 //---------------------------------------------------------------------------//
 

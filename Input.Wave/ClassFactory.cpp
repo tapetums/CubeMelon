@@ -5,6 +5,8 @@
 #include "..\include\LockModule.h"
 #include "..\include\ClassFactory.h"
 #include "..\include\Interfaces.h"
+#include "..\include\ComponentBase.h"
+
 #include "Wave.h"
 
 //---------------------------------------------------------------------------//

@@ -1,15 +1,18 @@
 ﻿// UI.SimplePlayer.DllMain.cpp
 
 #include <windows.h>
-#include <propsys.h>
 
 #include "..\include\LockModule.h"
 #include "..\include\ClassFactory.h"
-#include "..\include\PropertyStore.h"
+#include "..\include\Interfaces.h"
+#include "..\include\PropManager.h"
 
 //---------------------------------------------------------------------------//
 
-extern const CLSID CLSID_Component;
+namespace CubeMelon
+{
+    extern const CLSID CLSID_Component;
+}
 
 //---------------------------------------------------------------------------//
 
@@ -49,31 +52,6 @@ STDAPI DllConfigure(HWND hwndParent = nullptr)
 
 //---------------------------------------------------------------------------//
 
-STDAPI DllGetProperty(size_t index, IPropertyStore** ps)
-{
-    if ( nullptr == ps )
-    {
-        return E_INVALIDARG;
-    }
-
-    if ( index == 0 )
-    {
-        static CubeMelon::PropertyStore prop;
-        *ps = &prop;
-        (*ps)->AddRef();
-
-        return S_OK;
-    }
-    else
-    {
-        *ps = nullptr;
-
-        return CLASS_E_CLASSNOTAVAILABLE;
-    }
-}
-
-//---------------------------------------------------------------------------//
-
 STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, void** ppvObject)
 {
     if ( nullptr == ppvObject )
@@ -83,7 +61,7 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, void** ppvObject)
 
     *ppvObject = nullptr;
 
-    if ( !IsEqualCLSID(rclsid, CLSID_Component) )
+    if ( !IsEqualCLSID(rclsid, CubeMelon::CLSID_Component) )
     {
         return CLASS_E_CLASSNOTAVAILABLE;
     }
@@ -99,5 +77,28 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, void** ppvObject)
         return E_NOINTERFACE;
     }
 }
+
+//---------------------------------------------------------------------------//
+
+STDAPI DllGetPropManager(size_t index, CubeMelon::IPropManager** pm)
+{
+    if ( nullptr == pm )
+    {
+        return E_INVALIDARG;
+    }
+
+    if ( index == 0 )
+    {
+        *pm = new CubeMelon::PropManager;
+        return S_OK;
+    }
+    else
+    {
+        *pm = nullptr;
+        return CLASS_E_CLASSNOTAVAILABLE;
+    }
+}
+
+//---------------------------------------------------------------------------//
 
 // UI.SimplePlayer.DllMain.cpp

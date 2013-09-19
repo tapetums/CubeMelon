@@ -4,7 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += widgets
+QT       += core gui
+
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = UI.SimplePlayer
 TEMPLATE = lib
@@ -13,19 +15,21 @@ SOURCES += \
     ../include/DWM.cpp \
     ../include/DebugPrint.cpp \
     ../include/LockModule.cpp \
+    ../include/UIComponentBase.cpp \
+    ../include/Module.PropManager.cpp \
+    ClassFactory.cpp \
     mainwindow.cpp \
     DllMain.cpp \
-    ClassFactory.cpp \
-    SimplePlayer.cpp \
-    PropertyStore.cpp
+    SimplePlayer.cpp
 
 HEADERS += \
     ../include/DWM.h \
     ../include/DebugPrint.h \
-    ../include/Interfaces.h \
     ../include/LockModule.h \
+    ../include/Interfaces.h \
     ../include/ClassFactory.h \
-    ../include/Property.h \
+    ../include/ComponentBase.h \
+    ../include/PropManager.h \
     mainwindow.h \
     SimplePlayer.h
 

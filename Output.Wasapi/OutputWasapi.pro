@@ -11,27 +11,29 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = Output.Wasapi
 TEMPLATE = lib
 
-
 SOURCES += \
     ../include/DWM.cpp \
     ../include/DebugPrint.cpp \
     ../include/LockModule.cpp \
-    configurationwindow.cpp \
+    ../include/OutputComponentBase.cpp \
+    ../include/Module.PropManager.cpp \
     ClassFactory.cpp \
-    PropertyStore.cpp \
+    configurationwindow.cpp \
     DllMain.cpp \
-    Wasapi.cpp
+    Wasapi.cpp \
+    WorkerThread.cpp
 
 HEADERS += \
     ../include/DWM.h \
     ../include/DebugPrint.h \
-    ../include/Interfaces.h \
     ../include/LockModule.h \
+    ../include/Interfaces.h \
     ../include/ClassFactory.h \
-    ../include/PropertyStore.h \
-    ../include/IOPlugin.h \
+    ../include/ComponentBase.h \
+    ../include/PropManager.h \
     configurationwindow.h \
     Wasapi.h \
+    WorkerThread.h
 
 unix:!symbian {
     maemo5 {
