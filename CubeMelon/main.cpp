@@ -7,7 +7,6 @@
 
 #include "..\include\DebugPrint.h"
 #include "..\include\LockModule.h"
-#include "..\include\ClassFactory.h"
 #include "..\include\Interfaces.h"
 #include "..\include\ComponentBase.h"
 #include "..\include\PropManager.h"
@@ -34,37 +33,34 @@ int main()
 
     // アプリケーションインスタンスの生成
     int c = 0;
-    QApplication a(c, nullptr);
+    QApplication app(c, nullptr);
 
     // ホストコンポーネントの起動
     auto host = new CubeMelon::Host;
     host->Start();
 
     // メッセージループ
-    DebugPrintLn(TEXT("---------------- Message Loop Begin ----------------"));
-    auto ret = a.exec();
-    DebugPrintLn(TEXT("----------------  Message Loop End  ----------------"));
-
-    // たまにUIスレッドの破棄が間に合わないので少し待つ
-    ::Sleep(100);
+    DebugPrintLn(TEXT(""));
+    DebugPrintLn(TEXT("---------------- Message Loop ----------------"));
+    DebugPrintLn(TEXT(""));
+    auto ret = app.exec();
+    DebugPrintLn(TEXT(""));
+    DebugPrintLn(TEXT("---------------- Message Loop ----------------"));
+    DebugPrintLn(TEXT(""));
 
     // ホストコンポーネントの終了
+    host->Stop();
     host->Release();
     host = nullptr;
+
+    // たまにUIスレッドの破棄が間に合わないので少し待つ。これはQt側の問題
+    ::Sleep(1000);
 
     // COMの後始末
     ::CoUninitialize();
 
     DebugPrintLn(TEXT("**************************************************"));
-
-    if ( g_cLocks )
-    {
-        DebugPrintLn(TEXT("\tMemory leaked!!!    %d"), g_cLocks);
-    }
-    else
-    {
-        DebugPrintLn(TEXT("\tNormal termination    %d"), g_cLocks);
-    }
+    DebugPrintLn(TEXT("\tRemaining g_cLock: %05d"), g_cLocks);
 
     return ret;
 }
@@ -87,28 +83,7 @@ STDAPI DllConfigure(HWND hwndParent = nullptr)
 
 STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, void** ppvObject)
 {
-    if ( nullptr == ppvObject )
-    {
-        return E_INVALIDARG;
-    }
-
-    *ppvObject = nullptr;
-
-    if ( !IsEqualCLSID(rclsid, CubeMelon::CLSID_Component) )
-    {
-        return CLASS_E_CLASSNOTAVAILABLE;
-    }
-
-    if ( IsEqualIID(riid, IID_IClassFactory) )
-    {
-        static ClassFactory factory;
-
-        return factory.QueryInterface(riid, ppvObject);
-    }
-    else
-    {
-        return E_NOINTERFACE;
-    }
+    return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//

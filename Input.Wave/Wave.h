@@ -4,15 +4,19 @@
 
 //---------------------------------------------------------------------------//
 
+#define COMP_CLASS_NAME Wave
+
+//---------------------------------------------------------------------------//
+
 namespace CubeMelon {
 
 //---------------------------------------------------------------------------//
 
-class Wave : public InputComponentBase
+class COMP_CLASS_NAME : public InputComponentBase
 {
 public:
-    explicit Wave(IUnknown* pUnkOuter);
-    ~Wave();
+    explicit COMP_CLASS_NAME(IUnknown* pUnkOuter);
+    ~COMP_CLASS_NAME();
 
     HRESULT __stdcall Notify(IMsgObject* msg_obj) override;
     HRESULT __stdcall Start(LPVOID args = nullptr, IComponent* listener = nullptr) override;
@@ -26,7 +30,7 @@ public:
     HRESULT __stdcall Read(LPVOID buffer, size_t buf_size, size_t* cb_read, IComponent* listener = nullptr) override;
 
 protected:
-    bool IsSupportedExtention(LPCWSTR path) const;
+    bool IsSupportedExtension(LPCWSTR path) const;
     bool IsSupportedFormat(LPCWSTR format) const;
 
     HRESULT CloseSync();

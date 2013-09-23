@@ -102,6 +102,8 @@ HRESULT __stdcall CompAdapter::Impl::Free()
 {
     DebugPrintLn(NAME2 TEXT("::Impl::Free() begin"));
 
+    DebugPrintLn(file_path);
+
     if ( clsid )
     {
         clsid->Release();
@@ -135,22 +137,24 @@ HRESULT __stdcall CompAdapter::Impl::Free()
 
     if ( nullptr == hModule )
     {
-        DebugPrintLn(TEXT("Already Freed"));
+        DebugPrintLn(TEXT(". Already Freed"));
+        DebugPrintLn(NAME2 TEXT("::Impl::Free() end"));
         return S_FALSE;
     }
 
     auto hr = DllCanUnloadNow();
     if ( S_OK != hr )
     {
-        DebugPrintLn(TEXT("Module is locked"));
+        DebugPrintLn(TEXT(". Module is locked"));
+        DebugPrintLn(NAME2 TEXT("::Impl::Free() end"));
         return E_FAIL;
     }
 
-    DebugPrintLn(TEXT("Freeing DLL..."));
+    DebugPrintLn(TEXT(". Freeing DLL..."));
     {
         ::FreeLibrary(hModule);
     }
-    DebugPrintLn(TEXT("Freed DLL"));
+    DebugPrintLn(TEXT(". Freed DLL"));
 
     hModule           = nullptr;
     DllCanUnloadNow   = nullptr;
@@ -177,7 +181,8 @@ HRESULT __stdcall CompAdapter::Impl::GetTypicalProperties()
     }
     if ( nullptr == this->prop_mgr )
     {
-        DebugPrintLn(TEXT("No object at index == %d"), this->index);
+        DebugPrintLn(TEXT(". No object at index == %d"), this->index);
+        DebugPrintLn(NAME2 TEXT("::Impl::GetTypicalProperties() end"));
         return hr;
     }
 
@@ -186,7 +191,7 @@ HRESULT __stdcall CompAdapter::Impl::GetTypicalProperties()
     this->prop_mgr->GetByName(TEXT("ClassID"), &prop);
     if ( prop )
     {
-        DebugPrintLn(TEXT("Getting ClassID..."));
+        DebugPrintLn(TEXT(". Getting ClassID..."));
 
         this->clsid = prop;
 
@@ -203,7 +208,7 @@ HRESULT __stdcall CompAdapter::Impl::GetTypicalProperties()
     this->prop_mgr->GetByName(TEXT("Name"), &prop);
     if ( prop )
     {
-        DebugPrintLn(TEXT("Getting component name..."));
+        DebugPrintLn(TEXT(". Getting component name..."));
 
         this->name = prop;
 
@@ -213,7 +218,7 @@ HRESULT __stdcall CompAdapter::Impl::GetTypicalProperties()
     this->prop_mgr->GetByName(TEXT("Description"), &prop);
     if ( prop )
     {
-        DebugPrintLn(TEXT("Getting component description..."));
+        DebugPrintLn(TEXT(". Getting component description..."));
 
         this->description = prop;
 
@@ -223,7 +228,7 @@ HRESULT __stdcall CompAdapter::Impl::GetTypicalProperties()
     this->prop_mgr->GetByName(TEXT("Copyright"), &prop);
     if ( prop )
     {
-        DebugPrintLn(TEXT("Getting component copyright information..."));
+        DebugPrintLn(TEXT(". Getting component copyright information..."));
 
         this->copyright = prop;
 
@@ -233,6 +238,8 @@ HRESULT __stdcall CompAdapter::Impl::GetTypicalProperties()
     this->prop_mgr->GetByName(TEXT("VersionInfo"), &prop);
     if ( prop )
     {
+        DebugPrintLn(TEXT(". Getting version information..."));
+
         this->version = prop;
 
         auto ver = this->version->Data()->version;
@@ -247,7 +254,7 @@ HRESULT __stdcall CompAdapter::Impl::GetTypicalProperties()
 
     if ( nullptr == this->clsid )
     {
-        DebugPrintLn(TEXT("Failed to get ClassID"));
+        DebugPrintLn(TEXT(". Failed to get ClassID"));
         return E_FAIL;
     }
 
@@ -336,9 +343,9 @@ ULONG __stdcall CompAdapter::Release()
     LONG cRef = ::InterlockedDecrement(&m_cRef);
     if ( cRef == 0 )
     {
-        DebugPrintLn(TEXT("Deleting..."));
+        DebugPrintLn(TEXT(". Deleting..."));
         delete this;
-        DebugPrintLn(TEXT("Deleted"));
+        DebugPrintLn(TEXT(". Deleted"));
     }
 
     UnlockModule();
@@ -422,7 +429,8 @@ HRESULT __stdcall CompAdapter::Load(LPCWSTR file_path, size_t index)
 
     if ( pimpl->hModule )
     {
-        DebugPrintLn(TEXT("Already loaded"));
+        DebugPrintLn(TEXT(". Already loaded"));
+        DebugPrintLn(NAME2 TEXT("::Load() end"));
         return S_FALSE;
     }
 
@@ -477,7 +485,7 @@ HRESULT __stdcall CompAdapter::Load(LPCWSTR file_path, size_t index)
     auto hr = pimpl->GetTypicalProperties();
     if ( FAILED(hr) )
     {
-        DebugPrintLn(TEXT("Failed to retrieve component information"));
+        DebugPrintLn(NAME2 TEXT("::Load() end"));
         return hr;
     }
 
@@ -486,7 +494,8 @@ HRESULT __stdcall CompAdapter::Load(LPCWSTR file_path, size_t index)
     return S_OK;
 
 FREE_DLL:
-    DebugPrintLn(TEXT("This dll file does not have full implementation as a CubeMelon component"));
+    DebugPrintLn(TEXT(". This dll file does not have full implementation as a CubeMelon component"));
+    DebugPrintLn(NAME2 TEXT("::Load() end"));
     pimpl->Free();
 
     return E_FAIL;
@@ -525,7 +534,8 @@ HRESULT __stdcall CompAdapter::CreateInstance
 
     if ( nullptr == pimpl->hModule )
     {
-        DebugPrintLn(TEXT("Module file is not yet open"));
+        DebugPrintLn(TEXT(". Module file is not yet open"));
+        DebugPrintLn(NAME2 TEXT("::CreateInstance() end"));
         return E_FAIL;
     }
 
@@ -536,7 +546,8 @@ HRESULT __stdcall CompAdapter::CreateInstance
     );
     if ( nullptr == factory )
     {
-        DebugPrintLn(TEXT("Could not get factory object"));
+        DebugPrintLn(TEXT(". Could not get factory object"));
+        DebugPrintLn(NAME2 TEXT("::CreateInstance() end"));
         return hr;
     }
 
@@ -548,7 +559,8 @@ HRESULT __stdcall CompAdapter::CreateInstance
     factory = nullptr;
     if ( nullptr == *ppvObject )
     {
-        DebugPrintLn(TEXT("Could not create new instance"));
+        DebugPrintLn(TEXT(". Could not create new instance"));
+        DebugPrintLn(NAME2 TEXT("::CreateInstance() end"));
         return hr;
     }
 
@@ -634,7 +646,7 @@ void __stdcall CompManager::Impl::ScanDirectory(LPCWSTR dir_path)
 
     WCHAR path[MAX_PATH];
     ::StringCchPrintf(path, MAX_PATH, TEXT("%s\\*"), dir_path);
-    DebugPrintLn(TEXT("Scanning..."));
+    DebugPrintLn(TEXT(". Scanning..."));
     DebugPrintLn(path);
 
     // フォルダ内にあるものを列挙する
@@ -648,33 +660,33 @@ void __stdcall CompManager::Impl::ScanDirectory(LPCWSTR dir_path)
         );
         if ( ret == IDYES )
         {
-            DebugPrintLn(TEXT("Creating components directory..."));
+            DebugPrintLn(TEXT(". . Creating components directory..."));
             ::CreateDirectory(dir_path, nullptr);
-            DebugPrintLn(TEXT("Created."));
+            DebugPrintLn(TEXT(". . Created components directory"));
         }
         return;
     }
 
     do
     {
-        DebugPrintLn(TEXT("Checking file attribute..."));
+        DebugPrintLn(TEXT(". Checking file attribute..."));
         DebugPrintLn(fd.cFileName);
 
         // ファイル名がピリオドで始まっているものは飛ばす
         if ( fd.cFileName && fd.cFileName[0] == '.' )
         {
-            DebugPrintLn(TEXT("This is a dot file"));
+            DebugPrintLn(TEXT(". . This is a dot file"));
             continue;
         }
 
         // 隠し属性を持つものは飛ばす
         if ( fd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN )
         {
-            DebugPrintLn(TEXT("This is a hidden file"));
+            DebugPrintLn(TEXT(". . This is a hidden file"));
             continue;
         }
 
-        DebugPrintLn(TEXT("Checked file attribute"));
+        DebugPrintLn(TEXT(". Checked file attribute"));
 
         // フルパスを合成
         ::StringCchPrintf
@@ -701,7 +713,7 @@ void __stdcall CompManager::Impl::ScanDirectory(LPCWSTR dir_path)
             }
         }
 
-        DebugPrintLn(TEXT("Next file"));
+        DebugPrintLn(TEXT(". Next file"));
     }
     while ( ::FindNextFile(hFindFile, &fd) == TRUE );
 
@@ -723,14 +735,14 @@ void __stdcall CompManager::Impl::RegisterComponent(LPCWSTR comp_path)
     // DLLファイルに含まれているクラスIDを全て取得
     for ( size_t index = 0; index < MAX_COMPONENT_COUNT ; ++index )
     {
-        DebugPrintLn(TEXT("Searching ClassIDs: index == %d"), index);
+        DebugPrintLn(TEXT(". Searching ClassIDs: index == %d"), index);
 
         // コンポーネント情報を管理するオブジェクトを生成
         adapter = new CompAdapter();
         auto hr = adapter->Load(comp_path, index);
         if ( FAILED(hr) )
         {
-            DebugPrintLn(TEXT("No more component in this DLL"));
+            DebugPrintLn(TEXT(". . No more component in this DLL"));
             adapter->Release();
             adapter = nullptr;
             break;
@@ -740,27 +752,29 @@ void __stdcall CompManager::Impl::RegisterComponent(LPCWSTR comp_path)
         clsid = adapter->ClassID();
 
         // 同じクラスIDがすでに登録されていないか確認
-        DebugPrintLn(TEXT("Checking ClassID..."));
+        DebugPrintLn(TEXT(". Checking ClassID..."));
         {
             auto it = this->cmap.find(clsid);
             if ( it != this->cmap.end() )
             {
-                DebugPrintLn(TEXT("Duplicate ClassID"));
+                DebugPrintLn(TEXT(". . Duplicate ClassID"));
                 adapter->Release();
                 adapter = nullptr;
                 continue;
             }
         }
-        DebugPrintLn(TEXT("Checked ClassID: no duplicate"));
+        DebugPrintLn(TEXT(". Checked ClassID: no duplicate"));
 
         // コンポーネント情報を本体のデータベースに記憶
-        DebugPrintLn(TEXT("Registering component..."));
+        DebugPrintLn(TEXT(". Registering component..."));
         {
             this->cmap[clsid] = ComPtr<ICompAdapter>(adapter);
+            // adapter はこのあと LoadAll() 内で配列にも参照を格納するので、
+            // Release() メソッドは呼び出さない
         }
-        DebugPrintLn(TEXT("Registered component"));
+        DebugPrintLn(TEXT(". Registered component"));
     }
-    DebugPrintLn(TEXT("Searched ClassIDs"));
+    DebugPrintLn(TEXT(". Searched ClassIDs"));
 
     DebugPrintLn(NAME1 TEXT("::RegisterComponent() end"));
 }
@@ -845,9 +859,9 @@ ULONG __stdcall CompManager::Release()
     LONG cRef = ::InterlockedDecrement(&m_cRef);
     if ( cRef == 0 )
     {
-        DebugPrintLn(TEXT("Deleting..."));
+        DebugPrintLn(TEXT(". Deleting..."));
         delete this;
-        DebugPrintLn(TEXT("Deleted"));
+        DebugPrintLn(TEXT(". Deleted"));
     }
 
     UnlockModule();
@@ -902,22 +916,24 @@ ICompAdapter* __stdcall CompManager::Find(REFCLSID rclsid) const
     auto it = pimpl->cmap.find(rclsid);
     if ( it == pimpl->cmap.end() )
     {
-        DebugPrintLn(TEXT("Not found"));
+        DebugPrintLn(TEXT(". Not found"));
+        DebugPrintLn(NAME1 TEXT("::Find() end"));
         return nullptr;
     }
 
-    auto ca = it->second.GetInterface();
-    if ( nullptr == ca )
+    auto adapter = it->second.GetInterface();
+    if ( nullptr == adapter )
     {
-        DebugPrintLn(TEXT("GetInterface() failed"));
+        DebugPrintLn(TEXT(". GetInterface() failed"));
+        DebugPrintLn(NAME1 TEXT("::Find() end"));
         return nullptr;
     }
 
-    ca->AddRef();
+    adapter->AddRef();
 
     DebugPrintLn(NAME1 TEXT("::Find() end"));
 
-    return ca;
+    return adapter;
 }
 
 //---------------------------------------------------------------------------//
@@ -929,16 +945,16 @@ HRESULT __stdcall CompManager::LoadAll(LPCWSTR dir_path)
     // コンポーネントデータベースを一旦破棄
     if ( pimpl->count )
     {
-        DebugPrintLn(TEXT("Resetting component database..."));
+        DebugPrintLn(TEXT(". Resetting component database..."));
 
         auto hr = this->FreeAll();
         if ( hr != S_OK )
         {
-            DebugPrintLn(TEXT("Couldn't start loading"));
+            DebugPrintLn(TEXT(". . Couldn't start loading"));
             return E_FAIL;
         }
 
-        DebugPrintLn(TEXT("Resetted component database"));
+        DebugPrintLn(TEXT(". Resetted component database"));
     }
 
     // フォルダのパスを内部変数にコピー
@@ -954,11 +970,11 @@ HRESULT __stdcall CompManager::LoadAll(LPCWSTR dir_path)
     pimpl->count = pimpl->cmap.size();
     if ( pimpl->count < 1 )
     {
-        DebugPrintLn(TEXT("No component found"));
+        DebugPrintLn(TEXT(". No component found"));
     }
     else
     {
-        DebugPrintLn(TEXT("No more component"));
+        DebugPrintLn(TEXT(". No more component"));
     }
 
     // コンポーネントデータベースを構築
@@ -969,6 +985,8 @@ HRESULT __stdcall CompManager::LoadAll(LPCWSTR dir_path)
     for ( size_t i = 0; it != itE; ++i, ++it )
     {
         pimpl->comps[i] = it->second.GetInterface();
+        // Impl::RegisterComponent() 内で参照カウントが増えたままなので、
+        // ここで AddRef() メソッドは呼び出さない
     }
     pimpl->comps[pimpl->count] = nullptr; // 配列はNULL終端
 
@@ -997,17 +1015,17 @@ HRESULT __stdcall CompManager::FreeAll()
     }
     if ( freed == 0 )
     {
-        DebugPrintLn(TEXT("Freed nothing"));
+        DebugPrintLn(TEXT(". Freed nothing"));
         hr = E_FAIL;
     }
     else if ( freed == count )
     {
-        DebugPrintLn(TEXT("Freed all"));
+        DebugPrintLn(TEXT(". Freed all"));
         hr = S_OK;
     }
     else
     {
-        DebugPrintLn(TEXT("Did not free all"));
+        DebugPrintLn(TEXT(". Did not free all"));
         hr = S_FALSE;
     }
 

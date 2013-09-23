@@ -31,22 +31,19 @@ ComponentBase::ComponentBase(IUnknown* pUnkOuter)
 
     m_notify_map = new NotifyMap;
 
-    m_cRef  = 0;
-    m_state = STATE_IDLE;
-    m_owner = nullptr;
-
-    DllGetPropManager(COMP_INDEX, &m_prop_mgr);
+    m_cRef     = 0;
+    m_state    = STATE_IDLE;
+    m_owner    = nullptr;
+    m_prop_mgr = nullptr;
 
     if ( pUnkOuter )
     {
+        DebugPrintLn(TEXT(". Getting owner's interface..."));
         auto hr = pUnkOuter->QueryInterface
         (
             IID_IComponent, (void**)&m_owner
         );
-        if ( FAILED(hr) )
-        {
-            m_owner = nullptr;
-        }
+        DebugPrintLn(TEXT(". Got owner's interface"));
     }
 
     this->AddRef();
@@ -69,15 +66,16 @@ ComponentBase::~ComponentBase()
     }
     if ( m_owner )
     {
-        DebugPrintLn(TEXT("Releasing %s's Owner..."), COMP_NAME);
-
-        m_owner->Release();
-        m_owner = nullptr;
-
-        DebugPrintLn(TEXT("Released %s's Owner"), COMP_NAME);
+        DebugPrintLn(TEXT(". Releasing %s's Owner..."), COMP_NAME);
+        {
+            m_owner->Release();
+            m_owner = nullptr;
+        }
+        DebugPrintLn(TEXT(". Released %s's Owner"), COMP_NAME);
     }
 
     m_notify_map->clear();
+
     delete m_notify_map;
     m_notify_map = nullptr;
 
@@ -104,10 +102,13 @@ HRESULT __stdcall ComponentBase::QueryInterface
 
     if ( IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IComponent) )
     {
+        DebugPrintLn(TEXT(". IID_IComponent"));
         *ppvObject = static_cast<IComponent*>(this);
     }
     else
     {
+        DebugPrintLn(TEXT(". No such an interface"));
+        DebugPrintLn(TEXT("%s::%s::QueryInterface() end"), COMP_NAME, COMP_BASE);
         return E_NOINTERFACE;
     }
 
@@ -142,9 +143,9 @@ ULONG __stdcall ComponentBase::Release()
     LONG cRef = ::InterlockedDecrement(&m_cRef);
     if ( cRef == 0 )
     {
-        DebugPrintLn(TEXT("Deleting..."));
+        DebugPrintLn(TEXT(". Deleting..."));
         delete this;
-        DebugPrintLn(TEXT("Deleted"));
+        DebugPrintLn(TEXT(". Deleted"));
     }
 
     UnlockModule();
@@ -213,7 +214,7 @@ HRESULT __stdcall ComponentBase::Attach
         return E_POINTER;
     }
 
-    DebugPrintLn(TEXT("MSG: %s, Listener: %s"), msg, listener->Name());
+    DebugPrintLn(TEXT(". MSG: %s, Listener: %s"), msg, listener->Name());
 
     auto range = m_notify_map->equal_range(std::wstring(msg));
     auto it  = range.first;
@@ -222,7 +223,8 @@ HRESULT __stdcall ComponentBase::Attach
     {
         if ( it->second == listener )
         {
-            DebugPrintLn(TEXT("This message has been already attached to the component"));
+            DebugPrintLn(TEXT(". . This message has been already attached to the component"));
+            DebugPrintLn(TEXT("%s::%s::Attach() end"), COMP_NAME, COMP_BASE);
             return S_FALSE;
         }
         ++it;
@@ -252,7 +254,7 @@ HRESULT __stdcall ComponentBase::Detach
         return E_POINTER;
     }
 
-    DebugPrintLn(TEXT("MSG: %s, Listener: %s"), msg, listener->Name());
+    DebugPrintLn(TEXT(". MSG: %s, Listener: %s"), msg, listener->Name());
 
     size_t count = 0;
     auto range = m_notify_map->equal_range(std::wstring(msg));
@@ -270,7 +272,8 @@ HRESULT __stdcall ComponentBase::Detach
     }
     if ( count == 0 )
     {
-        DebugPrintLn(TEXT("This message was not attached to the component"));
+        DebugPrintLn(TEXT(". . This message was not attached to the component"));
+        DebugPrintLn(TEXT("%s::%s::Detach() end"), COMP_NAME, COMP_BASE);
         return S_FALSE;
     }
 
@@ -322,7 +325,7 @@ HRESULT __stdcall ComponentBase::Notify
 
     if ( nullptr == msg_obj )
     {
-        DebugPrintLn(TEXT("Message object is void"));
+        DebugPrintLn(TEXT(". Message object is void"));
         return E_POINTER;
     }
 

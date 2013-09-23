@@ -23,8 +23,7 @@ struct IComponent;
 
 //---------------------------------------------------------------------------//
 
-static const wchar_t* MSG_COMP_ATTACH       = TEXT("Comp.Attach");
-static const wchar_t* MSG_COMP_DETACH       = TEXT("Comp.Detach");
+static const wchar_t* MSG_COMP_OWNER        = TEXT("Comp.Owner");
 
 static const wchar_t* MSG_COMP_START_DONE   = TEXT("Comp.Start.Done");
 static const wchar_t* MSG_COMP_START_FAILED = TEXT("Comp.Start.Failed");

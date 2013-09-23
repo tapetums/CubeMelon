@@ -7,6 +7,9 @@
 #include <mmreg.h>
 #include <process.h>
 
+#include <shlwapi.h>
+#pragma comment(lib, "shlwapi.lib")
+
 #include "..\include\DebugPrint.h"
 #include "..\include\LockModule.h"
 #include "..\include\Interfaces.h"
@@ -30,8 +33,8 @@ extern const CLSID CLSID_Component =
 { 0xae2c31a0, 0x7f16, 0x4e0d, { 0xb5, 0x2f, 0x22, 0x8e, 0xa0, 0x85, 0x15, 0x8f } };
 
 extern const size_t      MDL_PROP_COUNT    = 5;
-extern const wchar_t*    MDL_PROP_MGR_NAME = TEXT("Output.Wasapi.PropManager");
-extern const wchar_t*    MDL_PROP_NAME     = TEXT("Output.Wasapi.Property");
+extern const wchar_t*    MDL_PROP_MGR_NAME = TEXT("Input.Wave.PropManager");
+extern const wchar_t*    MDL_PROP_NAME     = TEXT("Input.Wave.Property");
 
 extern const size_t      COMP_INDEX      = 0;
 extern const wchar_t*    COMP_NAME       = TEXT("Input.Wave");
@@ -43,7 +46,7 @@ extern const VersionInfo PropVersion     = { 1, 0, 0, 0 };
 
 //---------------------------------------------------------------------------//
 
-struct Wave::Impl
+struct COMP_CLASS_NAME::Impl
 {
     Impl();
     ~Impl();
@@ -63,7 +66,7 @@ struct Wave::Impl
 
 //---------------------------------------------------------------------------//
 
-Wave::Impl::Impl()
+COMP_CLASS_NAME::Impl::Impl()
 {
     params = new InternalParams;
 
@@ -78,7 +81,7 @@ Wave::Impl::Impl()
 
 //---------------------------------------------------------------------------//
 
-Wave::Impl::~Impl()
+COMP_CLASS_NAME::Impl::~Impl()
 {
     delete params;
     params = nullptr;
@@ -86,7 +89,7 @@ Wave::Impl::~Impl()
 
 //---------------------------------------------------------------------------//
 
-void Wave::Impl::ClearQueue()
+void COMP_CLASS_NAME::Impl::ClearQueue()
 {
     QueueData data = { };
     const auto q = &params->q;
@@ -107,7 +110,7 @@ void Wave::Impl::ClearQueue()
 
 //---------------------------------------------------------------------------//
 
-Wave::Wave(IUnknown* pUnkOuter) : InputComponentBase(pUnkOuter)
+COMP_CLASS_NAME::COMP_CLASS_NAME(IUnknown* pUnkOuter) : InputComponentBase(pUnkOuter)
 {
     DebugPrintLn(TEXT("%s::Constructor() begin"), COMP_NAME);
 
@@ -121,7 +124,7 @@ Wave::Wave(IUnknown* pUnkOuter) : InputComponentBase(pUnkOuter)
 
 //---------------------------------------------------------------------------//
 
-Wave::~Wave()
+COMP_CLASS_NAME::~COMP_CLASS_NAME()
 {
     DebugPrintLn(TEXT("%s::Destructor() begin"), COMP_NAME);
 
@@ -149,7 +152,7 @@ Wave::~Wave()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wave::Notify
+HRESULT __stdcall COMP_CLASS_NAME::Notify
 (
     IMsgObject* msg_obj
 )
@@ -164,10 +167,9 @@ HRESULT __stdcall Wave::Notify
 
     HRESULT hr;
 
-    auto sender   = msg_obj->Sender();
-    auto listener = msg_obj->Listener();
-    auto name     = msg_obj->Name();
-    auto msg      = msg_obj->Message();
+    auto const sender = msg_obj->Sender();
+    auto const name   = msg_obj->Name();
+    auto const msg    = msg_obj->Message();
 
     DebugPrintLn(TEXT("%s: %s"), name, msg);
 
@@ -176,7 +178,7 @@ HRESULT __stdcall Wave::Notify
         if ( lstrcmp(msg, MSG_IO_READ_DONE) == 0 )
         {
             m_position += msg_obj->DataSize();
-            m_state = (STATE)(m_state ^ STATE_READING);
+            auto const listener = msg_obj->Listener();
             if ( listener )
             {
                 msg_obj->AddRef();
@@ -186,6 +188,7 @@ HRESULT __stdcall Wave::Notify
             {
                 hr = S_OK;
             }
+            m_state = (STATE)(m_state ^ STATE_READING);
         }
         else if ( lstrcmp(msg, MSG_IO_READ_FAILED) == 0 )
         {
@@ -212,7 +215,7 @@ HRESULT __stdcall Wave::Notify
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wave::Start
+HRESULT __stdcall COMP_CLASS_NAME::Start
 (
     LPVOID args, IComponent* listener
 )
@@ -222,11 +225,13 @@ HRESULT __stdcall Wave::Start
     if ( m_state & STATE_STARTING )
     {
         DebugPrintLn(TEXT("Now starting"));
+        DebugPrintLn(TEXT("%s::Start() end"), COMP_NAME);
         return S_FALSE;
     }
     if ( m_state & STATE_ACTIVE )
     {
         DebugPrintLn(TEXT("Already started"));
+        DebugPrintLn(TEXT("%s::Start() end"), COMP_NAME);
         return S_FALSE;
     }
 
@@ -257,7 +262,7 @@ HRESULT __stdcall Wave::Start
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wave::Stop
+HRESULT __stdcall COMP_CLASS_NAME::Stop
 (
     IComponent* listener
 )
@@ -267,11 +272,13 @@ HRESULT __stdcall Wave::Stop
     if ( m_state & STATE_STOPPING )
     {
         DebugPrintLn(TEXT("Now stopping"));
+        DebugPrintLn(TEXT("%s::Stop() end"), COMP_NAME);
         return S_FALSE;
     }
     if ( !(m_state & STATE_ACTIVE) )
     {
         DebugPrintLn(TEXT("Already stopped"));
+        DebugPrintLn(TEXT("%s::Stop() end"), COMP_NAME);
         return S_FALSE;
     }
 
@@ -311,7 +318,7 @@ HRESULT __stdcall Wave::Stop
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wave::Close
+HRESULT __stdcall COMP_CLASS_NAME::Close
 (
     IComponent* listener
 )
@@ -321,16 +328,19 @@ HRESULT __stdcall Wave::Close
     if ( m_state & STATE_ACTIVE )
     {
         DebugPrintLn(TEXT("Stop component before closing"));
+        DebugPrintLn(TEXT("%s::Close() end"), COMP_NAME);
         return E_COMP_BUSY;
     }
     if ( m_state & STATE_CLOSING )
     {
         DebugPrintLn(TEXT("Now closing"));
+        DebugPrintLn(TEXT("%s::Close() end"), COMP_NAME);
         return S_FALSE;
     }
     if ( !(m_state & STATE_OPEN) )
     {
         DebugPrintLn(TEXT("Already closed"));
+        DebugPrintLn(TEXT("%s::Close() end"), COMP_NAME);
         return S_FALSE;
     }
 
@@ -358,7 +368,7 @@ HRESULT __stdcall Wave::Close
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wave::Open
+HRESULT __stdcall COMP_CLASS_NAME::Open
 (
     LPCWSTR path, LPCWSTR format_as, IComponent* listener
 )
@@ -368,16 +378,19 @@ HRESULT __stdcall Wave::Open
     if ( m_state & STATE_ACTIVE )
     {
         DebugPrintLn(TEXT("Stop component before opening"));
+        DebugPrintLn(TEXT("%s::Open() end"), COMP_NAME);
         return E_COMP_BUSY;
     }
     if ( m_state & STATE_OPENING )
     {
         DebugPrintLn(TEXT("Now opening"));
+        DebugPrintLn(TEXT("%s::Open() end"), COMP_NAME);
         return S_FALSE;
     }
     if ( m_state & STATE_OPEN )
     {
         DebugPrintLn(TEXT("Already open"));
+        DebugPrintLn(TEXT("%s::Open() end"), COMP_NAME);
         return S_FALSE;
     }
 
@@ -419,29 +432,35 @@ HRESULT __stdcall Wave::Open
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wave::QuerySupport(LPCWSTR path, LPCWSTR format_as)
+HRESULT __stdcall COMP_CLASS_NAME::QuerySupport(LPCWSTR path, LPCWSTR format_as)
 {
     DebugPrintLn(TEXT("%s::QuerySupport() begin"), COMP_NAME);
 
-    if ( !this->IsSupportedExtention(path) )
+    DebugPrintLn(TEXT("%s as %s"), path, format_as);
+
+    HRESULT hr;
+
+    if ( !this->IsSupportedExtension(path) )
     {
-        DebugPrintLn(TEXT("Unsupported extension: %S"), path);
-        return E_FAIL;
+        hr = E_FAIL;
     }
-    if ( !this->IsSupportedFormat(format_as) )
+    else if ( !this->IsSupportedFormat(format_as) )
     {
-        DebugPrintLn(TEXT("Unsupported format: %s"), format_as);
-        return E_FAIL;
+        hr = E_FAIL;
+    }
+    else
+    {
+        hr = S_OK;
     }
 
     DebugPrintLn(TEXT("%s::QuerySupport() end"), COMP_NAME);
 
-    return S_OK;
+    return hr;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wave::Seek(INT64 offset, DWORD origin, UINT64* new_pos)
+HRESULT __stdcall COMP_CLASS_NAME::Seek(INT64 offset, DWORD origin, UINT64* new_pos)
 {
     DebugPrintLn(TEXT("%s::Seek() begin"), COMP_NAME);
 
@@ -519,7 +538,7 @@ HRESULT __stdcall Wave::Seek(INT64 offset, DWORD origin, UINT64* new_pos)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wave::Read
+HRESULT __stdcall COMP_CLASS_NAME::Read
 (
     LPVOID buffer, size_t buf_size, size_t* cb_read, IComponent* listener
 )
@@ -567,29 +586,24 @@ HRESULT __stdcall Wave::Read
 
 //---------------------------------------------------------------------------//
 
-bool Wave::IsSupportedExtention(LPCWSTR path) const
+bool COMP_CLASS_NAME::IsSupportedExtension(LPCWSTR path) const
 {
-    WCHAR buf[_MAX_EXT];
-    auto err = ::_wsplitpath_s
-    (
-        path, nullptr, 0, nullptr, 0, nullptr, 0, buf, 0
-    );
-    if ( err )
+    if ( nullptr == path )
     {
-        DebugPrintLn(TEXT("_wsplitpath_s() failed"));
         return false;
     }
 
-    LPWSTR ext = nullptr;
-    if ( buf[0] == '.' )
+    DebugPrintLn(TEXT("%s::IsSupportedExtension(): begin"), COMP_NAME);
+
+    auto ext = ::PathFindExtension(path);
+    if ( ext[0] == '.' )
     {
-        ext = &buf[1];
+        ++ext;
     }
-    else
-    {
-        ext = &buf[0];
-    }
-    DebugPrintLn(TEXT("%s::IsSupportedExtention(): %s"), COMP_NAME, ext);
+
+    DebugPrintLn(TEXT("%s"), ext);
+
+    bool ret;
 
     if ( lstrcmp(ext, TEXT("wav"))  == 0 ||
          lstrcmp(ext, TEXT("WAV"))  == 0 ||
@@ -598,36 +612,63 @@ bool Wave::IsSupportedExtention(LPCWSTR path) const
          lstrcmp(ext, TEXT("rf64")) == 0 ||
          lstrcmp(ext, TEXT("RF64")) == 0 )
     {
-        return true;
+        DebugPrintLn(TEXT("OK! Supported extension"));
+        ret = true;
     }
     else
     {
-        return false;
+        DebugPrintLn(TEXT("Unsupported extension"));
+        ret = false;
     }
+
+    DebugPrintLn(TEXT("%s::IsSupportedExtension(): end"), COMP_NAME);
+
+    return ret;
 }
 
 //---------------------------------------------------------------------------//
 
-bool Wave::IsSupportedFormat(LPCWSTR format) const
+bool COMP_CLASS_NAME::IsSupportedFormat(LPCWSTR format) const
 {
+    if ( nullptr == format )
+    {
+        return false;
+    }
+
+    DebugPrintLn(TEXT("%s::IsSupportedFormat(): begin"), COMP_NAME);
+
     if ( format[0] == '.' )
     {
         ++format;
     }
 
-    if ( lstrcmp(format, TEXT("wav")) )
+    DebugPrintLn(TEXT("%s"), format);
+
+    bool ret;
+
+    if ( lstrcmp(format, TEXT("wav"))  == 0 ||
+         lstrcmp(format, TEXT("audio/wav"))  == 0 ||
+         lstrcmp(format, TEXT("audio/wave"))  == 0 ||
+         lstrcmp(format, TEXT("audio/x-wav"))  == 0 ||
+         lstrcmp(format, TEXT("audio/vnd.wave"))  == 0 )
     {
-        return true;
+        DebugPrintLn(TEXT("OK! Supported format"));
+        ret = true;
     }
     else
     {
-        return false;
+        DebugPrintLn(TEXT("Unsupported format"));
+        ret = false;
     }
+
+    DebugPrintLn(TEXT("%s::IsSupportedFormat(): end"), COMP_NAME);
+
+    return ret;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT Wave::CloseSync()
+HRESULT COMP_CLASS_NAME::CloseSync()
 {
     DebugPrintLn(TEXT("%s::CloseSync() begin"), COMP_NAME);
 
@@ -663,7 +704,7 @@ HRESULT Wave::CloseSync()
 
 //---------------------------------------------------------------------------//
 
-HRESULT Wave::OpenSync()
+HRESULT COMP_CLASS_NAME::OpenSync()
 {
     DebugPrintLn(TEXT("%s::OpenSync() begin"), COMP_NAME);
 
@@ -725,7 +766,7 @@ OPENSYNC_CLOSE_FILE:
 
 //---------------------------------------------------------------------------//
 
-HRESULT Wave::LoadSync()
+HRESULT COMP_CLASS_NAME::LoadSync()
 {
     DebugPrintLn(TEXT("%s::Load() begin"), COMP_NAME);
 
@@ -764,14 +805,24 @@ HRESULT Wave::LoadSync()
         ::GetFileSizeEx(pimpl->hFile, &li);
         fileSize = li.QuadPart;
     }
-    DebugPrintLn(TEXT("File size is %d"), fileSize);
+    DebugPrintLn(TEXT("File size is %lld"), fileSize);
 
     while ( p < pimpl->pView + fileSize )
     {
         ::CopyMemory(&chunkId,   p,     sizeof(chunkId));
         ::CopyMemory(&chunkSize, p + 4, sizeof(chunkSize));
 
-        DebugPrintLn(TEXT("%s"), chunkId);
+        #if defined(_DEBUG) || defined(DEBUG) // Debugのとき
+        {
+            WCHAR buf[5];
+            ::ZeroMemory(buf, sizeof(WCHAR) * 5);
+            for ( size_t i = 0; i < 4; ++i )
+            {
+                buf[i] = chunkId[i];
+            }
+            DebugPrintLn(TEXT("Chunk Id: %s"), buf);
+        }
+        #endif
 
         if ( strncmp(chunkId, "fmt ", sizeof(chunkId)) == 0 )
         {
@@ -797,12 +848,14 @@ HRESULT Wave::LoadSync()
         {
             ::CopyMemory(&fileSize, p +  8, sizeof(fileSize));
             ::CopyMemory(&m_size,   p + 16, sizeof(m_size));
+            DebugPrintLn(TEXT("Data size is %lld"), m_size);
         }
         else if ( strncmp(chunkId, "data", sizeof(chunkId)) == 0 )
         {
             if ( chunkSize != (DWORD)-1 )
             {
                 m_size = chunkSize;
+                DebugPrintLn(TEXT("Data size is %lld"), m_size);
             }
             pimpl->data_origin = p + 8;
         }
@@ -841,7 +894,7 @@ LOADSYNC_CLOSE_FILE:
 
 //---------------------------------------------------------------------------//
 
-HRESULT Wave::ReadSync
+HRESULT COMP_CLASS_NAME::ReadSync
 (
     LPVOID buffer, size_t buf_size, size_t* cb_read
 )
@@ -876,7 +929,7 @@ HRESULT Wave::ReadSync
 
 //---------------------------------------------------------------------------//
 
-HRESULT Wave::ReadAsync
+HRESULT COMP_CLASS_NAME::ReadAsync
 (
     LPVOID buffer, size_t buf_size, IComponent* listener
 )

@@ -140,6 +140,8 @@ MsgObject::MsgObject
 {
     DebugPrintLn(MSGOBJ_NAME TEXT("::Constructor() begin"));
 
+    m_cRef = 0;
+
     m_sender   = sender;
     m_listener = listener;
     m_data     = data;
@@ -153,6 +155,8 @@ MsgObject::MsgObject
     {
         m_listener->AddRef();
     }
+
+    this->AddRef();
 
     DebugPrintLn(MSGOBJ_NAME TEXT("::Constructor() end"));
 }

@@ -4,16 +4,21 @@
 
 //---------------------------------------------------------------------------//
 
+#define COMP_CLASS_NAME SimplePlayer
+
+//---------------------------------------------------------------------------//
+
 namespace CubeMelon {
 
 //---------------------------------------------------------------------------//
 
-class SimplePlayer : public UIComponentBase
+class COMP_CLASS_NAME : public UIComponentBase
 {
 public:
-    explicit SimplePlayer(IUnknown* pUnkOuter);
-    ~SimplePlayer();
+    explicit COMP_CLASS_NAME(IUnknown* pUnkOuter);
+    ~COMP_CLASS_NAME();
 
+    HRESULT __stdcall Notify(IMsgObject* msg_obj) override;
     HRESULT __stdcall Start(LPVOID args = nullptr, IComponent* listener = nullptr) override;
     HRESULT __stdcall Stop(IComponent* listener = nullptr) override;
 

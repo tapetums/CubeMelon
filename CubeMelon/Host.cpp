@@ -1,10 +1,13 @@
 ﻿// CubeMelon.Host.cpp
 
+#include <map>
+
 #include <windows.h>
 
 #include <shlwapi.h>
 #pragma comment(lib, "shlwapi.lib")
 
+#include "..\include\ComPtr.h"
 #include "..\include\DebugPrint.h"
 #include "..\include\LockModule.h"
 #include "..\include\Interfaces.h"
@@ -42,7 +45,7 @@ extern const VersionInfo PropVersion     = { 1, 0, 0, 0 };
 
 //---------------------------------------------------------------------------//
 
-struct Host::Impl
+struct COMP_CLASS_NAME::Impl
 {
     Impl();
     ~Impl();
@@ -55,7 +58,7 @@ struct Host::Impl
 
 //---------------------------------------------------------------------------//
 
-Host::Impl::Impl()
+COMP_CLASS_NAME::Impl::Impl()
 {
     DebugPrintLn(TEXT("%s::Impl::Constructor() begin"), COMP_NAME);
 
@@ -72,12 +75,13 @@ Host::Impl::Impl()
 
 //---------------------------------------------------------------------------//
 
-Host::Impl::~Impl()
+COMP_CLASS_NAME::Impl::~Impl()
 {
     DebugPrintLn(TEXT("%s::Impl::Destructor() begin"), COMP_NAME);
 
     if ( child )
     {
+        child->Stop();
         child->Release();
         child = nullptr;
     }
@@ -97,7 +101,7 @@ Host::Impl::~Impl()
 
 //---------------------------------------------------------------------------//
 
-Host::Host() : ComponentBase(nullptr)
+COMP_CLASS_NAME::COMP_CLASS_NAME() : ComponentBase(nullptr)
 {
     DebugPrintLn(TEXT("%s::Constructor() begin"), COMP_NAME);
 
@@ -108,7 +112,7 @@ Host::Host() : ComponentBase(nullptr)
 
 //---------------------------------------------------------------------------//
 
-Host::~Host()
+COMP_CLASS_NAME::~COMP_CLASS_NAME()
 {
     DebugPrintLn(TEXT("%s::Destructor() begin"), COMP_NAME);
 
@@ -122,7 +126,7 @@ Host::~Host()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Host::GetInstance
+HRESULT __stdcall COMP_CLASS_NAME::GetInstance
 (
     REFCLSID rclsid, REFIID riid, void** ppvObject
 )
@@ -172,7 +176,7 @@ HRESULT __stdcall Host::GetInstance
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Host::Start(LPVOID args, IComponent* listener)
+HRESULT __stdcall COMP_CLASS_NAME::Start(LPVOID args, IComponent* listener)
 {
     DebugPrintLn(TEXT("%s::Start() begin"), COMP_NAME);
 
@@ -180,12 +184,14 @@ HRESULT __stdcall Host::Start(LPVOID args, IComponent* listener)
 
     if ( m_state & STATE_ACTIVE )
     {
-        DebugPrintLn(TEXT("Already started"));
+        DebugPrintLn(TEXT(". Already started"));
+        DebugPrintLn(TEXT("%s::Start() end"), COMP_NAME);
         return S_FALSE;
     }
     if ( m_state & STATE_STARTING )
     {
-        DebugPrintLn(TEXT("Now starting"));
+        DebugPrintLn(TEXT(". Now starting"));
+        DebugPrintLn(TEXT("%s::Start() end"), COMP_NAME);
         return S_FALSE;
     }
 
@@ -197,7 +203,7 @@ HRESULT __stdcall Host::Start(LPVOID args, IComponent* listener)
     m_state = (STATE)(m_state | STATE_STARTING);
 
     // コンポーネントの読み込み
-    DebugPrintLn(TEXT("Loading components..."));
+    DebugPrintLn(TEXT(". Loading components..."));
     {
         WCHAR dir_path[MAX_PATH];
         ::GetModuleFileName(nullptr, dir_path, MAX_PATH);
@@ -210,11 +216,11 @@ HRESULT __stdcall Host::Start(LPVOID args, IComponent* listener)
             return hr;
         }
     }
-    DebugPrintLn(TEXT("Loaded components"));
+    DebugPrintLn(TEXT(". Loaded components"));
 
     // メインウィンドウの起動
     #if defined(_DEBUG) || defined(DEBUG)
-    DebugPrintLn(TEXT("Opening MainWindow..."));
+    DebugPrintLn(TEXT(". Opening MainWindow..."));
     {
         pimpl->mwnd = new MainWindow;
         if ( pimpl->mwnd )
@@ -232,14 +238,14 @@ HRESULT __stdcall Host::Start(LPVOID args, IComponent* listener)
                 }
             }
             pimpl->mwnd->addConsoleText(TEXT("Ready"));
-            pimpl->mwnd->show();
+            pimpl->mwnd->showMinimized();
         }
     }
-    DebugPrintLn(TEXT("Opened MainWindow"));
+    DebugPrintLn(TEXT(". Opened MainWindow"));
     #endif
 
     // 子コンポーネントの起動
-    DebugPrintLn(TEXT("Executing component..."));
+    DebugPrintLn(TEXT(". Executing component..."));
     {
         hr = this->GetInstance
         (
@@ -247,35 +253,42 @@ HRESULT __stdcall Host::Start(LPVOID args, IComponent* listener)
         );
         if ( nullptr == pimpl->child )
         {
-            DebugPrintLn(TEXT("Component was not found"));
-            return hr;
+            DebugPrintLn(TEXT(". . Component was not found"));
+            DebugPrintLn(TEXT("%s::Start() end"), COMP_NAME);
+           return hr;
         }
         hr = pimpl->child->Start();
     }
-    DebugPrintLn(TEXT("Executed component"));
+    DebugPrintLn(TEXT(". Executed component"));
 
     m_state = (STATE)(m_state | STATE_ACTIVE);
     m_state = (STATE)(m_state ^ STATE_STARTING);
 
     DebugPrintLn(TEXT("%s::Start() end"), COMP_NAME);
 
+
+    pimpl->child->AddRef();
+    auto c = pimpl->child->Release();
+
     return hr;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Host::Stop(IComponent* listener)
+HRESULT __stdcall COMP_CLASS_NAME::Stop(IComponent* listener)
 {
     DebugPrintLn(TEXT("%s::Stop() begin"), COMP_NAME);
 
     if ( !(m_state & STATE_ACTIVE) )
     {
-        DebugPrintLn(TEXT("Already stopped"));
+        DebugPrintLn(TEXT(". Already stopped"));
+        DebugPrintLn(TEXT("%s::Stop() end"), COMP_NAME);
         return S_FALSE;
     }
     if ( m_state & STATE_STOPPING )
     {
-        DebugPrintLn(TEXT("Now stopping"));
+        DebugPrintLn(TEXT(". Now stopping"));
+        DebugPrintLn(TEXT("%s::Stop() end"), COMP_NAME);
         return S_FALSE;
     }
 
@@ -289,6 +302,7 @@ HRESULT __stdcall Host::Stop(IComponent* listener)
     // 子コンポーネントの破棄
     if ( pimpl->child )
     {
+        pimpl->child->Stop();
         pimpl->child->Release();
         pimpl->child = nullptr;
     }

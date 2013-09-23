@@ -7,6 +7,9 @@
 #include <mmreg.h>
 #include <process.h>
 
+#include <shlwapi.h>
+#pragma comment(lib, "shlwapi.lib")
+
 #include <mmdeviceapi.h>
 #include <audioclient.h>
 
@@ -45,7 +48,7 @@ extern const VersionInfo PropVersion     = { 1, 0, 0, 0 };
 
 //---------------------------------------------------------------------------//
 
-struct Wasapi::Impl
+struct COMP_CLASS_NAME::Impl
 {
     Impl();
     ~Impl();
@@ -61,7 +64,7 @@ struct Wasapi::Impl
 
 //---------------------------------------------------------------------------//
 
-Wasapi::Impl::Impl()
+COMP_CLASS_NAME::Impl::Impl()
 {
     params = new InternalParams;
 
@@ -72,7 +75,7 @@ Wasapi::Impl::Impl()
 
 //---------------------------------------------------------------------------//
 
-Wasapi::Impl::~Impl()
+COMP_CLASS_NAME::Impl::~Impl()
 {
     delete params;
     params = nullptr;
@@ -80,7 +83,7 @@ Wasapi::Impl::~Impl()
 
 //---------------------------------------------------------------------------//
 
-void Wasapi::Impl::ClearQueue()
+void COMP_CLASS_NAME::Impl::ClearQueue()
 {
     QueueData data = { };
     const auto q = &params->q;
@@ -101,7 +104,7 @@ void Wasapi::Impl::ClearQueue()
 
 //---------------------------------------------------------------------------//
 
-Wasapi::Wasapi(IUnknown* pUnkOuter) : OutputComponentBase(pUnkOuter)
+COMP_CLASS_NAME::COMP_CLASS_NAME(IUnknown* pUnkOuter) : OutputComponentBase(pUnkOuter)
 {
     DebugPrintLn(TEXT("%s::Constructor() begin"), COMP_NAME);
 
@@ -113,7 +116,7 @@ Wasapi::Wasapi(IUnknown* pUnkOuter) : OutputComponentBase(pUnkOuter)
 
 //---------------------------------------------------------------------------//
 
-Wasapi::~Wasapi()
+COMP_CLASS_NAME::~COMP_CLASS_NAME()
 {
     DebugPrintLn(TEXT("%s::Destructor() begin"), COMP_NAME);
 
@@ -141,7 +144,7 @@ Wasapi::~Wasapi()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wasapi::Notify(IMsgObject* msg_obj)
+HRESULT __stdcall COMP_CLASS_NAME::Notify(IMsgObject* msg_obj)
 {
     DebugPrintLn(TEXT("%s::Notify() begin"), COMP_NAME);
 
@@ -153,10 +156,9 @@ HRESULT __stdcall Wasapi::Notify(IMsgObject* msg_obj)
 
     HRESULT hr;
 
-    auto sender   = msg_obj->Sender();
-    auto listener = msg_obj->Listener();
-    auto name     = msg_obj->Name();
-    auto msg      = msg_obj->Message();
+    auto const sender = msg_obj->Sender();
+    auto const name   = msg_obj->Name();
+    auto const msg    = msg_obj->Message();
 
     DebugPrintLn(TEXT("%s: %s"), name, msg);
 
@@ -164,8 +166,7 @@ HRESULT __stdcall Wasapi::Notify(IMsgObject* msg_obj)
     {
         if ( lstrcmp(msg, MSG_IO_WRITE_DONE) == 0 )
         {
-            //m_position += msg_obj->DataSize();
-            m_state = (STATE)(m_state ^ STATE_WRITING);
+            auto const listener = msg_obj->Listener();
             if ( listener )
             {
                 msg_obj->AddRef();
@@ -175,6 +176,7 @@ HRESULT __stdcall Wasapi::Notify(IMsgObject* msg_obj)
             {
                 hr = S_OK;
             }
+            m_state = (STATE)(m_state ^ STATE_WRITING);
         }
         else if ( lstrcmp(msg, MSG_IO_WRITE_FAILED) == 0 )
         {
@@ -201,19 +203,21 @@ HRESULT __stdcall Wasapi::Notify(IMsgObject* msg_obj)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wasapi::Start(LPVOID args, IComponent* listener)
+HRESULT __stdcall COMP_CLASS_NAME::Start(LPVOID args, IComponent* listener)
 {
     DebugPrintLn(TEXT("%s::Start() begin"), COMP_NAME);
 
     if ( m_state & STATE_STARTING )
     {
         DebugPrintLn(TEXT("Now starting"));
+        DebugPrintLn(TEXT("%s::Start() end"), COMP_NAME);
         return S_FALSE;
     }
     if ( m_state & STATE_ACTIVE )
     {
         DebugPrintLn(TEXT("Already started"));
         return S_FALSE;
+        DebugPrintLn(TEXT("%s::Start() end"), COMP_NAME);
     }
 
     if ( listener )
@@ -243,18 +247,20 @@ HRESULT __stdcall Wasapi::Start(LPVOID args, IComponent* listener)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wasapi::Stop(IComponent* listener)
+HRESULT __stdcall COMP_CLASS_NAME::Stop(IComponent* listener)
 {
     DebugPrintLn(TEXT("%s::Stop() begin"), COMP_NAME);
 
     if ( m_state & STATE_STOPPING )
     {
         DebugPrintLn(TEXT("Now stopping"));
+        DebugPrintLn(TEXT("%s::Stop() end"), COMP_NAME);
         return S_FALSE;
     }
     if ( !(m_state & STATE_ACTIVE) )
     {
         DebugPrintLn(TEXT("Already stopped"));
+        DebugPrintLn(TEXT("%s::Stop() end"), COMP_NAME);
         return S_FALSE;
     }
 
@@ -294,7 +300,7 @@ HRESULT __stdcall Wasapi::Stop(IComponent* listener)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wasapi::Close
+HRESULT __stdcall COMP_CLASS_NAME::Close
 (
     IComponent* listener
 )
@@ -304,16 +310,19 @@ HRESULT __stdcall Wasapi::Close
     if ( m_state & STATE_ACTIVE )
     {
         DebugPrintLn(TEXT("Stop component before closing"));
+        DebugPrintLn(TEXT("%s::Close() end"), COMP_NAME);
         return E_COMP_BUSY;
     }
     if ( m_state & STATE_CLOSING )
     {
         DebugPrintLn(TEXT("Now closing"));
+        DebugPrintLn(TEXT("%s::Close() end"), COMP_NAME);
         return S_FALSE;
     }
     if ( !(m_state & STATE_OPEN) )
     {
         DebugPrintLn(TEXT("Already closed"));
+        DebugPrintLn(TEXT("%s::Close() end"), COMP_NAME);
         return S_FALSE;
     }
 
@@ -346,7 +355,7 @@ HRESULT __stdcall Wasapi::Close
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wasapi::Open
+HRESULT __stdcall COMP_CLASS_NAME::Open
 (
     LPCWSTR path, LPCWSTR format_as, IComponent* listener
 )
@@ -356,16 +365,19 @@ HRESULT __stdcall Wasapi::Open
     if ( m_state & STATE_ACTIVE )
     {
         DebugPrintLn(TEXT("Stop component before opening"));
+        DebugPrintLn(TEXT("%s::Open() end"), COMP_NAME);
         return E_COMP_BUSY;
     }
     if ( m_state & STATE_OPENING )
     {
         DebugPrintLn(TEXT("Now opening"));
+        DebugPrintLn(TEXT("%s::Open() end"), COMP_NAME);
         return S_FALSE;
     }
     if ( m_state & STATE_OPEN )
     {
         DebugPrintLn(TEXT("Already open"));
+        DebugPrintLn(TEXT("%s::Open() end"), COMP_NAME);
         return S_FALSE;
     }
 
@@ -408,32 +420,38 @@ HRESULT __stdcall Wasapi::Open
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wasapi::QuerySupport
+HRESULT __stdcall COMP_CLASS_NAME::QuerySupport
 (
     LPCWSTR path, LPCWSTR format_as
 )
 {
     DebugPrintLn(TEXT("%s::QuerySupport() begin"), COMP_NAME);
 
-    if ( !this->IsSupportedExtention(path) )
+    DebugPrintLn(TEXT("%s as %s"), path, format_as);
+
+    HRESULT hr;
+
+    if ( !this->IsSupportedExtension(path) )
     {
-        DebugPrintLn(TEXT("Unsupported extension: %S"), path);
-        return E_FAIL;
+        hr = E_FAIL;
     }
-    if ( !this->IsSupportedFormat(format_as) )
+    else if ( !this->IsSupportedFormat(format_as) )
     {
-        DebugPrintLn(TEXT("Unsupported format: %s"), format_as);
-        return E_FAIL;
+        hr = E_FAIL;
+    }
+    else
+    {
+        hr = S_OK;
     }
 
     DebugPrintLn(TEXT("%s::QuerySupport() end"), COMP_NAME);
 
-    return S_OK;
+    return hr;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall Wasapi::Write
+HRESULT __stdcall COMP_CLASS_NAME::Write
 (
     LPVOID buffer, size_t buf_size, size_t* cb_written, IComponent* listener
 )
@@ -443,11 +461,13 @@ HRESULT __stdcall Wasapi::Write
     if ( !(m_state & STATE_OPEN) )
     {
         DebugPrintLn(TEXT("The object is not yet open"));
+        DebugPrintLn(TEXT("%s::Write() end"), COMP_NAME);
         return E_PENDING;
     }
     if ( m_state & STATE_WRITING )
     {
         DebugPrintLn(TEXT("Now writing"));
+        DebugPrintLn(TEXT("%s::Write() end"), COMP_NAME);
         return S_FALSE;
     }
 
@@ -476,29 +496,24 @@ HRESULT __stdcall Wasapi::Write
 
 //---------------------------------------------------------------------------//
 
-bool Wasapi::IsSupportedExtention(LPCWSTR path) const
+bool COMP_CLASS_NAME::IsSupportedExtension(LPCWSTR path) const
 {
-    WCHAR buf[_MAX_EXT];
-    auto err = ::_wsplitpath_s
-    (
-        path, nullptr, 0, nullptr, 0, nullptr, 0, buf, 0
-    );
-    if ( err )
+    if ( nullptr == path )
     {
-        DebugPrintLn(TEXT("_wsplitpath_s() failed"));
         return false;
     }
 
-    LPWSTR ext = nullptr;
-    if ( buf[0] == '.' )
+    DebugPrintLn(TEXT("%s::IsSupportedExtension(): begin"), COMP_NAME);
+
+    auto ext = ::PathFindExtension(path);
+    if ( ext[0] == '.' )
     {
-        ext = &buf[1];
+        ++ext;
     }
-    else
-    {
-        ext = &buf[0];
-    }
-    DebugPrintLn(TEXT("%s::Impl::IsSupportedExtention(): %s"), COMP_NAME, ext);
+
+    DebugPrintLn(TEXT("%s"), ext);
+
+    bool ret;
 
     if ( lstrcmp(ext, TEXT("wav"))  == 0 ||
          lstrcmp(ext, TEXT("WAV"))  == 0 ||
@@ -507,36 +522,63 @@ bool Wasapi::IsSupportedExtention(LPCWSTR path) const
          lstrcmp(ext, TEXT("rf64")) == 0 ||
          lstrcmp(ext, TEXT("RF64")) == 0 )
     {
-        return true;
+        DebugPrintLn(TEXT("OK! Supported extension"));
+        ret = true;
     }
     else
     {
-        return false;
+        DebugPrintLn(TEXT("Unsupported extension"));
+        ret = false;
     }
+
+    DebugPrintLn(TEXT("%s::IsSupportedExtension(): end"), COMP_NAME);
+
+    return ret;
 }
 
 //---------------------------------------------------------------------------//
 
-bool Wasapi::IsSupportedFormat(LPCWSTR format) const
+bool COMP_CLASS_NAME::IsSupportedFormat(LPCWSTR format) const
 {
+    if ( nullptr == format )
+    {
+        return false;
+    }
+
+    DebugPrintLn(TEXT("%s::IsSupportedFormat(): begin"), COMP_NAME);
+
     if ( format[0] == '.' )
     {
         ++format;
     }
 
-    if ( lstrcmp(format, TEXT("wav")) )
+    DebugPrintLn(TEXT("%s"), format);
+
+    bool ret;
+
+    if ( lstrcmp(format, TEXT("wav"))  == 0 ||
+         lstrcmp(format, TEXT("audio/wav"))  == 0 ||
+         lstrcmp(format, TEXT("audio/wave"))  == 0 ||
+         lstrcmp(format, TEXT("audio/x-wav"))  == 0 ||
+         lstrcmp(format, TEXT("audio/vnd.wave"))  == 0 )
     {
-        return true;
+        DebugPrintLn(TEXT("OK! Supported format"));
+        ret = true;
     }
     else
     {
-        return false;
+        DebugPrintLn(TEXT("Unsupported format"));
+        ret = false;
     }
+
+    DebugPrintLn(TEXT("%s::IsSupportedFormat(): end"), COMP_NAME);
+
+    return ret;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT Wasapi::CloseSync()
+HRESULT COMP_CLASS_NAME::CloseSync()
 {
     DebugPrintLn(TEXT("%s::Close() begin"), COMP_NAME);
 
@@ -549,14 +591,14 @@ HRESULT Wasapi::CloseSync()
 
 //---------------------------------------------------------------------------//
 
-HRESULT Wasapi::CloseAsync(IComponent* listener)
+HRESULT COMP_CLASS_NAME::CloseAsync(IComponent* listener)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT Wasapi::OpenSync()
+HRESULT COMP_CLASS_NAME::OpenSync()
 {
     DebugPrintLn(TEXT("%s::Open() begin"), COMP_NAME);
 
@@ -573,14 +615,14 @@ CLOSE_ENDPOINT:
 
 //---------------------------------------------------------------------------//
 
-HRESULT Wasapi::OpenAsync(IComponent* listener)
+HRESULT COMP_CLASS_NAME::OpenAsync(IComponent* listener)
 {
     return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------------//
 
-HRESULT Wasapi::WriteSync
+HRESULT COMP_CLASS_NAME::WriteSync
 (
     LPVOID buffer, size_t buf_size, size_t* cb_written
 )
@@ -590,7 +632,7 @@ HRESULT Wasapi::WriteSync
 
 //---------------------------------------------------------------------------//
 
-HRESULT Wasapi::WriteAsync
+HRESULT COMP_CLASS_NAME::WriteAsync
 (
     LPVOID buffer, size_t buf_size, IComponent* listener
 )

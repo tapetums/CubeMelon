@@ -1,4 +1,4 @@
-﻿// mainwindow.cpp
+﻿// CubeMelon.mainwindow.cpp
 
 #define NOMINMAX /// QTBUG-30839
 
@@ -88,6 +88,8 @@ void MainWindow::addConsoleText(const wchar_t* text)
 
 void MainWindow::resizeEvent(QResizeEvent* event)
 {
+    DebugPrintLn(NAME TEXT("::resizeEvent() begin"));
+
     const int m_bar = ui->menuBar->height();
     const int s_bar = ui->statusBar->height();
 
@@ -100,6 +102,10 @@ void MainWindow::resizeEvent(QResizeEvent* event)
     h = ui->tabWidget->height();
     ui->treeWidget->setGeometry(0, 0, w, h);
     ui->plainTextEdit->setGeometry(0, 0, w, h);
+
+    DebugPrintLn(NAME TEXT("::resizeEvent() end"));
+
+    QMainWindow::resizeEvent(event);
 }
 
 //---------------------------------------------------------------------------//
@@ -175,4 +181,4 @@ void MainWindow::clearList()
 
 //---------------------------------------------------------------------------//
 
-// mainwindow.cpp
+// CubeMelon.mainwindow.cpp

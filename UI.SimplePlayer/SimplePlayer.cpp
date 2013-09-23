@@ -1,7 +1,12 @@
 ﻿// UI.SimplePlayer.SimplePlayer.cpp
 
+#include <string>
+#include <vector>
+#include <map>
+
 #include <windows.h>
 
+#include "..\include\ComPtr.h"
 #include "..\include\DebugPrint.h"
 #include "..\include\LockModule.h"
 #include "..\include\Interfaces.h"
@@ -32,40 +37,55 @@ extern const wchar_t*    PropDescription = TEXT("Audio player window component f
 extern const wchar_t*    PropCopyright   = TEXT("(C) 2012-2013 tapetums");
 extern const VersionInfo PropVersion     = { 1, 0, 0, 0 };
 
+extern const wchar_t*    MSG_ADD_TO_PLAYLIST = TEXT("UI.SimplePlayer.QuerySupport");
+
 //---------------------------------------------------------------------------//
 
 STDAPI DllGetProperty(size_t index, IPropManager** pm);
 
 //---------------------------------------------------------------------------//
 
-struct SimplePlayer::Impl
+struct COMP_CLASS_NAME::Impl
 {
     Impl();
     ~Impl();
 
-    MainWindow* main_wnd;
-    IComponent* comp_input;
-    IComponent* comp_output;
+    void Clear();
+
+    MainWindow*       main_wnd;
+    IOutputComponent* comp_output;
+
+    size_t i_now_playying;
+    std::map<std::wstring, ComPtr<IInputComponent>> play_list;
+    std::vector<ComPtr<IInputComponent>>  comp_input_array;
+    std::vector<ComPtr<IOutputComponent>> comp_output_array;
 };
 
 //---------------------------------------------------------------------------//
 
-SimplePlayer::Impl::Impl()
+COMP_CLASS_NAME::Impl::Impl()
 {
     main_wnd    = nullptr;
-    comp_input  = nullptr;
     comp_output = nullptr;
+
+    i_now_playying = 0;
 }
 
 //---------------------------------------------------------------------------//
 
-SimplePlayer::Impl::~Impl()
+COMP_CLASS_NAME::Impl::~Impl()
 {
-    if ( comp_input )
-    {
-        comp_input->Release();
-        comp_input = nullptr;
-    }
+    this->Clear();
+}
+
+//---------------------------------------------------------------------------//
+
+void COMP_CLASS_NAME::Impl::Clear()
+{
+    play_list.clear();
+    comp_input_array.clear();
+    comp_output_array.clear();
+
     if ( comp_output )
     {
         comp_output->Release();
@@ -73,14 +93,14 @@ SimplePlayer::Impl::~Impl()
     }
     if ( main_wnd )
     {
-        delete main_wnd;
+        main_wnd->close();
         main_wnd = nullptr;
     }
 }
 
 //---------------------------------------------------------------------------//
 
-SimplePlayer::SimplePlayer(IUnknown* pUnkOuter) : UIComponentBase(pUnkOuter)
+COMP_CLASS_NAME::COMP_CLASS_NAME(IUnknown* pUnkOuter) : UIComponentBase(pUnkOuter)
 {
     DebugPrintLn(TEXT("%s::Constructor() begin"), COMP_NAME);
 
@@ -91,7 +111,7 @@ SimplePlayer::SimplePlayer(IUnknown* pUnkOuter) : UIComponentBase(pUnkOuter)
 
 //---------------------------------------------------------------------------//
 
-SimplePlayer::~SimplePlayer()
+COMP_CLASS_NAME::~COMP_CLASS_NAME()
 {
     DebugPrintLn(TEXT("%s::Destructor() begin"), COMP_NAME);
 
@@ -105,18 +125,88 @@ SimplePlayer::~SimplePlayer()
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall SimplePlayer::Start(LPVOID args, IComponent* listener)
+HRESULT __stdcall COMP_CLASS_NAME::Notify(IMsgObject* msg_obj)
+{
+    DebugPrintLn(TEXT("%s::Notify() begin"), COMP_NAME);
+
+    if ( nullptr == msg_obj )
+    {
+        DebugPrintLn(TEXT("Message object is void"));
+        return E_POINTER;
+    }
+
+    HRESULT hr = S_FALSE;
+
+    auto const sender = msg_obj->Sender();
+    auto const name   = msg_obj->Name();
+    auto const msg    = msg_obj->Message();
+
+    DebugPrintLn(TEXT("%s: %s"), name, msg);
+
+    if ( sender == this )
+    {
+        if ( lstrcmp(msg, MSG_ADD_TO_PLAYLIST) == 0 )
+        {
+            IInputComponent* comp_input = nullptr;
+
+            auto const path = (WCHAR*)msg_obj->Data(0);
+            auto const itE = pimpl->comp_input_array.end();
+            auto it = pimpl->comp_input_array.begin();
+
+            while ( it != itE )
+            {
+                comp_input = it->GetInterface();
+                if ( comp_input )
+                {
+                    hr = comp_input->QuerySupport(path, TEXT("audio/wav"));
+                    if ( SUCCEEDED(hr) )
+                    {
+                        DebugPrintLn(TEXT(". Adding play list..."));
+                        {
+                            pimpl->play_list[path] =
+                                ComPtr<IInputComponent>(comp_input);
+                        }
+                        DebugPrintLn(TEXT(". Added play list"));
+
+                        //DebugPrintLn(TEXT(". Opening file..."));
+                        {
+                            //comp_input->Open(path, TEXT("audio/wav"));
+                        }
+                        //DebugPrintLn(TEXT(". Opened file"));
+
+                        break;
+                    }
+                    comp_input = nullptr;
+                }
+                ++it;
+            }
+        }
+    }
+
+    msg_obj->Release();
+    msg_obj = nullptr;
+
+    DebugPrintLn(TEXT("%s::Notify() end"), COMP_NAME);
+
+    return hr;
+}
+
+//---------------------------------------------------------------------------//
+
+HRESULT __stdcall COMP_CLASS_NAME::Start(LPVOID args, IComponent* listener)
 {
     DebugPrintLn(TEXT("%s::Start() begin"), COMP_NAME);
 
     if ( m_state & STATE_STARTING )
     {
         DebugPrintLn(TEXT("Now starting"));
+        DebugPrintLn(TEXT("%s::Start() end"), COMP_NAME);
         return S_FALSE;
     }
     if ( m_state & STATE_ACTIVE )
     {
         DebugPrintLn(TEXT("Already started"));
+        DebugPrintLn(TEXT("%s::Start() end"), COMP_NAME);
         return S_FALSE;
     }
 
@@ -125,7 +215,64 @@ HRESULT __stdcall SimplePlayer::Start(LPVOID args, IComponent* listener)
         return E_NOTIMPL;
     }
 
+    HRESULT hr;
+
     m_state = (STATE)(m_state | STATE_STARTING);
+
+    ICompManager*    manager    = nullptr;
+    ICompAdapter*    adapter    = nullptr;
+    IInputComponent* comp_input = nullptr;
+
+    DebugPrintLn(TEXT("Loading input components..."));
+    if ( m_owner )
+    {
+        DebugPrintLn(TEXT("Getting component manager..."));
+        hr = m_owner->GetInstance(CLSID_NULL, IID_ICompManager, (void**)&manager);
+        DebugPrintLn(TEXT("Got component manager"));
+        if ( manager )
+        {
+            auto count = manager->ComponentCount();
+            for ( auto index = 0; index < count; ++index )
+            {
+                DebugPrintLn(TEXT("Checking whether this is an input component: %d/%d"), index, count);
+                adapter = manager->GetAt(index);
+                if ( adapter )
+                {
+                    DebugPrintLn(TEXT("%s"), adapter->Name());
+                    if ( IsEqualCLSID(CLSID_Component, adapter->ClassID()) )
+                    {
+                        DebugPrintLn(TEXT("This is myself"));
+                    }
+                    else
+                    {
+                        hr = adapter->CreateInstance
+                        (
+                            this, IID_IInputComponent,
+                            (void**)&comp_input
+                        );
+                    }
+                    adapter->Release();
+                    adapter = nullptr;
+
+                    if ( comp_input )
+                    {
+                        DebugPrintLn(TEXT("This is an input component"));
+                        pimpl->comp_input_array.push_back
+                        (
+                            ComPtr<IInputComponent>(comp_input)
+                        );
+                        comp_input->Release();
+                        comp_input = nullptr;
+                    }
+                }
+            }
+            DebugPrintLn(TEXT("Releasing component manager..."));
+            manager->Release();
+            manager = nullptr;
+            DebugPrintLn(TEXT("Released component manager"));
+        }
+    }
+    DebugPrintLn(TEXT("Loaded input components"));
 
     pimpl->main_wnd = new MainWindow;
     pimpl->main_wnd->setOwner(static_cast<IComponent*>((void*)this));
@@ -143,18 +290,20 @@ HRESULT __stdcall SimplePlayer::Start(LPVOID args, IComponent* listener)
 
 //---------------------------------------------------------------------------//
 
-HRESULT __stdcall SimplePlayer::Stop(IComponent* listener)
+HRESULT __stdcall COMP_CLASS_NAME::Stop(IComponent* listener)
 {
     DebugPrintLn(TEXT("%s::Stop() begin"), COMP_NAME);
 
     if ( m_state & STATE_STOPPING )
     {
         DebugPrintLn(TEXT("Now stopping"));
+        DebugPrintLn(TEXT("%s::Stop() end"), COMP_NAME);
         return S_FALSE;
     }
     if ( !(m_state & STATE_ACTIVE) )
     {
         DebugPrintLn(TEXT("Already stopped"));
+        DebugPrintLn(TEXT("%s::Stop() end"), COMP_NAME);
         return S_FALSE;
     }
 
@@ -165,21 +314,8 @@ HRESULT __stdcall SimplePlayer::Stop(IComponent* listener)
 
     m_state = (STATE)(m_state | STATE_STOPPING);
 
-    if ( pimpl->main_wnd )
-    {
-        delete pimpl->main_wnd;
-        pimpl->main_wnd = nullptr;
-    }
-    if ( pimpl->comp_input )
-    {
-        pimpl->comp_input->Release();
-        pimpl->comp_input = nullptr;
-    }
-    if ( pimpl->comp_output )
-    {
-        pimpl->comp_output->Release();
-        pimpl->comp_output = nullptr;
-    }
+    pimpl->Clear();
+
     if ( m_owner )
     {
         auto hr = m_owner->Stop();

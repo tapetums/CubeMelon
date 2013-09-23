@@ -4,15 +4,19 @@
 
 //---------------------------------------------------------------------------//
 
+#define COMP_CLASS_NAME Wasapi
+
+//---------------------------------------------------------------------------//
+
 namespace CubeMelon {
 
 //---------------------------------------------------------------------------//
 
-class Wasapi : public OutputComponentBase
+class COMP_CLASS_NAME : public OutputComponentBase
 {
 public:
-    explicit Wasapi(IUnknown* pUnkOuter);
-    ~Wasapi();
+    explicit COMP_CLASS_NAME(IUnknown* pUnkOuter);
+    ~COMP_CLASS_NAME();
 
     HRESULT __stdcall Notify(IMsgObject* msg_obj) override;
     HRESULT __stdcall Start(LPVOID args = nullptr, IComponent* listener = nullptr) override;
@@ -26,7 +30,7 @@ public:
 
 
 protected:
-    bool IsSupportedExtention(LPCWSTR path) const;
+    bool IsSupportedExtension(LPCWSTR path) const;
     bool IsSupportedFormat(LPCWSTR format) const;
 
     HRESULT CloseSync();

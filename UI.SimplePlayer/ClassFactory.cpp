@@ -77,10 +77,8 @@ STDMETHODIMP ClassFactory::CreateInstance
     }
 
     hr = comp->QueryInterface(riid, ppvObject);
-    if ( SUCCEEDED(hr) && ppvObject )
-    {
-        hr = comp->Release();
-    }
+
+    comp->Release();
 
     return hr;
 }

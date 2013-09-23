@@ -17,7 +17,6 @@ SOURCES +=\
     ../include/LockModule.cpp \
     ../include/ComponentBase.cpp \
     ../include/Module.PropManager.cpp \
-    ClassFactory.cpp \
     CompManager.cpp \
     mainwindow.cpp \
     main.cpp\
@@ -30,7 +29,6 @@ HEADERS +=\
     ../include/LockModule.h \
     ../include/Functions.h \
     ../include/Interfaces.h \
-    ../include/ClassFactory.h \
     ../include/ComponentBase.h \
     ../include/PropManager.h \
     CompManager.h \

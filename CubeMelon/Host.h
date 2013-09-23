@@ -4,15 +4,19 @@
 
 //---------------------------------------------------------------------------//
 
+#define COMP_CLASS_NAME Host
+
+//---------------------------------------------------------------------------//
+
 namespace CubeMelon {
 
 //---------------------------------------------------------------------------//
 
-class Host : public ComponentBase
+class COMP_CLASS_NAME : public ComponentBase
 {
 public:
-    Host();
-    ~Host();
+    COMP_CLASS_NAME();
+    ~COMP_CLASS_NAME();
 
     HRESULT __stdcall GetInstance(REFCLSID rclsid, REFIID riid, void** ppvObject) override;
     HRESULT __stdcall Start(LPVOID args = nullptr, IComponent* listener = nullptr) override;

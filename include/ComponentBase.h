@@ -4,10 +4,6 @@
 
 //---------------------------------------------------------------------------//
 
-STDAPI DllGetPropManager(size_t index, CubeMelon::IPropManager** pm);
-
-//---------------------------------------------------------------------------//
-
 template <class T> struct ComPtr;
 
 namespace std
